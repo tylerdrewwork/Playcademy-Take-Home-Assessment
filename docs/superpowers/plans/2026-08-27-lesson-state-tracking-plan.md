@@ -613,13 +613,16 @@ git commit -m "Add IndexedDB persistence for lesson progress"
 **Files:**
 - Create: `src/lessons/lessonProgress.svelte.js`
 - Test: `src/lessons/lessonProgress.svelte.test.js`
+- Create: `src/lessons/lessonProgressSingleton.svelte.js`
 
 **Interfaces:**
 - Consumes: `createInitialProgress`, `advanceInstructionStep`, `submitProblemAnswer`, `isMultiplayerUnlocked` from `./progression.js` (Task 1); `saveProgress`, `loadProgress`, `clearProgress` from `./progressStorage.js` (Task 3, shaped to the same three-function interface so a fake can substitute for it in tests); `combiningGroupsContent` from `./content/combiningGroupsContent.js` (Task 2).
-- Produces (for later UI work — not built in this plan): `createLessonProgressStore({ content, storage }): LessonProgressStore` (the injectable factory, used directly in tests) and a ready-to-use `lessonProgress` singleton wired to the real content and real IndexedDB storage, with:
+- Produces: `createLessonProgressStore({ content, storage }): LessonProgressStore` from `lessonProgress.svelte.js` (the injectable factory, used directly in tests), and (for Task 5) a ready-to-use `lessonProgress` singleton from `lessonProgressSingleton.svelte.js`, wired to the real content and real IndexedDB storage, with:
   - `ready: Promise<void>`
   - `get progress()`, `get isMultiplayerUnlocked()`, `get currentProblem()`
   - `advanceInstructionStep(): Promise<void>`, `submitProblemAnswer(value): Promise<void>`, `resetProgress(): Promise<void>`
+
+The singleton lives in its own file, separate from the factory, so that importing the factory for tests never triggers the singleton's real `indexedDB.open()` call — a module that eagerly opens a real IndexedDB connection as a side effect of being imported would throw in Vitest's Node environment (no `indexedDB` global there) the moment the test file imports anything from that module.
 
 - [ ] **Step 1: Write failing tests using an in-memory fake storage**
 
@@ -726,7 +729,7 @@ describe('createLessonProgressStore', () => {
 Run: `npm test`
 Expected: FAIL — `lessonProgress.svelte.js` does not exist.
 
-- [ ] **Step 3: Implement the store**
+- [ ] **Step 3: Implement the store factory**
 
 Create `src/lessons/lessonProgress.svelte.js`:
 
@@ -737,8 +740,6 @@ import {
   submitProblemAnswer as submitProblemAnswerPure,
   isMultiplayerUnlocked as isMultiplayerUnlockedPure,
 } from './progression.js'
-import { combiningGroupsContent } from './content/combiningGroupsContent.js'
-import * as indexedDbStorage from './progressStorage.js'
 
 export function createLessonProgressStore({ content, storage }) {
   let progress = $state(null)
@@ -785,6 +786,23 @@ export function createLessonProgressStore({ content, storage }) {
     resetProgress,
   }
 }
+```
+
+Note this file no longer imports `combiningGroupsContent` or `progressStorage.js` — it only exports the factory. That keeps importing it (as the test file does) free of any real IndexedDB side effect.
+
+- [ ] **Step 4: Run the test to verify it passes**
+
+Run: `npm test`
+Expected: PASS (23 tests total), exit code 0 (no unhandled rejections)
+
+- [ ] **Step 5: Create the singleton, wired to real content and real storage**
+
+Create `src/lessons/lessonProgressSingleton.svelte.js`:
+
+```js
+import { createLessonProgressStore } from './lessonProgress.svelte.js'
+import { combiningGroupsContent } from './content/combiningGroupsContent.js'
+import * as indexedDbStorage from './progressStorage.js'
 
 export const lessonProgress = createLessonProgressStore({
   content: combiningGroupsContent,
@@ -792,20 +810,17 @@ export const lessonProgress = createLessonProgressStore({
 })
 ```
 
-- [ ] **Step 4: Run the test to verify it passes**
+This file is intentionally untested directly (it's three lines of wiring with no logic of its own — Step 3's factory tests already cover the logic it calls). Task 5 will import `lessonProgress` from here, which is also where `npm run build` will first exercise this file for real (once something imports it from the reachable module graph).
+
+- [ ] **Step 6: Run the full test suite once more**
 
 Run: `npm test`
-Expected: PASS (23 tests total)
+Expected: PASS (23 tests total), exit code 0
 
-- [ ] **Step 5: Sanity-check the production build**
-
-Run: `npm run build`
-Expected: Build succeeds with no errors (confirms the `lessonProgress` singleton wiring — real content + real IndexedDB storage — has no import or syntax errors, even though nothing consumes it yet).
-
-- [ ] **Step 6: Commit**
+- [ ] **Step 7: Commit**
 
 ```bash
-git add src/lessons/lessonProgress.svelte.js src/lessons/lessonProgress.svelte.test.js
+git add src/lessons/lessonProgress.svelte.js src/lessons/lessonProgress.svelte.test.js src/lessons/lessonProgressSingleton.svelte.js
 git commit -m "Add Svelte 5 runes store wiring progression engine to persistence"
 ```
 
@@ -824,7 +839,7 @@ git commit -m "Add Svelte 5 runes store wiring progression engine to persistence
 - Consumes: `lessonProgress` (the singleton store) and `combiningGroupsContent` from Task 4/2.
 - Produces: nothing consumed by other tasks — this is the top of the tree.
 
-These screens are deliberately plain (default browser form/button styling, no layout design, no animation) — they exist to prove the engine end-to-end in the running app, not as the real lesson experience. Real visual design and GSAP sequencing are separate future work once reference files arrive; swapping these components for designed ones won't touch `progression.js`, `progressStorage.js`, or `lessonProgress.svelte.js`. No dedicated automated tests are added for this task (there's no meaningful logic here beyond what Tasks 1-4 already test) — verification is the manual smoke check in Step 5.
+These screens are deliberately plain (default browser form/button styling, no layout design, no animation) — they exist to prove the engine end-to-end in the running app, not as the real lesson experience. Real visual design and GSAP sequencing are separate future work once reference files arrive; swapping these components for designed ones won't touch `progression.js`, `progressStorage.js`, `lessonProgress.svelte.js`, or `lessonProgressSingleton.svelte.js`. No dedicated automated tests are added for this task (there's no meaningful logic here beyond what Tasks 1-4 already test) — verification is the manual smoke check in Step 5.
 
 - [ ] **Step 1: Create the instruction screen**
 
@@ -832,7 +847,7 @@ Create `src/lessons/LessonInstruction.svelte`:
 
 ```svelte
 <script>
-  import { lessonProgress } from './lessonProgress.svelte.js'
+  import { lessonProgress } from './lessonProgressSingleton.svelte.js'
   import { combiningGroupsContent } from './content/combiningGroupsContent.js'
 
   let step = $derived(
@@ -853,7 +868,7 @@ Create `src/lessons/LessonProblems.svelte`:
 
 ```svelte
 <script>
-  import { lessonProgress } from './lessonProgress.svelte.js'
+  import { lessonProgress } from './lessonProgressSingleton.svelte.js'
 
   let inputValue = $state('')
 
@@ -880,7 +895,7 @@ Create `src/lessons/LessonComplete.svelte`:
 
 ```svelte
 <script>
-  import { lessonProgress } from './lessonProgress.svelte.js'
+  import { lessonProgress } from './lessonProgressSingleton.svelte.js'
 </script>
 
 <section>
@@ -896,7 +911,7 @@ Create `src/lessons/LessonScreen.svelte`:
 
 ```svelte
 <script>
-  import { lessonProgress } from './lessonProgress.svelte.js'
+  import { lessonProgress } from './lessonProgressSingleton.svelte.js'
   import LessonInstruction from './LessonInstruction.svelte'
   import LessonProblems from './LessonProblems.svelte'
   import LessonComplete from './LessonComplete.svelte'
