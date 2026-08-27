@@ -27,6 +27,16 @@ There is no test suite or linter configured in this repository yet.
 - `src/app.css` holds global styles; component-scoped styles live in each `.svelte` file's `<style>` block.
 - `src/assets/` is for assets imported by components (bundled by Vite); `public/` is for static assets served as-is at the site root.
 
+## Tech Stack
+
+- **Animation:** GSAP, for animations and sequencing the lesson's pacing. GSAP is used for visuals only — it must never be the source of truth for lesson or multiplayer game state (e.g. which step the student is on, whether an answer gates progression). See the `gsap-svelte-cleanup` skill for a required cleanup pattern when using GSAP inside Svelte components (tweens/timelines must be killed on component unmount to avoid memory leaks).
+- **Hosting:** Firebase Hosting.
+- **Multiplayer sync:** Firebase Realtime Database (RTDB), scoped to live multiplayer game session state.
+- **Student progress persistence:** not stored in Firebase at this stage. Lesson/problem progress is saved locally in IndexedDB, with a reset-progress button in the options menu. Firestore is not needed for now.
+- **Multiplayer authoritative state:** lightweight Firebase Cloud Functions are being explored as a single source of truth for multiplayer game state, specifically to prevent client-side sync/visual inconsistencies that could confuse the student. Not yet implemented.
+- **Multiplayer threat model:** the multiplayer game has no chat, player profiles, or player-to-player communication. Malicious actors and score manipulation are out of scope at this stage — no anti-cheat or security hardening is needed yet.
+- **Auth:** Firebase Anonymous Auth for players. No teacher/admin authorization exists yet.
+
 ## Current state
 
 There is no counting/combining lesson, quiz/assessment flow, or multiplayer coin counting game implemented yet — only the stock scaffold described above. When building these features, use the `pedagogy-review` skill to check the instructional design (scaffolding, feedback loops, difficulty progression) against the CCSS 2.MD.C.8 target.
