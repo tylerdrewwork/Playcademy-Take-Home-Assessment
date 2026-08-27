@@ -1,4 +1,4 @@
-export const combiningGroupsContent = {
+export const addition1Content = {
   lessonId: 'combining-groups-2mdc8',
   contentVersion: 1,
   instruction: {
