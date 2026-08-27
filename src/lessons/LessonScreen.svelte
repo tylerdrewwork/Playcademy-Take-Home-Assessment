@@ -15,4 +15,9 @@
   {:else}
     <LessonComplete />
   {/if}
+  {#if lessonProgress.error}
+    <p>Something went wrong saving your progress.</p>
+  {/if}
+{:catch}
+  <p>Something went wrong loading your lesson progress. Please reload the page.</p>
 {/await}

@@ -7,8 +7,10 @@
   )
 </script>
 
-<section>
-  <h2>{step.title}</h2>
-  <p>{step.body}</p>
-  <button onclick={() => lessonProgress.advanceInstructionStep()}>Next</button>
-</section>
+{#if step}
+  <section>
+    <h2>{step.title}</h2>
+    <p>{step.body}</p>
+    <button onclick={() => lessonProgress.advanceInstructionStep()}>Next</button>
+  </section>
+{/if}

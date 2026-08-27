@@ -39,7 +39,9 @@ export function advanceInstructionStep(progress, content) {
 }
 
 function normalizeAnswer(value) {
-  return typeof value === 'number' ? value : Number(String(value).trim())
+  if (typeof value === 'number') return value
+  const trimmed = String(value).trim()
+  return trimmed === '' ? NaN : Number(trimmed)
 }
 
 export function submitProblemAnswer(progress, content, value) {
@@ -49,6 +51,7 @@ export function submitProblemAnswer(progress, content, value) {
   const { sequence, currentIndex, attempts } = progress.problems
   const problemId = sequence[currentIndex]
   const problem = content.problems.find((candidate) => candidate.id === problemId)
+  if (!problem) return progress
   const correct = normalizeAnswer(value) === normalizeAnswer(problem.answer)
 
   const attempt = {

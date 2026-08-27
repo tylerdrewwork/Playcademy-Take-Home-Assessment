@@ -13,8 +13,11 @@
 <section>
   <p>Problem {lessonProgress.progress.problems.currentIndex + 1} of {lessonProgress.progress.problems.sequence.length}</p>
   <p>{lessonProgress.currentProblem?.prompt}</p>
+  {#if lessonProgress.lastAttempt && !lessonProgress.lastAttempt.correct}
+    <p>Not quite — try again.</p>
+  {/if}
   <form onsubmit={handleSubmit}>
-    <input type="text" inputmode="numeric" bind:value={inputValue} />
+    <input type="text" inputmode="numeric" required bind:value={inputValue} />
     <button type="submit">Submit</button>
   </form>
 </section>
