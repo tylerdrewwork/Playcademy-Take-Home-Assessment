@@ -22,6 +22,13 @@ describe('createLessonProgressStore with the real progressStorage module', () =>
     const store = createLessonProgressStore({ content: testContent, storage: progressStorage })
     await store.ready
 
+    // fake-indexeddb does not reproduce the browser's native structured-clone
+    // rejection of Proxy objects, so the IndexedDB round-trip below can pass
+    // even when `progress` is a live Svelte $state proxy. Node's native
+    // structuredClone() faithfully replicates real browser behavior and is
+    // what actually proves progress is a plain, cloneable object.
+    expect(() => structuredClone(store.progress)).not.toThrow()
+
     await store.advanceInstructionStep()
     await store.submitProblemAnswer('5')
     await store.submitProblemAnswer('6')
