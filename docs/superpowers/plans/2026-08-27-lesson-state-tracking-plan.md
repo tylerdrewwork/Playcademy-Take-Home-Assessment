@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Build the lesson state-tracking engine — content/progress separation, progression gating logic, IndexedDB persistence, and a Svelte 5 runes store — so the app can track where a student is in the lesson, gate advancement on correct answers, and know when to unlock multiplayer.
+**Goal:** Build the lesson state-tracking engine — content/progress separation, progression gating logic, IndexedDB persistence, and a Svelte 5 runes store — so the app can track where a student is in the lesson, gate advancement on correct answers, and know when to unlock multiplayer. Mount it behind minimal, unstyled placeholder screens (no visual design, no GSAP) so the engine is exercised end-to-end in the running app while real UI/UX waits on reference files the stakeholder will provide separately.
 
 **Architecture:** Static lesson content (instruction steps + 10 problems) lives in a plain data module. A pure-function module (`progression.js`) computes the next progress state from `(content, progress, input)` with no framework or storage dependency. A Svelte 5 runes store wraps those pure functions, holds the live `$state`, and persists to IndexedDB after each mutation via an injectable storage interface (so the store is unit-testable without a real IndexedDB, and the IndexedDB layer is unit-testable without Svelte).
 
@@ -811,8 +811,151 @@ git commit -m "Add Svelte 5 runes store wiring progression engine to persistence
 
 ---
 
+### Task 5: Minimal placeholder lesson UI
+
+**Files:**
+- Create: `src/lessons/LessonScreen.svelte`
+- Create: `src/lessons/LessonInstruction.svelte`
+- Create: `src/lessons/LessonProblems.svelte`
+- Create: `src/lessons/LessonComplete.svelte`
+- Modify: `src/App.svelte` (replace the Vite/Svelte template placeholder with `<LessonScreen />`)
+
+**Interfaces:**
+- Consumes: `lessonProgress` (the singleton store) and `combiningGroupsContent` from Task 4/2.
+- Produces: nothing consumed by other tasks — this is the top of the tree.
+
+These screens are deliberately plain (default browser form/button styling, no layout design, no animation) — they exist to prove the engine end-to-end in the running app, not as the real lesson experience. Real visual design and GSAP sequencing are separate future work once reference files arrive; swapping these components for designed ones won't touch `progression.js`, `progressStorage.js`, or `lessonProgress.svelte.js`. No dedicated automated tests are added for this task (there's no meaningful logic here beyond what Tasks 1-4 already test) — verification is the manual smoke check in Step 5.
+
+- [ ] **Step 1: Create the instruction screen**
+
+Create `src/lessons/LessonInstruction.svelte`:
+
+```svelte
+<script>
+  import { lessonProgress } from './lessonProgress.svelte.js'
+  import { combiningGroupsContent } from './content/combiningGroupsContent.js'
+
+  let step = $derived(
+    combiningGroupsContent.instruction.steps[lessonProgress.progress.instruction.currentStepIndex]
+  )
+</script>
+
+<section>
+  <h2>{step.title}</h2>
+  <p>{step.body}</p>
+  <button onclick={() => lessonProgress.advanceInstructionStep()}>Next</button>
+</section>
+```
+
+- [ ] **Step 2: Create the problems screen**
+
+Create `src/lessons/LessonProblems.svelte`:
+
+```svelte
+<script>
+  import { lessonProgress } from './lessonProgress.svelte.js'
+
+  let inputValue = $state('')
+
+  function handleSubmit(event) {
+    event.preventDefault()
+    lessonProgress.submitProblemAnswer(inputValue)
+    inputValue = ''
+  }
+</script>
+
+<section>
+  <p>Problem {lessonProgress.progress.problems.currentIndex + 1} of {lessonProgress.progress.problems.sequence.length}</p>
+  <p>{lessonProgress.currentProblem?.prompt}</p>
+  <form onsubmit={handleSubmit}>
+    <input type="text" inputmode="numeric" bind:value={inputValue} />
+    <button type="submit">Submit</button>
+  </form>
+</section>
+```
+
+- [ ] **Step 3: Create the completion screen**
+
+Create `src/lessons/LessonComplete.svelte`:
+
+```svelte
+<script>
+  import { lessonProgress } from './lessonProgress.svelte.js'
+</script>
+
+<section>
+  <h2>Lesson complete!</h2>
+  <p>Multiplayer unlocked: {lessonProgress.isMultiplayerUnlocked}</p>
+  <button onclick={() => lessonProgress.resetProgress()}>Reset progress</button>
+</section>
+```
+
+- [ ] **Step 4: Create the phase switcher and mount it**
+
+Create `src/lessons/LessonScreen.svelte`:
+
+```svelte
+<script>
+  import { lessonProgress } from './lessonProgress.svelte.js'
+  import LessonInstruction from './LessonInstruction.svelte'
+  import LessonProblems from './LessonProblems.svelte'
+  import LessonComplete from './LessonComplete.svelte'
+</script>
+
+{#await lessonProgress.ready}
+  <p>Loading lesson...</p>
+{:then}
+  {#if lessonProgress.progress.phase === 'instruction'}
+    <LessonInstruction />
+  {:else if lessonProgress.progress.phase === 'problems'}
+    <LessonProblems />
+  {:else}
+    <LessonComplete />
+  {/if}
+{/await}
+```
+
+Replace the contents of `src/App.svelte` with:
+
+```svelte
+<script>
+  import LessonScreen from './lessons/LessonScreen.svelte'
+</script>
+
+<main>
+  <LessonScreen />
+</main>
+```
+
+- [ ] **Step 5: Manually verify the flow in the dev server**
+
+Run: `npm run dev`, open the printed local URL, and walk through:
+1. Click "Next" through all instruction steps until the problems screen appears.
+2. Submit a wrong answer for problem 1 (e.g. `4`) — confirm it does not advance.
+3. Submit the correct answer (`5`) — confirm it advances to problem 2 of 10.
+4. Answer all 10 problems correctly — confirm the completion screen appears with "Multiplayer unlocked: true".
+5. Reload the page — confirm it resumes on the completion screen (progress persisted via IndexedDB).
+6. Click "Reset progress" — confirm it returns to the first instruction step, and reload the page again to confirm the reset also persisted.
+
+Expected: all six behaviors match. Stop and fix before committing if any step doesn't.
+
+- [ ] **Step 6: Run the full test suite once more**
+
+Run: `npm test`
+Expected: PASS (23 tests total — this task added no new automated tests)
+
+- [ ] **Step 7: Commit**
+
+```bash
+git add src/App.svelte src/lessons/LessonScreen.svelte src/lessons/LessonInstruction.svelte src/lessons/LessonProblems.svelte src/lessons/LessonComplete.svelte
+git commit -m "Add minimal placeholder lesson UI wired to the progress store"
+```
+
+---
+
 ## Explicitly out of scope for this plan
 
-- Any lesson UI (instruction screens, the problem/text-input screen, the options-menu reset button). No lesson UI has been designed yet — `App.svelte` is untouched by this plan. Wiring `lessonProgress` into components is a follow-up once that UI is designed.
+- Real visual design, layout, styling, and GSAP animation/sequencing for the lesson screens — Task 5's screens are structural placeholders only, pending reference files from the stakeholder.
+- The options-menu reset-progress button as actual menu UI — `resetProgress()` exists on the store and Task 5 exposes it via a plain button, but no options menu has been designed.
 - The adaptive scaffolding engine, hint content, and `studentErrorTag` classification logic (spec "Future considerations") — `problems.adaptations` stays an empty array and `studentErrorTag` stays `null` everywhere this plan writes an attempt.
 - Final authored lesson content (voiceover script, animation timing/assets, final problem wording) — `combiningGroupsContent.js` is functional example data, swappable later without touching the engine.
