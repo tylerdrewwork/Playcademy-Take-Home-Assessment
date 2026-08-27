@@ -36,6 +36,7 @@ There is no test suite or linter configured in this repository yet.
 - **Multiplayer authoritative state:** lightweight Firebase Cloud Functions are being explored as a single source of truth for multiplayer game state, specifically to prevent client-side sync/visual inconsistencies that could confuse the student. Not yet implemented.
 - **Multiplayer threat model:** the multiplayer game has no chat, player profiles, or player-to-player communication. Malicious actors and score manipulation are out of scope at this stage — no anti-cheat or security hardening is needed yet.
 - **Auth:** Firebase Anonymous Auth for players. No teacher/admin authorization exists yet.
+- **Crash/error monitoring:** Firebase Crashlytics does not support Web (only Android/iOS/Flutter/Unity/NDK), so this app uses Firebase Performance Monitoring plus logging caught exceptions as Analytics events instead.
 
 ## Current state
 
