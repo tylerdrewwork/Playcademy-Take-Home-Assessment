@@ -25,8 +25,8 @@ Reaching the end of the problem set (all 10 solved) marks the lesson complete an
 ## Non-goals
 
 - **No curriculum/multi-lesson layer.** This design covers a single lesson. If more lessons are added later, a layer above this (a lesson list/registry) can be introduced without reshaping the structures below.
-- **No adaptive/branching difficulty.** The problem sequence is fixed and linear; performance does not skip, reorder, or insert problems.
-- **No in-app remediation logic yet.** Wrong-answer data is captured in a structured, stable shape, but nothing in this design *acts* on it (no hints triggered, no replay of instruction steps, no teacher/parent view). That is explicitly deferred — see "Future: error classification."
+- **No adaptive/branching difficulty — yet.** The problem sequence is seeded 1:1 from content and never mutated by this implementation; performance does not skip, reorder, or insert problems today. The sequence is stored explicitly (see below) specifically so this can change later without restructuring — see "Future considerations."
+- **No in-app remediation or scaffolding logic yet.** Wrong-answer data is captured in a structured, stable shape, but nothing in this design *acts* on it (no hints, no inserted/removed problems, no replay of instruction steps, no teacher/parent view). That is explicitly deferred — see "Future considerations."
 - **No per-instruction-step completion tracking.** Instruction steps are simple linear playback; the state model only tracks *which* step the student is on, not per-step interaction completion.
 
 ## Content vs. progress
@@ -50,7 +50,8 @@ Two separate, differently-lifecycled pieces of data:
   },
 
   problems: {
-    currentProblemIndex: 0,          // 0-9, fixed order
+    sequence: ['p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p8', 'p9', 'p10'], // ordered problem ids for this student
+    currentIndex: 0,                 // position within `sequence`, not directly into content
     attempts: {
       p1: [
         { value: '4', correct: false, studentErrorTag: null, contentVersion: 1, timestamp },
@@ -58,6 +59,7 @@ Two separate, differently-lifecycled pieces of data:
       ]
       // ...p2..p10, keyed by problem id
     },
+    adaptations: [],                 // reserved for a future scaffolding engine; unused and unpopulated by this design
     completedAt: null
   },
 
@@ -70,9 +72,11 @@ Notes:
 
 - `lessonId` and problem ids (`p1`...`p10`) shown above are illustrative; actual id strings are decided when the content module is authored, not by this design.
 - `contentVersion` appears both at the top level (the version this record is currently playing against) and on each individual attempt (the version *that specific problem* was answered against). This matters if content is updated mid-session (e.g. an app redeploy while a tab is open, or resuming an old stored record after an update) — each historical answer stays self-describing regardless of what the top-level field says later.
-- `studentErrorTag` is a slot for a future misconception classifier. It is `null` until that classifier exists (see "Future: error classification" — deciding the actual taxonomy of misconceptions is a pedagogy question, not a data-shape one, and is explicitly out of scope for this design).
+- `studentErrorTag` is a slot for a future misconception signal. It is `null` until something populates it (see "Future considerations" — deciding what a wrong answer implies, and what to do about it, is a pedagogy decision, not a data-shape one, and is explicitly out of scope for this design).
 - `attempts` is keyed by problem id (not a flat array) so a specific problem's history can be looked up directly without scanning.
-- `currentStepIndex` and `currentProblemIndex` are positions into the content module's `instruction.steps` / `problems` arrays (`content.problems[currentProblemIndex].id` gives the current problem's id, which is the key used in `attempts`). Content order is authoritative; progress never stores its own copy of the sequence.
+- `currentStepIndex` is a position into the content module's `instruction.steps` array.
+- `problems.sequence` is an explicit, persisted, ordered list of problem ids — **not** derived from `content.problems` at read time. Today it's simply a 1:1 copy of content's order, written once when the lesson starts, and this design never mutates it. It's stored explicitly (rather than as an implicit index into content) so that a future capability can insert, remove, or reorder problems for a given student by editing `sequence` — a targeted, additive change — instead of restructuring how progress is represented. `problems.currentIndex` is a position within `sequence` (`content.problems.find(p => p.id === sequence[currentIndex])` gives the current problem's definition); "the student reached the end" means `currentIndex === sequence.length`, which stays correct even if a future engine changes `sequence`'s length mid-lesson.
+- `problems.adaptations` is a reserved, currently-always-empty array for a future scaffolding engine to log what it did (e.g. inserted a problem, showed a hint, adjusted difficulty) — see "Future considerations." Nothing reads or writes it yet.
 - `timestamp` fields are `Date.now()`-style epoch milliseconds (numbers), for simple storage and chronological sorting in IndexedDB.
 
 ## Progression / gating logic
@@ -80,9 +84,9 @@ Notes:
 Implemented as plain, pure functions in one module (e.g. `progression.js`), not scattered across UI components and not driven by animation timelines — GSAP is visual-only and must never be the source of truth for lesson state (per CLAUDE.md).
 
 - `advanceInstructionStep(progress)` — increments `instruction.currentStepIndex`. When it passes the last step, transitions `phase` to `'problems'` and stamps `instruction.completedAt`.
-- `submitProblemAnswer(progress, content, value)` — compares `value` to the current problem's correct answer.
-  - **Correct:** records the attempt, marks the problem solved, advances `problems.currentProblemIndex`. At problem 10, transitions `phase` to `'complete'` and stamps `lessonCompletedAt`.
-  - **Incorrect:** records the attempt (with `studentErrorTag` set by a classifier if one exists, else `null`) and does **not** advance — the student retries the same problem.
+- `submitProblemAnswer(progress, content, value)` — resolves the current problem as `content.problems.find(p => p.id === progress.problems.sequence[progress.problems.currentIndex])`, then compares `value` to its correct answer.
+  - **Correct:** records the attempt, marks the problem solved, advances `problems.currentIndex`. When `currentIndex` reaches `sequence.length`, transitions `phase` to `'complete'` and stamps `lessonCompletedAt`.
+  - **Incorrect:** records the attempt (with `studentErrorTag` set if something populates it, else `null`) and does **not** advance — the student retries the same problem.
 - `isMultiplayerUnlocked(progress)` — `progress.phase === 'complete'`. This is the one function the rest of the app (a route guard, a menu item) needs to know about; everything else about lesson internals stays encapsulated behind the progress module.
 
 ## Architecture
@@ -92,9 +96,12 @@ Implemented as plain, pure functions in one module (e.g. `progression.js`), not 
 - `resetProgress()` clears the stored record and reinitializes state, for the options-menu reset-progress button (already decided in CLAUDE.md).
 - Lesson content is a plain imported data module, loaded once, never persisted.
 
-## Future: error classification
+## Future considerations
 
-`studentErrorTag` is reserved for a classifier that maps a wrong answer to a likely misconception (e.g. "counted only one group," "off-by-one," "added the wrong groups"). Designing that taxonomy is a pedagogy decision — what a given wrong number actually implies about a 2nd-grader's understanding — not a data-modeling one, and should go through a pedagogy review when it's actually built. This design only guarantees the field exists and is captured on every attempt, so nothing downstream needs to change shape when that classifier lands.
+Raised during pedagogy review of this spec (2026-08-27). Not being designed or built now — recorded here so the data shapes above don't have to be reworked when they are.
+
+- **Adaptive scaffolding engine.** Retry-until-correct with no differentiated support risks turning a stuck problem into blind trial-and-error, and reaching-the-end (not accuracy) is what unlocks multiplayer, so the design currently gives a struggling student no help beyond "wrong, try again." The eventual fix isn't a single hardcoded hint string per problem — it's a proper scaffolding system that can respond to how a student is doing: showing a hint, inserting or removing problems, or giving more guided support, dynamically, per student. This is a pedagogy design problem (when to intervene, with what, informed by what taxonomy of misconceptions) and needs its own design pass — including a `pedagogy-review` pass — when it's actually built. Two things in this design exist specifically so that system can be *added* later without restructuring progress: `problems.sequence` (an explicit, mutable list of problem ids for a given student, rather than an implicit index into static content) and `problems.adaptations` (a reserved log of what such a system did). `studentErrorTag` is the per-attempt signal such a system would consume.
+- **Retry/mastery signal weakness.** Unlimited retries with no differentiated feedback means "eventually correct" is a weak signal — a student can converge by elimination rather than understanding, and the completion-gated multiplayer unlock doesn't discourage that. The full fix is part of the scaffolding engine above (e.g. escalating support keyed off `attempts[problemId].length`, which this design already captures). No schema change beyond what's already here is anticipated for this one — the data needed (per-attempt history) already exists.
 
 ## Alternatives considered
 
