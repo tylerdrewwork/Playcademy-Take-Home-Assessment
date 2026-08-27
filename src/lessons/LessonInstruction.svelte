@@ -1,9 +1,9 @@
 <script>
   import { lessonProgress } from './lessonProgressSingleton.svelte.js'
-  import { combiningGroupsContent } from './content/combiningGroupsContent.js'
+  import { addition1Content } from './content/addition-1-Content.js'
 
   let step = $derived(
-    combiningGroupsContent.instruction.steps[lessonProgress.progress.instruction.currentStepIndex]
+    addition1Content.instruction.steps[lessonProgress.progress.instruction.currentStepIndex]
   )
 </script>
 
