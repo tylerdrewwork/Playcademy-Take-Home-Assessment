@@ -4,8 +4,6 @@ import {
   submitProblemAnswer as submitProblemAnswerPure,
   isMultiplayerUnlocked as isMultiplayerUnlockedPure,
 } from './progression.js'
-import { combiningGroupsContent } from './content/combiningGroupsContent.js'
-import * as indexedDbStorage from './progressStorage.js'
 
 export function createLessonProgressStore({ content, storage }) {
   let progress = $state(null)
@@ -52,8 +50,3 @@ export function createLessonProgressStore({ content, storage }) {
     resetProgress,
   }
 }
-
-export const lessonProgress = createLessonProgressStore({
-  content: combiningGroupsContent,
-  storage: indexedDbStorage,
-})
