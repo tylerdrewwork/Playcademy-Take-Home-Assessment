@@ -2,7 +2,7 @@
 
 Date: 2026-08-27
 Status: Draft, pending review
-Scope: single lesson only (CCSS 2.MD.C.8 — combining two groups of objects and counting the total). No curriculum/multi-lesson layer is included; see "Non-goals."
+Scope: single lesson only — combining two groups of objects and counting the total, the lesson focus on the way to the CCSS 2.MD.C.8 capstone standard (per CLAUDE.md). No curriculum/multi-lesson layer is included; see "Non-goals."
 
 ## Purpose
 
@@ -91,7 +91,7 @@ Implemented as plain, pure functions in one module (e.g. `progression.js`), not 
 
 ## Architecture
 
-- A Svelte 5 runes store module (e.g. `lessonProgress.svelte.js`) holds the `$state` progress object and exposes the action functions above, plus `$derived` getters (`isMultiplayerUnlocked`, `currentProblem`, etc.). UI components call actions and read derived state; they never mutate progress directly or embed gating rules themselves.
+- A Svelte 5 runes store module (e.g. `lessonProgress.svelte.js`) holds the `$state` progress object and exposes the action functions above, plus plain getters (`isMultiplayerUnlocked`, `currentProblem`, etc.) that read it. UI components call actions and read that state; they never mutate progress directly or embed gating rules themselves.
 - A small IndexedDB wrapper loads the single progress record on app init and persists it after each mutating action. Single record, single student/device — consistent with the project's existing decision not to sync lesson progress through Firebase.
 - `resetProgress()` clears the stored record and reinitializes state, for the options-menu reset-progress button (already decided in CLAUDE.md).
 - Lesson content is a plain imported data module, loaded once, never persisted.
