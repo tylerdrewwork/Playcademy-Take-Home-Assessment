@@ -1,0 +1,226 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; }
+  .page {
+    font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1.25rem;
+  }
+  .stack { width: 100%; max-width: 25rem; }
+  .progress {
+    font-size: 0.85rem;
+    font-weight: 600;
+    opacity: 0.6;
+    text-align: center;
+    margin: 0 0 0.75rem;
+    letter-spacing: 0.02em;
+  }
+  .card {
+    border-radius: 1rem;
+    padding: 2rem 1.75rem;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    text-align: center;
+  }
+  .prompt {
+    font-size: 1.2rem;
+    line-height: 1.5;
+    margin: 0 0 1.5rem;
+    font-weight: 500;
+  }
+  .groups-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.85rem;
+    margin: 0 0 1.5rem;
+    flex-wrap: wrap;
+  }
+  .operator {
+    font-size: 1.6rem;
+    font-weight: 700;
+    opacity: 0.75;
+  }
+  .group-box {
+    border: 2px dashed #a9c9e8;
+    border-radius: 0.75rem;
+    padding: 0.85rem 1.1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.55rem;
+  }
+  .group-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    opacity: 0.65;
+  }
+  .balloon-row {
+    display: flex;
+    justify-content: center;
+    gap: 0.35rem;
+    flex-wrap: wrap;
+    max-width: 8.5rem;
+  }
+  .balloon { width: 1.9rem; height: 2.65rem; display: block; }
+  .retry-note {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 0.6rem;
+    padding: 0.6rem 0.9rem;
+    margin: 0 0 1.25rem;
+    font-size: 0.95rem;
+    font-weight: 500;
+  }
+  .retry-note svg { width: 1.1rem; height: 1.1rem; flex-shrink: 0; }
+  form {
+    display: flex;
+    gap: 0.65rem;
+    justify-content: center;
+    align-items: stretch;
+  }
+  input[type="text"] {
+    width: 4.5rem;
+    font-size: 1.25rem;
+    font-weight: 700;
+    text-align: center;
+    border-radius: 8px;
+    border: 2px solid #cbd5e1;
+    padding: 0.5em 0.25em;
+    font-family: inherit;
+    background: transparent;
+    color: inherit;
+  }
+  input[type="text"]:focus {
+    outline: none;
+    border-color: #4a90d9;
+  }
+  button {
+    border-radius: 8px;
+    border: 1px solid transparent;
+    padding: 0.6em 1.4em;
+    font-size: 1em;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    background: #4a90d9;
+    color: #ffffff;
+  }
+  a { color: #b45309; }
+  a:hover { color: #92400e; }
+</style>
+</helmet>
+<div class="page" style="background: {{bg.page}}; color: {{bg.text}};">
+  <div class="stack">
+    <p class="progress">Problem {{progressCurrent}} of {{progressTotal}}</p>
+    <div class="card" style="background: {{bg.card}};">
+      <p class="prompt">{{prompt}}</p>
+      <div class="groups-row">
+        <sc-for list="{{rowItems}}" as="item" hint-placeholder-count="3">
+          <sc-if value="{{item.isOperator}}" hint-placeholder-val="{{false}}">
+            <span class="operator">+</span>
+          </sc-if>
+          <sc-if value="{{item.isGroup}}" hint-placeholder-val="{{true}}">
+            <div class="group-box" style="background: {{bg.groupBox}};">
+              <span class="group-label">Group {{item.index}}</span>
+              <div class="balloon-row">
+                <sc-for list="{{item.balloons}}" as="b" hint-placeholder-count="3">
+                  <svg class="balloon" viewBox="0 0 40 56" aria-hidden="true">
+                    <ellipse cx="20" cy="22" rx="18" ry="20" fill="{{b.body}}"></ellipse>
+                    <ellipse cx="14" cy="14" rx="6" ry="8" fill="{{b.highlight}}" opacity="0.7"></ellipse>
+                    <path d="M17 41 L20 47 L23 41 Z" fill="{{b.body}}"></path>
+                    <line x1="20" y1="47" x2="20" y2="56" stroke="#999" stroke-width="1"></line>
+                  </svg>
+                </sc-for>
+              </div>
+            </div>
+          </sc-if>
+        </sc-for>
+      </div>
+      <p class="retry-note" style="background: {{bg.noteBg}}; color: {{bg.noteText}};">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M3 12a9 9 0 1 0 3.4-7.03"></path>
+          <path d="M3 4v5h5"></path>
+        </svg>
+        Not quite — try again.
+      </p>
+      <form>
+        <input type="text" inputmode="numeric" placeholder="?" value="" />
+        <button type="button">Submit</button>
+      </form>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script data-dc-script data-props='{"darkMode":{"editor":"boolean","default":false,"section":"Theme"}}'>
+const COLORS = {
+  blue: { body: '#4a90d9', highlight: '#8fc1f0' },
+  yellow: { body: '#f0b429', highlight: '#f8d878' },
+};
+
+function makeBalloons(count, color) {
+  return Array.from({ length: count }, () => ({ ...COLORS[color] }));
+}
+
+function buildRowItems(groups) {
+  const items = [];
+  groups.forEach((g, i) => {
+    if (i > 0) items.push({ isGroup: false, isOperator: true });
+    items.push({
+      isGroup: true,
+      isOperator: false,
+      index: i + 1,
+      balloons: makeBalloons(g.count, g.color),
+    });
+  });
+  return items;
+}
+
+class Component extends DCLogic {
+  renderVals() {
+    const dark = !!this.props.darkMode;
+    return {
+      progressCurrent: 1,
+      progressTotal: 10,
+      prompt: 'There are 2 balls and 3 more balls. How many balls in all?',
+      rowItems: buildRowItems([
+        { count: 2, color: 'blue' },
+        { count: 3, color: 'yellow' },
+      ]),
+      bg: dark
+        ? {
+            page: '#242424',
+            text: 'rgba(255,255,255,0.87)',
+            card: '#1a1a1a',
+            groupBox: '#16233a',
+            noteBg: '#3a2f1a',
+            noteText: '#f8d878',
+          }
+        : {
+            page: '#ffffff',
+            text: '#213547',
+            card: '#ffffff',
+            groupBox: '#eaf3fc',
+            noteBg: '#fdf0dd',
+            noteText: '#92400e',
+          },
+    };
+  }
+}
+</script>
+</body>
+</html>
