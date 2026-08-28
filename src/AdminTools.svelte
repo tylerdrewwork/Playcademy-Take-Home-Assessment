@@ -1,6 +1,8 @@
 <script>
   import { addition1LessonProgress } from './lessons/content/addition-1-LessonProgress.js'
 
+  let { onSkipToMultiplayer } = $props()
+
   let dialog = $state(null)
   let confirming = $state(false)
   let justReset = $state(false)
@@ -32,6 +34,11 @@
       justReset = false
     }, 3000)
   }
+
+  function skipToMultiplayer() {
+    close()
+    onSkipToMultiplayer()
+  }
 </script>
 
 <button class="admin-tools-trigger" onclick={open}>Admin Tools</button>
@@ -48,6 +55,7 @@
   {:else}
     <div class="actions">
       <button onclick={requestReset}>Reset Progress</button>
+      <button onclick={skipToMultiplayer}>Skip to Multiplayer</button>
       <button onclick={close}>Close</button>
     </div>
   {/if}
