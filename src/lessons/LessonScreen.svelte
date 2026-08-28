@@ -1,21 +1,21 @@
 <script>
-  import { lessonProgress } from './lessonProgressSingleton.svelte.js'
-  import LessonInstruction from './LessonInstruction.svelte'
+  import { addition1LessonProgress } from './content/addition-1-LessonProgress.js'
+  import LessonInstruction from './content/addition-1-LessonInstruction.svelte'
   import LessonProblems from './LessonProblems.svelte'
   import LessonComplete from './LessonComplete.svelte'
 </script>
 
-{#await lessonProgress.ready}
+{#await addition1LessonProgress.ready}
   <p>Loading lesson...</p>
 {:then}
-  {#if lessonProgress.progress.phase === 'instruction'}
+  {#if addition1LessonProgress.progress.phase === 'instruction'}
     <LessonInstruction />
-  {:else if lessonProgress.progress.phase === 'problems'}
+  {:else if addition1LessonProgress.progress.phase === 'problems'}
     <LessonProblems />
   {:else}
     <LessonComplete />
   {/if}
-  {#if lessonProgress.error}
+  {#if addition1LessonProgress.error}
     <p>Something went wrong saving your progress.</p>
   {/if}
 {:catch}

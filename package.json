@@ -7,12 +7,16 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "vitest run"
+    "test": "vitest run",
+    "check": "svelte-check --tsconfig ./tsconfig.json"
   },
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^5.0.3",
+    "@tsconfig/svelte": "^5.0.8",
     "fake-indexeddb": "^6.2.5",
     "svelte": "^5.20.0",
+    "svelte-check": "^4.7.6",
+    "typescript": "^5.9.3",
     "vite": "^6.2.0",
     "vitest": "^4.1.11"
   },

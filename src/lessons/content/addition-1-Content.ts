@@ -1,7 +1,27 @@
-export const addition1Content = {
-  lessonId: 'combining-groups-2mdc8',
-  contentVersion: 1,
-  instruction: {
+import { LessonContent, type InstructionStep, type Problem } from '../lessonContent.js'
+
+export interface Addition1Group {
+  count: number
+  color: string
+}
+
+export interface Addition1Step extends InstructionStep {
+  groups?: Addition1Group[]
+}
+
+export interface Addition1ProblemGroup {
+  count: number
+  object: string
+}
+
+export interface Addition1Problem extends Problem {
+  groups: Addition1ProblemGroup[]
+}
+
+class Addition1Content extends LessonContent<Addition1Step, Addition1Problem> {
+  readonly lessonId = 'combining-groups-2mdc8'
+  readonly contentVersion = 1
+  readonly instruction = {
     steps: [
       {
         id: 'intro',
@@ -33,9 +53,9 @@ export const addition1Content = {
         ],
         showCombined: true,
       },
-    ],
-  },
-  problems: [
+    ] satisfies Addition1Step[],
+  }
+  readonly problems: Addition1Problem[] = [
     { id: 'p1', prompt: 'There are 2 balls and 3 more balls. How many balls in all?', groups: [{ count: 2, object: 'ball' }, { count: 3, object: 'ball' }], answer: 5 },
     { id: 'p2', prompt: 'There are 4 balls and 1 more ball. How many balls in all?', groups: [{ count: 4, object: 'ball' }, { count: 1, object: 'ball' }], answer: 5 },
     { id: 'p3', prompt: 'There are 3 balls and 3 more balls. How many balls in all?', groups: [{ count: 3, object: 'ball' }, { count: 3, object: 'ball' }], answer: 6 },
@@ -46,5 +66,7 @@ export const addition1Content = {
     { id: 'p8', prompt: 'There are 6 balls and 1 more ball. How many balls in all?', groups: [{ count: 6, object: 'ball' }, { count: 1, object: 'ball' }], answer: 7 },
     { id: 'p9', prompt: 'There are 3 balls and 5 more balls. How many balls in all?', groups: [{ count: 3, object: 'ball' }, { count: 5, object: 'ball' }], answer: 8 },
     { id: 'p10', prompt: 'There are 4 balls and 3 more balls. How many balls in all?', groups: [{ count: 4, object: 'ball' }, { count: 3, object: 'ball' }], answer: 7 },
-  ],
+  ]
 }
+
+export const addition1Content = new Addition1Content()

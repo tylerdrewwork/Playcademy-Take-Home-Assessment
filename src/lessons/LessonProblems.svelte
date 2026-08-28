@@ -1,19 +1,19 @@
 <script>
-  import { lessonProgress } from './lessonProgressSingleton.svelte.js'
+  import { addition1LessonProgress } from './content/addition-1-LessonProgress.js'
 
   let inputValue = $state('')
 
   function handleSubmit(event) {
     event.preventDefault()
-    lessonProgress.submitProblemAnswer(inputValue)
+    addition1LessonProgress.submitProblemAnswer(inputValue)
     inputValue = ''
   }
 </script>
 
 <section>
-  <p>Problem {lessonProgress.progress.problems.currentIndex + 1} of {lessonProgress.progress.problems.sequence.length}</p>
-  <p>{lessonProgress.currentProblem?.prompt}</p>
-  {#if lessonProgress.lastAttempt && !lessonProgress.lastAttempt.correct}
+  <p>Problem {addition1LessonProgress.progress.problems.currentIndex + 1} of {addition1LessonProgress.progress.problems.sequence.length}</p>
+  <p>{addition1LessonProgress.currentProblem?.prompt}</p>
+  {#if addition1LessonProgress.lastAttempt && !addition1LessonProgress.lastAttempt.correct}
     <p>Not quite — try again.</p>
   {/if}
   <form onsubmit={handleSubmit}>

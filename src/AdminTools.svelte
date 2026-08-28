@@ -1,5 +1,5 @@
 <script>
-  import { lessonProgress } from './lessons/lessonProgressSingleton.svelte.js'
+  import { addition1LessonProgress } from './lessons/content/addition-1-LessonProgress.js'
 
   let dialog = $state(null)
   let confirming = $state(false)
@@ -24,7 +24,7 @@
   }
 
   async function confirmReset() {
-    await lessonProgress.resetProgress()
+    await addition1LessonProgress.resetProgress()
     confirming = false
     justReset = true
     dialog.close()

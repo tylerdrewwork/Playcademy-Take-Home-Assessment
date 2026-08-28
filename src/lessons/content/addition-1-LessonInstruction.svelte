@@ -1,16 +1,12 @@
 <script>
   import { onDestroy } from 'svelte'
   import gsap from 'gsap'
-  import { lessonProgress } from './lessonProgressSingleton.svelte.js'
-  import { addition1Content } from './content/addition-1-Content.js'
-  import Balloon from './Balloon.svelte'
+  import { addition1LessonProgress } from './addition-1-LessonProgress.js'
+  import { addition1Content } from './addition-1-Content.js'
+  import Balloon from '../Balloon.svelte'
 
   let step = $derived(
-    addition1Content.instruction.steps[lessonProgress.progress.instruction.currentStepIndex]
-  )
-  let isLastStep = $derived(
-    lessonProgress.progress.instruction.currentStepIndex ===
-      addition1Content.instruction.steps.length - 1
+    addition1Content.instruction.steps[addition1LessonProgress.progress.instruction.currentStepIndex]
   )
 
   let ctx
@@ -96,8 +92,8 @@
         </div>
       {/if}
 
-      <button onclick={() => lessonProgress.advanceInstructionStep()}>
-        {isLastStep ? "Got it! Let's Practice!" : 'Next'}
+      <button onclick={() => addition1LessonProgress.advanceStep()}>
+        {addition1LessonProgress.isLastStep ? "Got it! Let's Practice!" : 'Next'}
       </button>
     </div>
   {/key}
