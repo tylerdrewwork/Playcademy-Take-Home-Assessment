@@ -6,6 +6,15 @@ export interface InstructionScreen {
   props?: Record<string, unknown>
 }
 
+// The unit of pacing within an instruction screen: one GSAP-timeline label
+// paired with the title/transcript shown while that label plays. transcript
+// doubles as the alt text for the step's voice-over.
+export interface ScreenStep {
+  label: string
+  title: string
+  transcript: string
+}
+
 export interface Problem {
   id: string
   prompt: string

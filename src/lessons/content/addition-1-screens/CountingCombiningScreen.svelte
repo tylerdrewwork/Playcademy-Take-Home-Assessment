@@ -1,16 +1,20 @@
-<script>
+<script lang="ts">
   import { onMount, onDestroy } from 'svelte'
   import gsap from 'gsap'
   import GroupsDisplay from './GroupsDisplay.svelte'
+  import type { ScreenStep } from '../../lessonContent.js'
 
-  let { onComplete, isLastScreen } = $props()
+  let {
+    onComplete,
+    isLastScreen,
+  }: { onComplete: () => void; isLastScreen: boolean } = $props()
 
-  const groups = [
+  const groups: { count: number; color: string }[] = [
     { count: 2, color: 'blue' },
     { count: 3, color: 'yellow' },
   ]
 
-  const steps = [
+  const steps: ScreenStep[] = [
     {
       label: 'group-1',
       title: 'Counting one group',
@@ -33,9 +37,9 @@
   let stepIndex = $state(0)
   let current = $derived(steps[stepIndex])
 
-  let containerEl
-  let tl
-  let ctx
+  let containerEl: HTMLDivElement
+  let tl: gsap.core.Timeline | undefined
+  let ctx: gsap.Context | undefined
 
   onMount(() => {
     ctx = gsap.context(() => {

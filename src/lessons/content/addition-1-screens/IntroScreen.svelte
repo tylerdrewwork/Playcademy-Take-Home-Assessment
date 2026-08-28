@@ -1,10 +1,14 @@
-<script>
+<script lang="ts">
   import { onDestroy } from 'svelte'
   import introVoUrl from '../../../assets/lesson/addition-1/intro-1-vo.wav'
+  import type { ScreenStep } from '../../lessonContent.js'
 
-  let { onComplete, isLastScreen } = $props()
+  let {
+    onComplete,
+    isLastScreen,
+  }: { onComplete: () => void; isLastScreen: boolean } = $props()
 
-  const steps = [
+  const steps: ScreenStep[] = [
     {
       label: 'begin',
       title: 'Meet the balloons',
@@ -17,8 +21,8 @@
   let current = $derived(steps[stepIndex])
 
   // 'begin' -> 'playing' (voice-over) -> 'done' (Next button shown)
-  let phase = $state('begin')
-  let audio
+  let phase = $state<'begin' | 'playing' | 'done'>('begin')
+  let audio: HTMLAudioElement | undefined
 
   function begin() {
     phase = 'playing'
