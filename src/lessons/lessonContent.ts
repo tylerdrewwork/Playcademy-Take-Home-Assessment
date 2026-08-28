@@ -2,6 +2,7 @@ export interface InstructionStep {
   id: string
   title: string
   body: string
+  audioSrc?: string
   groups?: unknown[]
   showCombined?: boolean
 }
