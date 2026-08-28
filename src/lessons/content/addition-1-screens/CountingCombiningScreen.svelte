@@ -10,28 +10,28 @@
     { count: 3, color: 'yellow' },
   ]
 
-  const internalSteps = [
+  const steps = [
     {
       label: 'group-1',
       title: 'Counting one group',
-      body: "Here are 2 balloons. Let's count them: 1, 2.",
+      transcript: "Here are 2 balloons. Let's count them: 1, 2.",
     },
     {
       label: 'both-groups',
       title: 'Counting the second group',
-      body: "Here are 3 more balloons. Let's count them: 1, 2, 3.",
+      transcript: "Here are 3 more balloons. Let's count them: 1, 2, 3.",
     },
     {
       label: 'combine',
       title: 'How to Combine Groups',
-      body: "Now let's put both groups together and count all the balloons: 1, 2, 3, 4, 5. There are 5 balloons in all.",
+      transcript: "Now let's put both groups together and count all the balloons: 1, 2, 3, 4, 5. There are 5 balloons in all.",
     },
   ]
 
   // Which internal step the student is on. GSAP only reacts to this via
   // tweenTo() in next() — the timeline is never the source of truth.
   let stepIndex = $state(0)
-  let current = $derived(internalSteps[stepIndex])
+  let current = $derived(steps[stepIndex])
 
   let containerEl
   let tl
@@ -105,23 +105,23 @@
   })
 
   function next() {
-    if (stepIndex >= internalSteps.length - 1) {
+    if (stepIndex >= steps.length - 1) {
       onComplete()
       return
     }
     stepIndex += 1
-    tl?.tweenTo(internalSteps[stepIndex].label)
+    tl?.tweenTo(steps[stepIndex].label)
   }
 </script>
 
 <div bind:this={containerEl}>
   <h2>{current.title}</h2>
-  <p>{current.body}</p>
+  <p>{current.transcript}</p>
 
   <GroupsDisplay {groups} />
 
   <button onclick={next}>
-    {stepIndex === internalSteps.length - 1 && isLastScreen ? "Got it! Let's Practice!" : 'Next'}
+    {stepIndex === steps.length - 1 && isLastScreen ? "Got it! Let's Practice!" : 'Next'}
   </button>
 </div>
 
