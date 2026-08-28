@@ -8,6 +8,10 @@ This project is a teaching application targeted toward a student working on CCSS
 
 The codebase is currently the unmodified Svelte + Vite scaffold (see "Current state" below) — the lesson and multiplayer game described above have not been implemented yet.
 
+## Multiplayer game description
+
+Each player is presented with their own group of coins to count. Once a player answers correctly, that coin amount is added to the "total money" — a single running total of every coin amount any player has ever guessed correctly, shared across the whole game. Players may join and leave at will; the player list updates live for everyone as people come and go. A game room holds up to 20 players at once.
+
 ## Commands
 
 ```bash
