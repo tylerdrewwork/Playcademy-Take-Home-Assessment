@@ -5,23 +5,33 @@ export const addition1Content = {
     steps: [
       {
         id: 'intro',
-        title: 'Meet the balls',
-        body: 'Today we are going to combine two groups of balls and count how many there are in all.',
+        title: 'Meet the balloons',
+        body: 'Today we are going to combine two groups of balloons and count how many there are in all.',
       },
       {
         id: 'example-1',
         title: 'Counting one group',
-        body: "Here are 2 balls. Let's count them: 1, 2.",
+        body: "Here are 2 balloons. Let's count them: 1, 2.",
+        groups: [{ count: 2, color: 'blue' }],
       },
       {
         id: 'example-2',
         title: 'Counting the second group',
-        body: "Here are 3 more balls. Let's count them: 1, 2, 3.",
+        body: "Here are 3 more balloons. Let's count them: 1, 2, 3.",
+        groups: [
+          { count: 2, color: 'blue' },
+          { count: 3, color: 'yellow' },
+        ],
       },
       {
         id: 'example-3',
-        title: 'Combining the groups',
-        body: "Now let's put both groups together and count all the balls: 1, 2, 3, 4, 5. There are 5 balls in all.",
+        title: 'How to Combine Groups',
+        body: "Now let's put both groups together and count all the balloons: 1, 2, 3, 4, 5. There are 5 balloons in all.",
+        groups: [
+          { count: 2, color: 'blue' },
+          { count: 3, color: 'yellow' },
+        ],
+        showCombined: true,
       },
     ],
   },
