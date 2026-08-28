@@ -5,13 +5,12 @@ import { getDatabase } from "firebase/database";
 // Paste the config object from the Firebase console:
 // Project settings -> General -> Your apps -> SDK setup and configuration
 const firebaseConfig = {
-  apiKey: "",
-  authDomain: "",
-  databaseURL: "",
-  projectId: "",
-  storageBucket: "",
-  messagingSenderId: "",
-  appId: "",
+  apiKey: "AIzaSyCleJyU9rTMmd_5QWnKOYWBJyutv2Arymg",
+  authDomain: "playcademy-assessment.firebaseapp.com",
+  projectId: "playcademy-assessment",
+  storageBucket: "playcademy-assessment.firebasestorage.app",
+  messagingSenderId: "1027562773144",
+  appId: "1:1027562773144:web:c40e61ae15b961a27dceed"
 };
 
 export const app = initializeApp(firebaseConfig);
