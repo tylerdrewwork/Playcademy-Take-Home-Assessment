@@ -2,12 +2,15 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import { IDBFactory } from 'fake-indexeddb'
 import { LessonProgress } from './lessonProgress.svelte.js'
 import { IndexedDbProgressionStorage } from './progressStorage.js'
-import { LessonContent, type InstructionStep, type Problem } from './lessonContent.js'
+import type { Component } from 'svelte'
+import { LessonContent, type InstructionScreen, type Problem } from './lessonContent.js'
 
-class TestContent extends LessonContent<InstructionStep, Problem> {
+const DummyComponent = (() => {}) as unknown as Component
+
+class TestContent extends LessonContent<InstructionScreen, Problem> {
   readonly lessonId = 'integration-test-lesson'
   readonly contentVersion = 1
-  readonly instruction = { steps: [{ id: 'step-1', title: '', body: '' }] }
+  readonly instruction = { screens: [{ id: 'screen-1', component: DummyComponent }] }
   readonly problems = [
     { id: 'p1', prompt: '', answer: 5 },
     { id: 'p2', prompt: '', answer: 6 },

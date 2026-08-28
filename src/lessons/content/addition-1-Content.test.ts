@@ -15,7 +15,7 @@ describe('addition1Content', () => {
     }
   })
 
-  it('has at least one instruction step', () => {
-    expect(addition1Content.instruction.steps.length).toBeGreaterThan(0)
+  it('has at least one instruction screen', () => {
+    expect(addition1Content.instruction.screens.length).toBeGreaterThan(0)
   })
 })

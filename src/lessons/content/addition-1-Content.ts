@@ -1,25 +1,6 @@
-import { LessonContent, type InstructionStep, type Problem } from '../lessonContent.js'
-
-export interface Addition1Group {
-  count: number
-  color: string
-}
-
-export interface Addition1IntroStep extends InstructionStep {
-  kind: 'intro'
-}
-
-export interface Addition1GroupsStep extends InstructionStep {
-  kind: 'groups'
-  groups: Addition1Group[]
-}
-
-export interface Addition1CombineStep extends InstructionStep {
-  kind: 'combine'
-  groups: Addition1Group[]
-}
-
-export type Addition1Step = Addition1IntroStep | Addition1GroupsStep | Addition1CombineStep
+import { LessonContent, type InstructionScreen, type Problem } from '../lessonContent.js'
+import IntroScreen from './addition-1-screens/IntroScreen.svelte'
+import CountingCombiningScreen from './addition-1-screens/CountingCombiningScreen.svelte'
 
 export interface Addition1ProblemGroup {
   count: number
@@ -30,45 +11,16 @@ export interface Addition1Problem extends Problem {
   groups: Addition1ProblemGroup[]
 }
 
-class Addition1Content extends LessonContent<Addition1Step, Addition1Problem> {
+class Addition1Content extends LessonContent<InstructionScreen, Addition1Problem> {
   readonly lessonId = 'combining-groups-2mdc8'
-  readonly contentVersion = 1
+  // v2: instruction restructured from flat steps to screens, so progress
+  // saved under v1 is discarded on load rather than misread.
+  readonly contentVersion = 2
   readonly instruction = {
-    steps: [
-      {
-        id: 'intro',
-        kind: 'intro',
-        title: 'Meet the balloons',
-        body: 'Today we are going to combine two groups of balloons and count how many there are in all.',
-      },
-      {
-        id: 'example-1',
-        kind: 'groups',
-        title: 'Counting one group',
-        body: "Here are 2 balloons. Let's count them: 1, 2.",
-        groups: [{ count: 2, color: 'blue' }],
-      },
-      {
-        id: 'example-2',
-        kind: 'groups',
-        title: 'Counting the second group',
-        body: "Here are 3 more balloons. Let's count them: 1, 2, 3.",
-        groups: [
-          { count: 2, color: 'blue' },
-          { count: 3, color: 'yellow' },
-        ],
-      },
-      {
-        id: 'example-3',
-        kind: 'combine',
-        title: 'How to Combine Groups',
-        body: "Now let's put both groups together and count all the balloons: 1, 2, 3, 4, 5. There are 5 balloons in all.",
-        groups: [
-          { count: 2, color: 'blue' },
-          { count: 3, color: 'yellow' },
-        ],
-      },
-    ] satisfies Addition1Step[],
+    screens: [
+      { id: 'intro', component: IntroScreen },
+      { id: 'counting-combining', component: CountingCombiningScreen },
+    ] satisfies InstructionScreen[],
   }
   readonly problems: Addition1Problem[] = [
     { id: 'p1', prompt: 'There are 2 balls and 3 more balls. How many balls in all?', groups: [{ count: 2, object: 'ball' }, { count: 3, object: 'ball' }], answer: 5 },

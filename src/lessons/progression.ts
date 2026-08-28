@@ -15,7 +15,7 @@ export interface Progress {
   contentVersion: number
   phase: Phase
   instruction: {
-    currentStepIndex: number
+    currentScreenIndex: number
     completedAt: number | null
   }
   problems: {
@@ -43,7 +43,7 @@ export class Progression {
       contentVersion: content.contentVersion,
       phase: 'instruction',
       instruction: {
-        currentStepIndex: 0,
+        currentScreenIndex: 0,
         completedAt: null,
       },
       problems: {
@@ -62,14 +62,14 @@ export class Progression {
     if (progress.phase !== 'instruction') return progress
 
     const now = Date.now()
-    const nextIndex = progress.instruction.currentStepIndex + 1
-    const reachedEnd = nextIndex >= content.instruction.steps.length
+    const nextIndex = progress.instruction.currentScreenIndex + 1
+    const reachedEnd = nextIndex >= content.instruction.screens.length
 
     return {
       ...progress,
       phase: reachedEnd ? 'problems' : 'instruction',
       instruction: {
-        currentStepIndex: nextIndex,
+        currentScreenIndex: nextIndex,
         completedAt: reachedEnd ? now : progress.instruction.completedAt,
       },
       updatedAt: now,

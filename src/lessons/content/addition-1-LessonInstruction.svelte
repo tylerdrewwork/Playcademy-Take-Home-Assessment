@@ -1,33 +1,22 @@
 <script>
   import { addition1LessonProgress } from './addition-1-LessonProgress.js'
   import { addition1Content } from './addition-1-Content.js'
-  import GroupsDisplay from './addition-1-steps/GroupsDisplay.svelte'
-  import CombineDisplay from './addition-1-steps/CombineDisplay.svelte'
 
-  const stepVisuals = {
-    groups: GroupsDisplay,
-    combine: CombineDisplay,
-  }
-
-  let step = $derived(
-    addition1Content.instruction.steps[addition1LessonProgress.progress.instruction.currentStepIndex]
+  let screen = $derived(
+    addition1Content.instruction.screens[
+      addition1LessonProgress.progress.instruction.currentScreenIndex
+    ]
   )
-  let StepVisual = $derived(stepVisuals[step?.kind])
 </script>
 
-{#if step}
-  {#key step.id}
+{#if screen}
+  {#key screen.id}
     <div class="lesson-card">
-      <h2>{step.title}</h2>
-      <p>{step.body}</p>
-
-      {#if StepVisual}
-        <StepVisual groups={step.groups} />
-      {/if}
-
-      <button onclick={() => addition1LessonProgress.advanceStep()}>
-        {addition1LessonProgress.isLastStep ? "Got it! Let's Practice!" : 'Next'}
-      </button>
+      <screen.component
+        {...screen.props}
+        isLastScreen={addition1LessonProgress.isLastScreen}
+        onComplete={() => addition1LessonProgress.advanceStep()}
+      />
     </div>
   {/key}
 {/if}
@@ -41,9 +30,5 @@
     background: light-dark(#ffffff, #1a1a1a);
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
     text-align: center;
-  }
-
-  h2 {
-    margin-top: 0;
   }
 </style>
