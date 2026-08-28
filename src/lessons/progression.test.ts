@@ -12,9 +12,9 @@ class TestContent extends LessonContent<InstructionStep, Problem> {
     ],
   }
   readonly problems = [
-    { id: 'p1', prompt: '', groups: [], answer: 5 },
-    { id: 'p2', prompt: '', groups: [], answer: 6 },
-    { id: 'p3', prompt: '', groups: [], answer: 7 },
+    { id: 'p1', prompt: '', answer: 5 },
+    { id: 'p2', prompt: '', answer: 6 },
+    { id: 'p3', prompt: '', answer: 7 },
   ]
 }
 

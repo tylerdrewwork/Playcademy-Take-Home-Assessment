@@ -9,8 +9,8 @@ class TestContent extends LessonContent<InstructionStep, Problem> {
   readonly contentVersion = 1
   readonly instruction = { steps: [{ id: 'step-1', title: '', body: '' }] }
   readonly problems = [
-    { id: 'p1', prompt: '', groups: [], answer: 5 },
-    { id: 'p2', prompt: '', groups: [], answer: 6 },
+    { id: 'p1', prompt: '', answer: 5 },
+    { id: 'p2', prompt: '', answer: 6 },
   ]
 }
 
@@ -68,9 +68,9 @@ describe('LessonProgress', () => {
     await lessonProgress.ready
     await lessonProgress.advanceStep()
 
-    expect(lessonProgress.currentProblem).toEqual({ id: 'p1', prompt: '', groups: [], answer: 5 })
+    expect(lessonProgress.currentProblem).toEqual({ id: 'p1', prompt: '', answer: 5 })
     await lessonProgress.submitProblemAnswer('5')
-    expect(lessonProgress.currentProblem).toEqual({ id: 'p2', prompt: '', groups: [], answer: 6 })
+    expect(lessonProgress.currentProblem).toEqual({ id: 'p2', prompt: '', answer: 6 })
   })
 
   it('isMultiplayerUnlocked flips to true once every problem is solved', async () => {

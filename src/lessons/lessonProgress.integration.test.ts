@@ -9,8 +9,8 @@ class TestContent extends LessonContent<InstructionStep, Problem> {
   readonly contentVersion = 1
   readonly instruction = { steps: [{ id: 'step-1', title: '', body: '' }] }
   readonly problems = [
-    { id: 'p1', prompt: '', groups: [], answer: 5 },
-    { id: 'p2', prompt: '', groups: [], answer: 6 },
+    { id: 'p1', prompt: '', answer: 5 },
+    { id: 'p2', prompt: '', answer: 6 },
   ]
 }
 

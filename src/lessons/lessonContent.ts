@@ -2,14 +2,11 @@ export interface InstructionStep {
   id: string
   title: string
   body: string
-  groups?: unknown[]
-  showCombined?: boolean
 }
 
 export interface Problem {
   id: string
   prompt: string
-  groups: unknown[]
   answer: number
 }
 

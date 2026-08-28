@@ -7,6 +7,7 @@ export interface Addition1Group {
 
 export interface Addition1Step extends InstructionStep {
   groups?: Addition1Group[]
+  showCombined?: boolean
 }
 
 export interface Addition1ProblemGroup {
