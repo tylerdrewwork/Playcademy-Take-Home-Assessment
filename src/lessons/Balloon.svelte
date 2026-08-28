@@ -1,4 +1,6 @@
 <script>
+  import { fade } from 'svelte/transition'
+
   let { color = 'blue', number = undefined } = $props()
 
   const fills = {
@@ -15,7 +17,7 @@
   <path d="M17 41 L20 47 L23 41 Z" fill={fill.body} />
   <line x1="20" y1="47" x2="20" y2="56" stroke="#999" stroke-width="1" />
   {#if number !== undefined}
-    <text x="20" y="27" text-anchor="middle" class="number">{number}</text>
+    <text x="20" y="27" text-anchor="middle" class="number" out:fade={{ duration: 400 }}>{number}</text>
   {/if}
 </svg>
 
