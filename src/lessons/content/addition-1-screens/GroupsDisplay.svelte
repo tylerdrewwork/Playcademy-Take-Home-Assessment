@@ -1,7 +1,7 @@
 <script>
   import Balloon from '../../Balloon.svelte'
 
-  let { groups } = $props()
+  let { groups, revealedCounts = [] } = $props()
 </script>
 
 <div class="groups-row">
@@ -10,8 +10,8 @@
     <div class="group-box">
       <h3>Group {i + 1}</h3>
       <div class="balloon-row">
-        {#each Array.from({ length: group.count }) as _}
-          <Balloon color={group.color} />
+        {#each Array.from({ length: group.count }) as _, j}
+          <Balloon color={group.color} number={j < (revealedCounts[i] ?? 0) ? j + 1 : undefined} />
         {/each}
       </div>
     </div>

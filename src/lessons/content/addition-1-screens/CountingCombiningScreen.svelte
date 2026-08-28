@@ -3,6 +3,8 @@
   import gsap from 'gsap'
   import GroupsDisplay from './GroupsDisplay.svelte'
   import type { ScreenStep } from '../../lessonContent.js'
+  import countOneVoUrl from '../../../assets/lesson/addition-1/count-1-one-vo.wav'
+  import countTwoVoUrl from '../../../assets/lesson/addition-1/count-1-two-vo.wav'
 
   let {
     onComplete,
@@ -36,6 +38,34 @@
   // tweenTo() in next() — the timeline is never the source of truth.
   let stepIndex = $state(0)
   let current = $derived(steps[stepIndex])
+
+  // Numbers revealed on group 1's balloons as the "let's count them" audio
+  // plays. Gates the group-1 step's Next button so the student hears the
+  // count before moving on.
+  let revealedCounts = $state([0, 0])
+  let countPhase = $state<'ready' | 'counting' | 'done'>('ready')
+  let countAudio: HTMLAudioElement | undefined
+
+  function playClip(url: string): Promise<void> {
+    return new Promise((resolve) => {
+      countAudio = new Audio(url)
+      const finish = () => resolve()
+      countAudio.addEventListener('ended', finish)
+      // If a clip fails to load or play, don't leave the student stuck —
+      // reveal the number anyway and move on.
+      countAudio.addEventListener('error', finish)
+      countAudio.play().catch(finish)
+    })
+  }
+
+  async function countGroupOne() {
+    countPhase = 'counting'
+    await playClip(countOneVoUrl)
+    revealedCounts[0] = 1
+    await playClip(countTwoVoUrl)
+    revealedCounts[0] = 2
+    countPhase = 'done'
+  }
 
   let containerEl: HTMLDivElement
   let tl: gsap.core.Timeline | undefined
@@ -106,6 +136,8 @@
 
   onDestroy(() => {
     ctx?.revert()
+    countAudio?.pause()
+    countAudio = undefined
   })
 
   function next() {
@@ -122,15 +154,29 @@
   <h2>{current.title}</h2>
   <p>{current.transcript}</p>
 
-  <GroupsDisplay {groups} />
+  <GroupsDisplay {groups} {revealedCounts} />
 
-  <button onclick={next}>
-    {stepIndex === steps.length - 1 && isLastScreen ? "Got it! Let's Practice!" : 'Next'}
-  </button>
+  {#if stepIndex === 0 && countPhase === 'ready'}
+    <button class="primary" onclick={countGroupOne}>Count them!</button>
+  {:else if stepIndex !== 0 || countPhase === 'done'}
+    <button onclick={next}>
+      {stepIndex === steps.length - 1 && isLastScreen ? "Got it! Let's Practice!" : 'Next'}
+    </button>
+  {/if}
 </div>
 
 <style>
   h2 {
     margin-top: 0;
+  }
+
+  button.primary {
+    background-color: #1f9d4d;
+    color: #ffffff;
+  }
+
+  button.primary:hover {
+    border-color: transparent;
+    background-color: #178a41;
   }
 </style>
