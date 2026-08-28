@@ -1,13 +1,16 @@
 import { describe, expect, it } from 'vitest'
+import type { Component } from 'svelte'
 import { LessonProgress } from './lessonProgress.svelte.js'
-import { LessonContent, type InstructionStep, type Problem } from './lessonContent.js'
+import { LessonContent, type InstructionScreen, type Problem } from './lessonContent.js'
 import type { ProgressionStorage } from './progressStorage.js'
 import type { Progress } from './progression.js'
 
-class TestContent extends LessonContent<InstructionStep, Problem> {
+const DummyComponent = (() => {}) as unknown as Component
+
+class TestContent extends LessonContent<InstructionScreen, Problem> {
   readonly lessonId = 'test-lesson'
   readonly contentVersion = 1
-  readonly instruction = { steps: [{ id: 'step-1', title: '', body: '' }] }
+  readonly instruction = { screens: [{ id: 'screen-1', component: DummyComponent }] }
   readonly problems = [
     { id: 'p1', prompt: '', answer: 5 },
     { id: 'p2', prompt: '', answer: 6 },
@@ -42,13 +45,36 @@ describe('LessonProgress', () => {
     expect(await storage.loadProgress()).toEqual(lessonProgress.progress)
   })
 
-  it('loads an existing stored record instead of creating a new one', async () => {
+  it('loads an existing stored record as-is when its contentVersion matches', async () => {
     const storage = new FakeStorage()
-    await storage.saveProgress({ phase: 'complete', marker: 'existing' } as unknown as Progress)
+    await storage.saveProgress({
+      phase: 'complete',
+      marker: 'existing',
+      contentVersion: 1,
+    } as unknown as Progress)
     const lessonProgress = new LessonProgress(testContent, storage)
     await lessonProgress.ready
 
-    expect(lessonProgress.progress).toEqual({ phase: 'complete', marker: 'existing' })
+    expect(lessonProgress.progress).toEqual({
+      phase: 'complete',
+      marker: 'existing',
+      contentVersion: 1,
+    })
+  })
+
+  it('discards a stored record with a stale contentVersion and persists fresh progress', async () => {
+    const storage = new FakeStorage()
+    await storage.saveProgress({
+      phase: 'complete',
+      marker: 'stale',
+      contentVersion: 999,
+    } as unknown as Progress)
+    const lessonProgress = new LessonProgress(testContent, storage)
+    await lessonProgress.ready
+
+    expect(lessonProgress.progress?.phase).toBe('instruction')
+    expect(lessonProgress.progress?.contentVersion).toBe(1)
+    expect(await storage.loadProgress()).toEqual(lessonProgress.progress)
   })
 
   it('advanceStep updates state and persists it', async () => {
@@ -85,12 +111,12 @@ describe('LessonProgress', () => {
     expect(lessonProgress.isMultiplayerUnlocked).toBe(true)
   })
 
-  it('isLastStep is true once the current step is the final instruction step', async () => {
+  it('isLastScreen is true once the current screen is the final instruction screen', async () => {
     const storage = new FakeStorage()
     const lessonProgress = new LessonProgress(testContent, storage)
     await lessonProgress.ready
 
-    expect(lessonProgress.isLastStep).toBe(true)
+    expect(lessonProgress.isLastScreen).toBe(true)
   })
 
   it('resetProgress clears storage and reinitializes to instruction phase', async () => {

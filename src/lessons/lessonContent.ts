@@ -1,7 +1,9 @@
-export interface InstructionStep {
+import type { Component } from 'svelte'
+
+export interface InstructionScreen {
   id: string
-  title: string
-  body: string
+  component: Component<any>
+  props?: Record<string, unknown>
 }
 
 export interface Problem {
@@ -11,12 +13,12 @@ export interface Problem {
 }
 
 export abstract class LessonContent<
-  TStep extends InstructionStep = InstructionStep,
+  TScreen extends InstructionScreen = InstructionScreen,
   TProblem extends Problem = Problem,
 > {
   abstract readonly lessonId: string
   abstract readonly contentVersion: number
-  abstract readonly instruction: { steps: TStep[] }
+  abstract readonly instruction: { screens: TScreen[] }
   abstract readonly problems: TProblem[]
 
   findProblem(id: string): TProblem | undefined {

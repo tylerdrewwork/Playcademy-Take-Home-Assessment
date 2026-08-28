@@ -1,14 +1,19 @@
 import { describe, expect, it } from 'vitest'
+import type { Component } from 'svelte'
 import { Progression } from './progression.js'
-import { LessonContent, type InstructionStep, type Problem } from './lessonContent.js'
+import { LessonContent, type InstructionScreen, type Problem } from './lessonContent.js'
 
-class TestContent extends LessonContent<InstructionStep, Problem> {
+// These are pure logic tests that never render, so the component reference
+// only needs to satisfy the type.
+const DummyComponent = (() => {}) as unknown as Component
+
+class TestContent extends LessonContent<InstructionScreen, Problem> {
   readonly lessonId = 'test-lesson'
   readonly contentVersion = 1
   readonly instruction = {
-    steps: [
-      { id: 'step-1', title: '', body: '' },
-      { id: 'step-2', title: '', body: '' },
+    screens: [
+      { id: 'screen-1', component: DummyComponent },
+      { id: 'screen-2', component: DummyComponent },
     ],
   }
   readonly problems = [
@@ -21,10 +26,10 @@ class TestContent extends LessonContent<InstructionStep, Problem> {
 const testContent = new TestContent()
 
 describe('createInitialProgress', () => {
-  it('starts in the instruction phase at step 0', () => {
+  it('starts in the instruction phase at screen 0', () => {
     const progress = Progression.createInitialProgress(testContent)
     expect(progress.phase).toBe('instruction')
-    expect(progress.instruction.currentStepIndex).toBe(0)
+    expect(progress.instruction.currentScreenIndex).toBe(0)
     expect(progress.instruction.completedAt).toBeNull()
   })
 
@@ -45,14 +50,14 @@ describe('createInitialProgress', () => {
 })
 
 describe('advanceInstructionStep', () => {
-  it('moves to the next instruction step', () => {
+  it('moves to the next instruction screen', () => {
     const progress = Progression.createInitialProgress(testContent)
     const next = Progression.advanceInstructionStep(progress, testContent)
-    expect(next.instruction.currentStepIndex).toBe(1)
+    expect(next.instruction.currentScreenIndex).toBe(1)
     expect(next.phase).toBe('instruction')
   })
 
-  it('transitions to the problems phase after the last step', () => {
+  it('transitions to the problems phase after the last screen', () => {
     const progress = Progression.createInitialProgress(testContent)
     const afterStep1 = Progression.advanceInstructionStep(progress, testContent)
     const afterStep2 = Progression.advanceInstructionStep(afterStep1, testContent)

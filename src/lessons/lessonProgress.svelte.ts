@@ -14,8 +14,11 @@ export class LessonProgress {
     this.#storage = storage
     this.ready = (async () => {
       const stored = await storage.loadProgress()
-      this.#progress = stored ?? Progression.createInitialProgress(content)
-      if (!stored) {
+      // A record written under a different content version may not match the
+      // current instruction structure, so treat it as absent and start fresh.
+      const isCurrent = stored != null && stored.contentVersion === content.contentVersion
+      this.#progress = isCurrent ? stored : Progression.createInitialProgress(content)
+      if (!isCurrent) {
         await storage.saveProgress(this.#progress)
       }
     })()
@@ -48,10 +51,10 @@ export class LessonProgress {
       : null
   }
 
-  get isLastStep(): boolean {
+  get isLastScreen(): boolean {
     return (
-      this.#progress?.instruction.currentStepIndex ===
-      this.#content.instruction.steps.length - 1
+      this.#progress?.instruction.currentScreenIndex ===
+      this.#content.instruction.screens.length - 1
     )
   }
 
