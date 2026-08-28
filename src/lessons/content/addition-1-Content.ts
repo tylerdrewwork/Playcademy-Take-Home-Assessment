@@ -5,10 +5,21 @@ export interface Addition1Group {
   color: string
 }
 
-export interface Addition1Step extends InstructionStep {
-  groups?: Addition1Group[]
-  showCombined?: boolean
+export interface Addition1IntroStep extends InstructionStep {
+  kind: 'intro'
 }
+
+export interface Addition1GroupsStep extends InstructionStep {
+  kind: 'groups'
+  groups: Addition1Group[]
+}
+
+export interface Addition1CombineStep extends InstructionStep {
+  kind: 'combine'
+  groups: Addition1Group[]
+}
+
+export type Addition1Step = Addition1IntroStep | Addition1GroupsStep | Addition1CombineStep
 
 export interface Addition1ProblemGroup {
   count: number
@@ -26,17 +37,20 @@ class Addition1Content extends LessonContent<Addition1Step, Addition1Problem> {
     steps: [
       {
         id: 'intro',
+        kind: 'intro',
         title: 'Meet the balloons',
         body: 'Today we are going to combine two groups of balloons and count how many there are in all.',
       },
       {
         id: 'example-1',
+        kind: 'groups',
         title: 'Counting one group',
         body: "Here are 2 balloons. Let's count them: 1, 2.",
         groups: [{ count: 2, color: 'blue' }],
       },
       {
         id: 'example-2',
+        kind: 'groups',
         title: 'Counting the second group',
         body: "Here are 3 more balloons. Let's count them: 1, 2, 3.",
         groups: [
@@ -46,13 +60,13 @@ class Addition1Content extends LessonContent<Addition1Step, Addition1Problem> {
       },
       {
         id: 'example-3',
+        kind: 'combine',
         title: 'How to Combine Groups',
         body: "Now let's put both groups together and count all the balloons: 1, 2, 3, 4, 5. There are 5 balloons in all.",
         groups: [
           { count: 2, color: 'blue' },
           { count: 3, color: 'yellow' },
         ],
-        showCombined: true,
       },
     ] satisfies Addition1Step[],
   }
