@@ -38,22 +38,55 @@
   let stepIndex = $state(0)
   let current = $derived(steps[stepIndex])
 
-  // Numbers revealed on group 1's balloons as the "let's count them" audio
-  // plays. Gates the group-1 step's Next button so the student hears the
-  // count before moving on.
+  // Must match Balloon.svelte's out:fade duration so the merge animation
+  // doesn't start until the faded numbers have actually finished fading.
+  const NUMBER_FADE_MS = 400
+
+  // Numbers revealed per group as each one is counted. While counting a
+  // single group, numbering restarts at 1 (continuousNumbering: false);
+  // for the final recount of the merged set it runs 1-5 across both
+  // groups (continuousNumbering: true).
   let revealedCounts = $state([0, 0])
-  let countPhase = $state<'ready' | 'counting' | 'done'>('ready')
+  let continuousNumbering = $state(false)
+
+  // 'ready' shows the step's "Count them!" gate; 'counting' plays a
+  // clip-and-reveal sequence; 'done' shows the Next/finish button;
+  // 'transitioning' (fade + merge) shows no button at all.
+  let phase = $state<'ready' | 'counting' | 'done' | 'transitioning'>('ready')
   let countAudio: HTMLAudioElement | undefined
 
-  async function countGroupOne() {
-    countPhase = 'counting'
-    for (const n of [1, 2]) {
-      const { audio, played } = playNumberAudio(n)
+  function wait(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms))
+  }
+
+  // Reveals each balloon's number before playing its clip, so the student
+  // sees the digit land and then hears it named.
+  async function revealAndSpeak(groupIndex: number, count: number, numberAt: (localIndex: number) => number) {
+    for (let j = 0; j < count; j++) {
+      revealedCounts[groupIndex] = j + 1
+      const { audio, played } = playNumberAudio(numberAt(j))
       countAudio = audio
       await played
-      revealedCounts[0] = n
     }
-    countPhase = 'done'
+  }
+
+  async function countGroup() {
+    phase = 'counting'
+    await revealAndSpeak(stepIndex, groups[stepIndex].count, (j) => j + 1)
+    phase = 'done'
+  }
+
+  async function recountCombined() {
+    continuousNumbering = true
+    revealedCounts = [0, 0]
+    phase = 'counting'
+    let offset = 0
+    for (let gi = 0; gi < groups.length; gi++) {
+      const base = offset
+      await revealAndSpeak(gi, groups[gi].count, (j) => base + j + 1)
+      offset += groups[gi].count
+    }
+    phase = 'done'
   }
 
   let containerEl: HTMLDivElement
@@ -129,13 +162,39 @@
     countAudio = undefined
   })
 
-  function next() {
+  function tweenToLabel(label: string): Promise<void> {
+    return new Promise((resolve) => {
+      if (!tl) {
+        resolve()
+        return
+      }
+      tl.tweenTo(label, { onComplete: resolve })
+    })
+  }
+
+  async function next() {
     if (stepIndex >= steps.length - 1) {
       onComplete()
       return
     }
-    stepIndex += 1
-    tl?.tweenTo(steps[stepIndex].label)
+
+    if (stepIndex === 0) {
+      // Reveal group 2 before letting the student count it.
+      phase = 'transitioning'
+      stepIndex = 1
+      await tweenToLabel(steps[stepIndex].label)
+      phase = 'ready'
+      return
+    }
+
+    // stepIndex === 1: fade both groups' numbers away, merge the boxes,
+    // then recount all 5 balloons in one continuous sequence.
+    phase = 'transitioning'
+    revealedCounts = [0, 0]
+    await wait(NUMBER_FADE_MS)
+    stepIndex = 2
+    await tweenToLabel(steps[stepIndex].label)
+    await recountCombined()
   }
 </script>
 
@@ -143,11 +202,11 @@
   <h2>{current.title}</h2>
   <p>{current.transcript}</p>
 
-  <GroupsDisplay {groups} {revealedCounts} />
+  <GroupsDisplay {groups} {revealedCounts} {continuousNumbering} />
 
-  {#if stepIndex === 0 && countPhase === 'ready'}
-    <button class="primary" onclick={countGroupOne}>Count them!</button>
-  {:else if stepIndex !== 0 || countPhase === 'done'}
+  {#if phase === 'ready'}
+    <button class="primary" onclick={countGroup}>Count them!</button>
+  {:else if phase === 'done'}
     <button onclick={next}>
       {stepIndex === steps.length - 1 && isLastScreen ? "Got it! Let's Practice!" : 'Next'}
     </button>

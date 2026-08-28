@@ -1,7 +1,17 @@
 <script>
   import Balloon from '../../Balloon.svelte'
 
-  let { groups, revealedCounts = [] } = $props()
+  // continuousNumbering: false restarts numbering at 1 within each group
+  // (used while counting a group on its own); true numbers balloons in
+  // order across all groups (used for the final recount of the merged set).
+  let { groups, revealedCounts = [], continuousNumbering = false } = $props()
+
+  function numberOffset(groupIndex) {
+    if (!continuousNumbering) return 0
+    let offset = 0
+    for (let k = 0; k < groupIndex; k++) offset += groups[k].count
+    return offset
+  }
 </script>
 
 <div class="groups-row">
@@ -11,7 +21,7 @@
       <h3>Group {i + 1}</h3>
       <div class="balloon-row">
         {#each Array.from({ length: group.count }) as _, j}
-          <Balloon color={group.color} number={j < (revealedCounts[i] ?? 0) ? j + 1 : undefined} />
+          <Balloon color={group.color} number={j < (revealedCounts[i] ?? 0) ? numberOffset(i) + j + 1 : undefined} />
         {/each}
       </div>
     </div>
