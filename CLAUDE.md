@@ -40,7 +40,7 @@ There is no test suite or linter configured in this repository yet.
 
 ## Workflow
 
-Do not open a pull request when finishing a task. Instead, verify locally that the change is ready to be merged into `main` (tests pass, build/lint clean, diff reviewed) and report that status — leave the decision of when/how to merge to the user.
+Do not open a pull request when finishing a task. Instead, verify locally that the change is ready to be merged into `main` (tests pass, build/lint clean, diff reviewed), then explicitly alert the user with an input request that it's ready to merge — do not merge it yourself.
 
 ## Current state
 
