@@ -3,6 +3,7 @@
   import gsap from 'gsap'
   import GroupsDisplay from './GroupsDisplay.svelte'
   import type { ScreenStep } from '../../lessonContent.js'
+  import { playNumberAudio } from '../../../assets/general/numbers/numberAudio.js'
 
   let {
     onComplete,
@@ -36,6 +37,24 @@
   // tweenTo() in next() — the timeline is never the source of truth.
   let stepIndex = $state(0)
   let current = $derived(steps[stepIndex])
+
+  // Numbers revealed on group 1's balloons as the "let's count them" audio
+  // plays. Gates the group-1 step's Next button so the student hears the
+  // count before moving on.
+  let revealedCounts = $state([0, 0])
+  let countPhase = $state<'ready' | 'counting' | 'done'>('ready')
+  let countAudio: HTMLAudioElement | undefined
+
+  async function countGroupOne() {
+    countPhase = 'counting'
+    for (const n of [1, 2]) {
+      const { audio, played } = playNumberAudio(n)
+      countAudio = audio
+      await played
+      revealedCounts[0] = n
+    }
+    countPhase = 'done'
+  }
 
   let containerEl: HTMLDivElement
   let tl: gsap.core.Timeline | undefined
@@ -106,6 +125,8 @@
 
   onDestroy(() => {
     ctx?.revert()
+    countAudio?.pause()
+    countAudio = undefined
   })
 
   function next() {
@@ -122,15 +143,29 @@
   <h2>{current.title}</h2>
   <p>{current.transcript}</p>
 
-  <GroupsDisplay {groups} />
+  <GroupsDisplay {groups} {revealedCounts} />
 
-  <button onclick={next}>
-    {stepIndex === steps.length - 1 && isLastScreen ? "Got it! Let's Practice!" : 'Next'}
-  </button>
+  {#if stepIndex === 0 && countPhase === 'ready'}
+    <button class="primary" onclick={countGroupOne}>Count them!</button>
+  {:else if stepIndex !== 0 || countPhase === 'done'}
+    <button onclick={next}>
+      {stepIndex === steps.length - 1 && isLastScreen ? "Got it! Let's Practice!" : 'Next'}
+    </button>
+  {/if}
 </div>
 
 <style>
   h2 {
     margin-top: 0;
+  }
+
+  button.primary {
+    background-color: #1f9d4d;
+    color: #ffffff;
+  }
+
+  button.primary:hover {
+    border-color: transparent;
+    background-color: #178a41;
   }
 </style>
