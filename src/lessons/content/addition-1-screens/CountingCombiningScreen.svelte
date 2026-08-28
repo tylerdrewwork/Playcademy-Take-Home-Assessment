@@ -3,8 +3,7 @@
   import gsap from 'gsap'
   import GroupsDisplay from './GroupsDisplay.svelte'
   import type { ScreenStep } from '../../lessonContent.js'
-  import countOneVoUrl from '../../../assets/lesson/addition-1/count-1-one-vo.wav'
-  import countTwoVoUrl from '../../../assets/lesson/addition-1/count-1-two-vo.wav'
+  import { playNumberAudio } from '../../../assets/general/numbers/numberAudio.js'
 
   let {
     onComplete,
@@ -46,24 +45,14 @@
   let countPhase = $state<'ready' | 'counting' | 'done'>('ready')
   let countAudio: HTMLAudioElement | undefined
 
-  function playClip(url: string): Promise<void> {
-    return new Promise((resolve) => {
-      countAudio = new Audio(url)
-      const finish = () => resolve()
-      countAudio.addEventListener('ended', finish)
-      // If a clip fails to load or play, don't leave the student stuck —
-      // reveal the number anyway and move on.
-      countAudio.addEventListener('error', finish)
-      countAudio.play().catch(finish)
-    })
-  }
-
   async function countGroupOne() {
     countPhase = 'counting'
-    await playClip(countOneVoUrl)
-    revealedCounts[0] = 1
-    await playClip(countTwoVoUrl)
-    revealedCounts[0] = 2
+    for (const n of [1, 2]) {
+      const { audio, played } = playNumberAudio(n)
+      countAudio = audio
+      await played
+      revealedCounts[0] = n
+    }
     countPhase = 'done'
   }
 
