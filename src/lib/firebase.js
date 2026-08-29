@@ -1,6 +1,7 @@
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getDatabase } from "firebase/database";
+import { getFunctions } from "firebase/functions";
 
 // Paste the config object from the Firebase console:
 // Project settings -> General -> Your apps -> SDK setup and configuration
@@ -20,3 +21,6 @@ export const auth = getAuth(app);
 
 // Realtime Database, scoped to live multiplayer game session state.
 export const rtdb = getDatabase(app);
+
+// Cloud Functions, the authoritative source of truth for multiplayer game state.
+export const functions = getFunctions(app);
