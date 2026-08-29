@@ -10,26 +10,69 @@
     isLastScreen,
   }: { onComplete: () => void; isLastScreen: boolean } = $props()
 
-  const groups: { count: number; color: string }[] = [
+  const iDoGroups: { count: number; color: string }[] = [
     { count: 2, color: 'blue' },
     { count: 3, color: 'yellow' },
   ]
 
+  // "We do" mirrors the "I do" sequence with new amounts so the student
+  // sees the same counting/combining process modeled a second time before
+  // trying it solo.
+  const weDoGroups: { count: number; color: string }[] = [
+    { count: 4, color: 'blue' },
+    { count: 5, color: 'yellow' },
+  ]
+
+  // The active pair of groups shown in the boxes. Swapped from iDoGroups to
+  // weDoGroups when the "combine" step hands off to the "we do" stage — the
+  // GSAP timeline's boxes are reused as-is for both passes.
+  let groups = $state(iDoGroups)
+
   const steps: ScreenStep[] = [
+    {
+      label: 'i-do-start',
+      title: 'Counting one group',
+      transcript: "Watch how I count these balloons.",
+    },
     {
       label: 'group-1',
       title: 'Counting one group',
-      transcript: "Here are 2 balloons. Let's count them: 1, 2.",
+      transcript: "Here are some red balloons. I'll count them: 1, 2.",
     },
     {
       label: 'both-groups',
       title: 'Counting the second group',
-      transcript: "Here are 3 more balloons. Let's count them: 1, 2, 3.",
+      transcript: "Over here are some yellow balloons. I'll count them: 1, 2, 3.",
     },
     {
       label: 'combine',
       title: 'How to Combine Groups',
       transcript: "Now let's put both groups together and count all the balloons: 1, 2, 3, 4, 5. There are 5 balloons in all.",
+    },
+    {
+      label: 'we-do-start',
+      title: '',
+      transcript: "Now, let's do it together! Touch the balloons as we count them.",
+    },
+    {
+      label: 'we-do-group-1',
+      title: '',
+      transcript: "Let's count the red balloons together. 1, 2, 3, 4. There are 4 red balloons.",
+    },
+    {
+      label: 'we-do-group-2',
+      title: '',
+      transcript: "Now let's count the yellow balloons together. 1, 2, 3, 4, 5. There are 5 yellow balloons.",
+    },
+    {
+      label: 'we-do-group-combined',
+      title: '',
+      transcript: "Now let's put both groups together and count all the balloons: 1, 2, 3, 4, 5, 6, 7, 8, 9. There are 9 balloons!",
+    },
+    {
+      label: 'problems-pre-transition',
+      title: '',
+      transcript: "Now, you try.",
     },
   ]
 
@@ -44,19 +87,47 @@
 
   // Numbers revealed per group as each one is counted. While counting a
   // single group, numbering restarts at 1 (continuousNumbering: false);
-  // for the final recount of the merged set it runs 1-5 across both
-  // groups (continuousNumbering: true).
+  // for the final recount of the merged set it runs 1-5 (or 1-9 for the
+  // "we do" pass) across both groups (continuousNumbering: true).
   let revealedCounts = $state([0, 0])
   let continuousNumbering = $state(false)
 
   // 'ready' shows the step's "Count them!" gate; 'counting' plays a
   // clip-and-reveal sequence; 'done' shows the Next/finish button;
-  // 'transitioning' (fade + merge) shows no button at all.
-  let phase = $state<'ready' | 'counting' | 'done' | 'transitioning'>('ready')
+  // 'transitioning' (fade + merge) shows no button while GSAP animates;
+  // 'narrating' shows no button either — the step auto-advances on a timer.
+  let phase = $state<'ready' | 'counting' | 'done' | 'transitioning' | 'narrating'>('narrating')
   let countAudio: HTMLAudioElement | undefined
+
+  // The 'i-do-start' and 'we-do-start' steps are narration-only: the
+  // student watches rather than acts, so they auto-advance once the
+  // transcript has had time to be read instead of waiting for a click.
+  const AUTO_ADVANCE_LABELS = new Set(['i-do-start', 'we-do-start'])
+
+  // No voice-over audio exists yet for these full-sentence transcripts
+  // (unlike the per-number clips used while counting), so approximate a
+  // comfortable reading pace until real narration audio is recorded.
+  function estimateNarrationMs(text: string): number {
+    const words = text.trim().split(/\s+/).filter(Boolean).length
+    const WORDS_PER_MINUTE = 150
+    return Math.max(1200, (words / WORDS_PER_MINUTE) * 60_000)
+  }
+
+  $effect(() => {
+    if (!AUTO_ADVANCE_LABELS.has(current.label)) return
+    const timer = setTimeout(next, estimateNarrationMs(current.transcript))
+    return () => clearTimeout(timer)
+  })
 
   function wait(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms))
+  }
+
+  // Both the "I do" and "we do" passes share the same two boxes: box 0 is
+  // always counted on the 'group-1'/'we-do-group-1' step, box 1 on
+  // 'both-groups'/'we-do-group-2'.
+  function groupIndexForStep(label: string): number {
+    return label === 'both-groups' || label === 'we-do-group-2' ? 1 : 0
   }
 
   // Reveals each balloon's number before playing its clip, so the student
@@ -72,7 +143,8 @@
 
   async function countGroup() {
     phase = 'counting'
-    await revealAndSpeak(stepIndex, groups[stepIndex].count, (j) => j + 1)
+    const groupIndex = groupIndexForStep(current.label)
+    await revealAndSpeak(groupIndex, groups[groupIndex].count, (j) => j + 1)
     phase = 'done'
   }
 
@@ -178,23 +250,54 @@
       return
     }
 
-    if (stepIndex === 0) {
-      // Reveal group 2 before letting the student count it.
-      phase = 'transitioning'
-      stepIndex = 1
-      await tweenToLabel(steps[stepIndex].label)
+    const leavingLabel = current.label
+
+    if (leavingLabel === 'i-do-start' || leavingLabel === 'we-do-start') {
+      // Pure narration steps with nothing to count yet — just advance.
+      stepIndex++
       phase = 'ready'
       return
     }
 
-    // stepIndex === 1: fade both groups' numbers away, merge the boxes,
-    // then recount all 5 balloons in one continuous sequence.
-    phase = 'transitioning'
-    revealedCounts = [0, 0]
-    await wait(NUMBER_FADE_MS)
-    stepIndex = 2
-    await tweenToLabel(steps[stepIndex].label)
-    await recountCombined()
+    if (leavingLabel === 'group-1' || leavingLabel === 'we-do-group-1') {
+      // Reveal group 2 before letting the student count it.
+      phase = 'transitioning'
+      stepIndex++
+      await tweenToLabel('both-groups')
+      phase = 'ready'
+      return
+    }
+
+    if (leavingLabel === 'both-groups' || leavingLabel === 'we-do-group-2') {
+      // Fade both groups' numbers away, merge the boxes, then recount all
+      // balloons in one continuous sequence.
+      phase = 'transitioning'
+      revealedCounts = [0, 0]
+      await wait(NUMBER_FADE_MS)
+      stepIndex++
+      await tweenToLabel('combine')
+      await recountCombined()
+      return
+    }
+
+    if (leavingLabel === 'combine') {
+      // Fade the merged numbers, unmerge the boxes back to the resting
+      // state, then swap in the "we do" amounts for the guided-practice
+      // pass through the same sequence.
+      phase = 'transitioning'
+      revealedCounts = [0, 0]
+      await wait(NUMBER_FADE_MS)
+      stepIndex++
+      groups = weDoGroups
+      continuousNumbering = false
+      await tweenToLabel('group-1')
+      phase = 'narrating'
+      return
+    }
+
+    // we-do-group-combined -> problems-pre-transition: no further animation.
+    stepIndex++
+    phase = 'done'
   }
 </script>
 
