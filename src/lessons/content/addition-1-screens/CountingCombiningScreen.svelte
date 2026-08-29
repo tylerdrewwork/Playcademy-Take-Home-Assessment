@@ -93,11 +93,31 @@
   let continuousNumbering = $state(false)
 
   // 'ready' shows the step's "Count them!" gate; 'counting' plays a
-  // clip-and-reveal sequence; 'done' shows the Next/finish button (also
-  // used for narration-only steps that have nothing to count);
-  // 'transitioning' (fade + merge) shows no button at all.
-  let phase = $state<'ready' | 'counting' | 'done' | 'transitioning'>('done')
+  // clip-and-reveal sequence; 'done' shows the Next/finish button;
+  // 'transitioning' (fade + merge) shows no button while GSAP animates;
+  // 'narrating' shows no button either — the step auto-advances on a timer.
+  let phase = $state<'ready' | 'counting' | 'done' | 'transitioning' | 'narrating'>('narrating')
   let countAudio: HTMLAudioElement | undefined
+
+  // The 'i-do-start' and 'we-do-start' steps are narration-only: the
+  // student watches rather than acts, so they auto-advance once the
+  // transcript has had time to be read instead of waiting for a click.
+  const AUTO_ADVANCE_LABELS = new Set(['i-do-start', 'we-do-start'])
+
+  // No voice-over audio exists yet for these full-sentence transcripts
+  // (unlike the per-number clips used while counting), so approximate a
+  // comfortable reading pace until real narration audio is recorded.
+  function estimateNarrationMs(text: string): number {
+    const words = text.trim().split(/\s+/).filter(Boolean).length
+    const WORDS_PER_MINUTE = 150
+    return Math.max(1200, (words / WORDS_PER_MINUTE) * 60_000)
+  }
+
+  $effect(() => {
+    if (!AUTO_ADVANCE_LABELS.has(current.label)) return
+    const timer = setTimeout(next, estimateNarrationMs(current.transcript))
+    return () => clearTimeout(timer)
+  })
 
   function wait(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms))
@@ -271,7 +291,7 @@
       groups = weDoGroups
       continuousNumbering = false
       await tweenToLabel('group-1')
-      phase = 'done'
+      phase = 'narrating'
       return
     }
 
