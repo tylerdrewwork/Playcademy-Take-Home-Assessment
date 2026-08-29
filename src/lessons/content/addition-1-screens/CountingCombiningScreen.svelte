@@ -92,6 +92,11 @@
   let revealedCounts = $state([0, 0])
   let continuousNumbering = $state(false)
 
+  // True only while a whole group is being faded/reset as a unit (the
+  // combine -> we-do-start handoff) — the numbers should vanish with the
+  // group, not fade on their own on top of it.
+  let hideNumbersInstantly = $state(false)
+
   // 'counting' plays a clip-and-reveal sequence (started automatically,
   // with no "Count them!" gate — the student watches, they don't trigger
   // it); 'transitioning' (fade + merge) shows no button while GSAP
@@ -116,6 +121,10 @@
   // revealed numbers already conveyed the count, so this doesn't need to
   // be as long as the pre-count narration pause.
   const POST_COUNT_PAUSE_MS = 1200
+
+  // A beat of nothing between a group fading out and the next one fading
+  // in, so the two never visually overlap.
+  const TRANSITION_PAUSE_MS = 300
 
   $effect(() => {
     if (stepIndex === steps.length - 1) return
@@ -303,17 +312,21 @@
     }
 
     if (leavingLabel === 'combine') {
-      // Fade the whole merged group out, reset to the single-group resting
-      // state while hidden, then fade back in on an empty slate — the new
-      // "we do" amounts, nothing revealed yet — rather than reverse-playing
-      // the merge animation with the old group's sizing.
+      // Drop the numbers immediately (no fade of their own — they leave
+      // with the group, not on top of it), fade the whole merged group
+      // out, pause on nothing, then fade back in on an empty slate — the
+      // new "we do" amounts, nothing revealed yet — rather than
+      // reverse-playing the merge animation with the old group's sizing.
       phase = 'transitioning'
-      await fadeTo(0)
-      stepIndex++
+      hideNumbersInstantly = true
       revealedCounts = [0, 0]
+      await fadeTo(0)
+      await wait(TRANSITION_PAUSE_MS)
+      stepIndex++
       continuousNumbering = false
       groups = weDoGroups
       tl?.seek('group-1')
+      hideNumbersInstantly = false
       await fadeTo(1)
       phase = 'narrating'
       return
@@ -329,7 +342,7 @@
   <h2>{current.title}</h2>
   <p>{current.transcript}</p>
 
-  <GroupsDisplay {groups} {revealedCounts} {continuousNumbering} />
+  <GroupsDisplay {groups} {revealedCounts} {continuousNumbering} instant={hideNumbersInstantly} />
 
   {#if phase === 'done' && stepIndex === steps.length - 1}
     <button onclick={next}>

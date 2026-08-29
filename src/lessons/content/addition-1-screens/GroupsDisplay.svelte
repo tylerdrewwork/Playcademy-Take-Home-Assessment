@@ -4,7 +4,7 @@
   // continuousNumbering: false restarts numbering at 1 within each group
   // (used while counting a group on its own); true numbers balloons in
   // order across all groups (used for the final recount of the merged set).
-  let { groups, revealedCounts = [], continuousNumbering = false } = $props()
+  let { groups, revealedCounts = [], continuousNumbering = false, instant = false } = $props()
 
   function numberOffset(groupIndex) {
     if (!continuousNumbering) return 0
@@ -27,7 +27,11 @@
       <h3>Group {i + 1}</h3>
       <div class="balloon-row">
         {#each Array.from({ length: group.count }) as _, j}
-          <Balloon color={group.color} number={j < (revealedCounts[i] ?? 0) ? numberOffset(i) + j + 1 : undefined} />
+          <Balloon
+            color={group.color}
+            number={j < (revealedCounts[i] ?? 0) ? numberOffset(i) + j + 1 : undefined}
+            {instant}
+          />
         {/each}
       </div>
     </div>
