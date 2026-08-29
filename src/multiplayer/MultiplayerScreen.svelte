@@ -9,7 +9,9 @@
 
   onDestroy(() => session.leave())
 
-  let answerText = $state('')
+  // <input type="number" bind:value> gives Svelte a number (or undefined
+  // when the field is empty), never a string — don't treat this as text.
+  let answer: number | undefined = $state(undefined)
 
   const moneyFormatter = new Intl.NumberFormat('en-US', {
     style: 'currency',
@@ -18,11 +20,10 @@
 
   function handleSubmit(event: SubmitEvent): void {
     event.preventDefault()
-    const answer = Number(answerText)
-    if (answerText.trim() === '' || !Number.isFinite(answer)) return
+    if (answer === undefined || !Number.isFinite(answer)) return
 
     session.submitAnswer(answer)
-    answerText = ''
+    answer = undefined
   }
 </script>
 
@@ -44,7 +45,7 @@
         min="0"
         placeholder="How many coins?"
         aria-label="How many coins do you count?"
-        bind:value={answerText}
+        bind:value={answer}
         disabled={session.submitting}
       />
       <button type="submit" disabled={session.submitting}>Submit</button>
