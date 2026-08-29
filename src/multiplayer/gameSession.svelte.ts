@@ -3,19 +3,26 @@ import { httpsCallable } from 'firebase/functions'
 import { ref, onValue, onDisconnect, remove, type Unsubscribe } from 'firebase/database'
 import { auth, rtdb, functions } from '../lib/firebase.js'
 
+export type CoinValue = 25 | 10 | 5 | 1
+
+export interface CoinProblem {
+  sum: number
+  coins: CoinValue[]
+}
+
 interface JoinGameResult {
   gameId: string
-  coinsPresented: number
+  problem: CoinProblem
 }
 
 interface SubmitAnswerResult {
   correct: boolean
-  coinsPresented: number
+  problem: CoinProblem
 }
 
 interface PlayerRecord {
   joinedAt: number
-  coinsPresented: number
+  problem: CoinProblem
   lastResult: 'correct' | 'incorrect' | null
 }
 
@@ -24,9 +31,9 @@ export type GameSessionStatus = 'idle' | 'joining' | 'joined' | 'error'
 export class GameSession {
   #status: GameSessionStatus = $state('idle')
   #error: unknown = $state.raw(null)
-  #coinsPresented: number | null = $state.raw(null)
+  #problem: CoinProblem | null = $state.raw(null)
   #players: Record<string, PlayerRecord> = $state.raw({})
-  #totalMoney: number = $state(0)
+  #totalMoneyCents: number = $state(0)
   #submitting: boolean = $state(false)
   #lastResult: 'correct' | 'incorrect' | null = $state.raw(null)
   #uid: string | null = null
@@ -42,16 +49,17 @@ export class GameSession {
     return this.#error
   }
 
-  get coinsPresented(): number | null {
-    return this.#coinsPresented
+  get problem(): CoinProblem | null {
+    return this.#problem
   }
 
   get playerCount(): number {
     return Object.keys(this.#players).length
   }
 
-  get totalMoney(): number {
-    return this.#totalMoney
+  /** Running total across all players' correct answers, in cents. */
+  get totalMoneyCents(): number {
+    return this.#totalMoneyCents
   }
 
   get submitting(): boolean {
@@ -74,7 +82,7 @@ export class GameSession {
 
       this.#uid = user.uid
       this.#gameId = data.gameId
-      this.#coinsPresented = data.coinsPresented
+      this.#problem = data.problem
 
       const playerRef = ref(rtdb, `games/${data.gameId}/players/${user.uid}`)
       onDisconnect(playerRef).remove()
@@ -86,7 +94,7 @@ export class GameSession {
 
       const totalRef = ref(rtdb, `games/${data.gameId}/totalMoney`)
       this.#unsubscribeTotal = onValue(totalRef, (snapshot) => {
-        this.#totalMoney = snapshot.val() ?? 0
+        this.#totalMoneyCents = snapshot.val() ?? 0
       })
 
       this.#status = 'joined'
@@ -106,7 +114,7 @@ export class GameSession {
         'submitAnswer',
       )
       const { data } = await callSubmitAnswer({ answer })
-      this.#coinsPresented = data.coinsPresented
+      this.#problem = data.problem
       this.#lastResult = data.correct ? 'correct' : 'incorrect'
     } catch (err) {
       this.#error = err
@@ -128,9 +136,9 @@ export class GameSession {
     this.#uid = null
     this.#gameId = null
     this.#status = 'idle'
-    this.#coinsPresented = null
+    this.#problem = null
     this.#players = {}
-    this.#totalMoney = 0
+    this.#totalMoneyCents = 0
     this.#lastResult = null
     this.#submitting = false
   }

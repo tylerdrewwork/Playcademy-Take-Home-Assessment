@@ -1,18 +1,18 @@
 import {onCall, HttpsError} from "firebase-functions/https";
 import {getDatabase} from "firebase-admin/database";
 import {GAME_ID, MAX_PLAYERS} from "./gameConfig.js";
-import {randomCoinCount} from "./coinProblem.js";
+import {randomCoinProblem, type CoinProblem} from "./coinProblem.js";
 import {enforceRateLimit} from "./rateLimit.js";
 
 interface Player {
   joinedAt: number;
-  coinsPresented: number;
+  problem: CoinProblem;
   lastResult: "correct" | "incorrect" | null;
 }
 
 interface JoinGameResult {
   gameId: string;
-  coinsPresented: number;
+  problem: CoinProblem;
 }
 
 type Players = Record<string, Player>;
@@ -29,7 +29,7 @@ export const joinGame = onCall<void, Promise<JoinGameResult>>(
 
     await enforceRateLimit(uid);
 
-    const coinsPresented = randomCoinCount();
+    const problem = randomCoinProblem();
     const playersRef = getDatabase().ref(`games/${GAME_ID}/players`);
 
     const result = await playersRef.transaction((players: Players | null) => {
@@ -41,7 +41,7 @@ export const joinGame = onCall<void, Promise<JoinGameResult>>(
       if (Object.keys(players).length >= MAX_PLAYERS) {
         return; // abort: the room is full
       }
-      players[uid] = {joinedAt: Date.now(), coinsPresented, lastResult: null};
+      players[uid] = {joinedAt: Date.now(), problem, lastResult: null};
       return players;
     });
 
@@ -53,6 +53,6 @@ export const joinGame = onCall<void, Promise<JoinGameResult>>(
     }
 
     const joined = result.snapshot.child(uid).val() as Player;
-    return {gameId: GAME_ID, coinsPresented: joined.coinsPresented};
+    return {gameId: GAME_ID, problem: joined.problem};
   },
 );

@@ -1,12 +1,12 @@
 import {onCall, HttpsError} from "firebase-functions/https";
 import {getDatabase} from "firebase-admin/database";
 import {GAME_ID} from "./gameConfig.js";
-import {randomCoinCount} from "./coinProblem.js";
+import {randomCoinProblem, type CoinProblem} from "./coinProblem.js";
 import {enforceRateLimit} from "./rateLimit.js";
 
 interface Player {
   joinedAt: number;
-  coinsPresented: number;
+  problem: CoinProblem;
   lastResult: "correct" | "incorrect" | null;
 }
 
@@ -16,7 +16,7 @@ interface SubmitAnswerRequest {
 
 interface SubmitAnswerResult {
   correct: boolean;
-  coinsPresented: number;
+  problem: CoinProblem;
 }
 
 export const submitAnswer = onCall<
@@ -41,20 +41,20 @@ export const submitAnswer = onCall<
     const playerRef = getDatabase().ref(`games/${GAME_ID}/players/${uid}`);
 
     let correct = false;
-    let coinsAwarded = 0;
-    let nextCoinsPresented = 0;
+    let centsAwarded = 0;
+    let nextProblem: CoinProblem = {sum: 0, coins: []};
 
     const result = await playerRef.transaction((player: Player | null) => {
       if (!player) {
         // Not in the room (e.g. left mid-answer) — abort below.
         return player;
       }
-      correct = answer === player.coinsPresented;
-      coinsAwarded = player.coinsPresented;
-      nextCoinsPresented = correct ? randomCoinCount() : player.coinsPresented;
+      correct = answer === player.problem.sum;
+      centsAwarded = player.problem.sum;
+      nextProblem = correct ? randomCoinProblem() : player.problem;
       return {
         ...player,
-        coinsPresented: nextCoinsPresented,
+        problem: nextProblem,
         lastResult: correct ? "correct" : "incorrect",
       };
     });
@@ -69,10 +69,10 @@ export const submitAnswer = onCall<
     if (correct) {
       const totalRef = getDatabase().ref(`games/${GAME_ID}/totalMoney`);
       await totalRef.transaction((current: number | null) => {
-        return (current ?? 0) + coinsAwarded;
+        return (current ?? 0) + centsAwarded;
       });
     }
 
-    return {correct, coinsPresented: nextCoinsPresented};
+    return {correct, problem: nextProblem};
   },
 );

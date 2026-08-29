@@ -18,6 +18,30 @@
     currency: 'USD',
   })
 
+  const COIN_NAMES: Record<number, [string, string]> = {
+    25: ['quarter', 'quarters'],
+    10: ['dime', 'dimes'],
+    5: ['nickel', 'nickels'],
+    1: ['penny', 'pennies'],
+  }
+
+  // Placeholder text description of the coin assortment — the underlying
+  // `coins` array (one entry per physical coin) is what a future visual
+  // rendering (one image per coin) will iterate over instead.
+  function describeCoins(coins: number[]): string {
+    const counts = new Map<number, number>()
+    for (const value of coins) counts.set(value, (counts.get(value) ?? 0) + 1)
+
+    return [25, 10, 5, 1]
+      .filter((value) => counts.has(value))
+      .map((value) => {
+        const count = counts.get(value)!
+        const [singular, plural] = COIN_NAMES[value]
+        return `${count} ${count === 1 ? singular : plural}`
+      })
+      .join(', ')
+  }
+
   function handleSubmit(event: SubmitEvent): void {
     event.preventDefault()
     if (answer === undefined || !Number.isFinite(answer)) return
@@ -34,8 +58,8 @@
     <p>Joining game…</p>
   {:else if session.status === 'error'}
     <p class="error">Couldn't join the game. Please check your connection and try again.</p>
-  {:else if session.status === 'joined'}
-    <p>You're presented with {session.coinsPresented} coins to count.</p>
+  {:else if session.status === 'joined' && session.problem}
+    <p>Count the coins: {describeCoins(session.problem.coins)}.</p>
     <p>{session.playerCount} player{session.playerCount === 1 ? '' : 's'} in the room.</p>
 
     <form class="answer-form" onsubmit={handleSubmit}>
@@ -43,8 +67,8 @@
         type="number"
         inputmode="numeric"
         min="0"
-        placeholder="How many coins?"
-        aria-label="How many coins do you count?"
+        placeholder="How many cents?"
+        aria-label="How many cents do the coins add up to?"
         bind:value={answer}
         disabled={session.submitting}
       />
@@ -61,7 +85,9 @@
   <button onclick={onExit}>Back to lesson</button>
 
   {#if session.status === 'joined'}
-    <p class="total-money">Total money earned: {moneyFormatter.format(session.totalMoney)}</p>
+    <p class="total-money">
+      Total money earned: {moneyFormatter.format(session.totalMoneyCents / 100)}
+    </p>
   {/if}
 </section>
 
