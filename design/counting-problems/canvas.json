@@ -1,0 +1,13 @@
+{
+  "artboards": [
+    { "file": "Main.dc.html", "x": 0, "y": 0, "w": 480, "h": 680 },
+    { "file": "Correct.dc.html", "x": 560, "y": 0, "w": 480, "h": 680 },
+    { "file": "Incorrect.dc.html", "x": 1120, "y": 0, "w": 480, "h": 680 }
+  ],
+  "annotations": [
+    { "id": "note-main", "x": 0, "y": -100, "w": 300, "text": "Fresh problem" },
+    { "id": "note-correct", "x": 560, "y": -100, "w": 300, "text": "Correct answer" },
+    { "id": "note-incorrect", "x": 1120, "y": -100, "w": 300, "text": "Incorrect answer, try again" }
+  ],
+  "launch": { "view": "canvas" }
+}
