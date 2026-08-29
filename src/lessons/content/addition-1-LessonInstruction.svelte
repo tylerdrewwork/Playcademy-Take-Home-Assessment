@@ -23,7 +23,13 @@
 
 <style>
   .lesson-card {
+    box-sizing: border-box;
     max-width: 40rem;
+    /* Fixed so the card never resizes as steps swap in shorter/longer
+       transcripts, an extra balloon group, or a button appearing —
+       content that doesn't fill it just leaves blank space below. */
+    height: 34rem;
+    overflow: hidden;
     margin: 2rem auto;
     padding: 2rem;
     border-radius: 1rem;

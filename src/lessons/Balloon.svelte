@@ -1,5 +1,7 @@
 <script>
+  import { onDestroy } from 'svelte'
   import { fade } from 'svelte/transition'
+  import gsap from 'gsap'
 
   let { color = 'blue', number = undefined } = $props()
 
@@ -9,9 +11,27 @@
   }
 
   let fill = $derived(fills[color] ?? fills.blue)
+
+  let svgEl
+  let popTween
+
+  // Pop the balloon larger as it's counted, then settle back down, so the
+  // student's eye is drawn to whichever balloon the count just landed on.
+  $effect(() => {
+    if (number === undefined || !svgEl) return
+    popTween?.kill()
+    popTween = gsap
+      .timeline()
+      .to(svgEl, { scale: 1.3, duration: 0.25, ease: 'expo.out' })
+      .to(svgEl, { scale: 1, duration: 0.3, ease: 'power1.inOut' })
+  })
+
+  onDestroy(() => {
+    popTween?.kill()
+  })
 </script>
 
-<svg class="balloon" viewBox="0 0 40 56" aria-hidden="true">
+<svg bind:this={svgEl} class="balloon" viewBox="0 0 40 56" aria-hidden="true">
   <ellipse cx="20" cy="22" rx="18" ry="20" fill={fill.body} />
   <ellipse cx="14" cy="14" rx="6" ry="8" fill={fill.highlight} opacity="0.7" />
   <path d="M17 41 L20 47 L23 41 Z" fill={fill.body} />
