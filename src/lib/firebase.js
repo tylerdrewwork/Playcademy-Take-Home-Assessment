@@ -11,7 +11,8 @@ const firebaseConfig = {
   projectId: "playcademy-assessment",
   storageBucket: "playcademy-assessment.firebasestorage.app",
   messagingSenderId: "1027562773144",
-  appId: "1:1027562773144:web:c40e61ae15b961a27dceed"
+  appId: "1:1027562773144:web:c40e61ae15b961a27dceed",
+  databaseURL: "https://playcademy-assessment-default-rtdb.firebaseio.com/"
 };
 
 export const app = initializeApp(firebaseConfig);
