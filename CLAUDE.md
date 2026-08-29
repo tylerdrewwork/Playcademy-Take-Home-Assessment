@@ -42,6 +42,10 @@ There is no test suite or linter configured in this repository yet.
 - **Auth:** Firebase Anonymous Auth for players. No teacher/admin authorization exists yet.
 - **Crash/error monitoring:** Firebase Crashlytics does not support Web (only Android/iOS/Flutter/Unity/NDK), so this app uses Firebase Performance Monitoring plus logging caught exceptions as Analytics events instead.
 
+## Workflow
+
+Do not open a pull request when finishing a task. Instead, verify locally that the change is ready to be merged into `main` (tests pass, build/lint clean, diff reviewed), then explicitly alert the user with an input request that it's ready to merge — do not merge it yourself.
+
 ## Current state
 
 There is no counting/combining lesson, quiz/assessment flow, or multiplayer coin counting game implemented yet — only the stock scaffold described above. When building these features, use the `pedagogy-review` skill to check the instructional design (scaffolding, feedback loops, difficulty progression) against the CCSS 2.MD.C.8 target.
