@@ -94,16 +94,14 @@
 
   // 'counting' plays a clip-and-reveal sequence (started automatically,
   // with no "Count them!" gate — the student watches, they don't trigger
-  // it); 'done' shows the Next/finish button; 'transitioning' (fade +
-  // merge) shows no button while GSAP animates; 'narrating' shows no
-  // button either — the step auto-advances on a timer.
+  // it); 'transitioning' (fade + merge) shows no button while GSAP
+  // animates; 'narrating' is a pure-narration beat before any counting
+  // starts; 'done' is the pause after a count finishes. The whole demo
+  // plays itself — 'narrating' and 'done' both auto-advance on a timer,
+  // except on the last step, which waits for the student to click through
+  // into practice.
   let phase = $state<'counting' | 'done' | 'transitioning' | 'narrating'>('narrating')
   let countAudio: HTMLAudioElement | undefined
-
-  // The 'i-do-start' and 'we-do-start' steps are narration-only: the
-  // student watches rather than acts, so they auto-advance once the
-  // transcript has had time to be read instead of waiting for a click.
-  const AUTO_ADVANCE_LABELS = new Set(['i-do-start', 'we-do-start'])
 
   // No voice-over audio exists yet for these full-sentence transcripts
   // (unlike the per-number clips used while counting), so approximate a
@@ -114,10 +112,21 @@
     return Math.max(1200, (words / WORDS_PER_MINUTE) * 60_000)
   }
 
+  // A short beat after a count finishes, before moving on — the audio and
+  // revealed numbers already conveyed the count, so this doesn't need to
+  // be as long as the pre-count narration pause.
+  const POST_COUNT_PAUSE_MS = 1200
+
   $effect(() => {
-    if (!AUTO_ADVANCE_LABELS.has(current.label)) return
-    const timer = setTimeout(next, estimateNarrationMs(current.transcript))
-    return () => clearTimeout(timer)
+    if (stepIndex === steps.length - 1) return
+    if (phase === 'narrating') {
+      const timer = setTimeout(next, estimateNarrationMs(current.transcript))
+      return () => clearTimeout(timer)
+    }
+    if (phase === 'done') {
+      const timer = setTimeout(next, POST_COUNT_PAUSE_MS)
+      return () => clearTimeout(timer)
+    }
   })
 
   function wait(ms: number): Promise<void> {
@@ -309,9 +318,9 @@
 
   <GroupsDisplay {groups} {revealedCounts} {continuousNumbering} />
 
-  {#if phase === 'done'}
+  {#if phase === 'done' && stepIndex === steps.length - 1}
     <button onclick={next}>
-      {stepIndex === steps.length - 1 && isLastScreen ? "Got it! Let's Practice!" : 'Next'}
+      {isLastScreen ? "Got it! Let's Practice!" : 'Next'}
     </button>
   {/if}
 </div>
