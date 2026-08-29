@@ -3,7 +3,10 @@
   import { fade } from 'svelte/transition'
   import gsap from 'gsap'
 
-  let { color = 'blue', number = undefined } = $props()
+  // instant: skip the number's fade-out (used when a whole group is being
+  // faded/removed as a unit — the number shouldn't linger and animate on
+  // its own on top of that).
+  let { color = 'blue', number = undefined, instant = false } = $props()
 
   const fills = {
     blue: { body: '#4a90d9', highlight: '#8fc1f0' },
@@ -37,14 +40,23 @@
   <path d="M17 41 L20 47 L23 41 Z" fill={fill.body} />
   <line x1="20" y1="47" x2="20" y2="56" stroke="#999" stroke-width="1" />
   {#if number !== undefined}
-    <text x="20" y="27" text-anchor="middle" class="number" out:fade={{ duration: 400 }}>{number}</text>
+    <text x="20" y="27" text-anchor="middle" class="number" out:fade={{ duration: instant ? 0 : 400 }}>{number}</text>
   {/if}
 </svg>
 
 <style>
   .balloon {
-    width: 2.5rem;
-    height: 3.5rem;
+    /* Scales with the viewport and shrinks as the combined balloon count
+       grows, targeting a touch-friendly size. Capped by vh as well as vw
+       so a tall balloon (aspect-ratio below) doesn't push the card past
+       100dvh on a short screen — flex-shrink (below) is the final
+       guarantee that every balloon still fits on one row without
+       wrapping, even below this target on very small/crowded screens. */
+    width: clamp(2rem, min(calc(80vw / var(--balloon-count, 5)), 12vh), 10rem);
+    min-width: 0;
+    flex-shrink: 1;
+    height: auto;
+    aspect-ratio: 40 / 56;
     display: block;
   }
 
