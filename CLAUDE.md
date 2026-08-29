@@ -23,6 +23,8 @@ npm run preview   # locally preview the production build in dist/
 
 There is no test suite or linter configured in this repository yet.
 
+`firebase-tools` is a devDependency, not installed globally — run it as `npx firebase <command>` (e.g. `npx firebase deploy`, `npx firebase emulators:start`), not a bare `firebase` command.
+
 ## Architecture
 
 - Stack: Svelte 5 + Vite, no framework router or state management library is installed.

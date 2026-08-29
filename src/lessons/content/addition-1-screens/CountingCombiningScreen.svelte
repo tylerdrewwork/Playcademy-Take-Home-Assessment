@@ -92,11 +92,12 @@
   let revealedCounts = $state([0, 0])
   let continuousNumbering = $state(false)
 
-  // 'ready' shows the step's "Count them!" gate; 'counting' plays a
-  // clip-and-reveal sequence; 'done' shows the Next/finish button;
-  // 'transitioning' (fade + merge) shows no button while GSAP animates;
-  // 'narrating' shows no button either — the step auto-advances on a timer.
-  let phase = $state<'ready' | 'counting' | 'done' | 'transitioning' | 'narrating'>('narrating')
+  // 'counting' plays a clip-and-reveal sequence (started automatically,
+  // with no "Count them!" gate — the student watches, they don't trigger
+  // it); 'done' shows the Next/finish button; 'transitioning' (fade +
+  // merge) shows no button while GSAP animates; 'narrating' shows no
+  // button either — the step auto-advances on a timer.
+  let phase = $state<'counting' | 'done' | 'transitioning' | 'narrating'>('narrating')
   let countAudio: HTMLAudioElement | undefined
 
   // The 'i-do-start' and 'we-do-start' steps are narration-only: the
@@ -253,18 +254,19 @@
     const leavingLabel = current.label
 
     if (leavingLabel === 'i-do-start' || leavingLabel === 'we-do-start') {
-      // Pure narration steps with nothing to count yet — just advance.
+      // Advance to the first group and start counting it right away —
+      // the student watches, they don't trigger the count themselves.
       stepIndex++
-      phase = 'ready'
+      await countGroup()
       return
     }
 
     if (leavingLabel === 'group-1' || leavingLabel === 'we-do-group-1') {
-      // Reveal group 2 before letting the student count it.
+      // Reveal group 2, then start counting it automatically.
       phase = 'transitioning'
       stepIndex++
       await tweenToLabel('both-groups')
-      phase = 'ready'
+      await countGroup()
       return
     }
 
@@ -307,9 +309,7 @@
 
   <GroupsDisplay {groups} {revealedCounts} {continuousNumbering} />
 
-  {#if phase === 'ready'}
-    <button class="primary" onclick={countGroup}>Count them!</button>
-  {:else if phase === 'done'}
+  {#if phase === 'done'}
     <button onclick={next}>
       {stepIndex === steps.length - 1 && isLastScreen ? "Got it! Let's Practice!" : 'Next'}
     </button>
@@ -319,15 +319,5 @@
 <style>
   h2 {
     margin-top: 0;
-  }
-
-  button.primary {
-    background-color: #1f9d4d;
-    color: #ffffff;
-  }
-
-  button.primary:hover {
-    border-color: transparent;
-    background-color: #178a41;
   }
 </style>
