@@ -254,6 +254,22 @@
     countAudio = undefined
   })
 
+  // Dev-only shortcut for testing: press Enter to skip the current
+  // narrating/done pause and jump straight to the next step, instead of
+  // waiting out the timer. Stripped from production builds — this has no
+  // business being reachable by a student mid-lesson. Safe to spam: next()
+  // itself no-ops while a step is already animating/counting, so this
+  // can't trigger overlapping transitions.
+  if (import.meta.env.DEV) {
+    onMount(() => {
+      function handleKeydown(event: KeyboardEvent) {
+        if (event.key === 'Enter') next()
+      }
+      window.addEventListener('keydown', handleKeydown)
+      return () => window.removeEventListener('keydown', handleKeydown)
+    })
+  }
+
   function tweenToLabel(label: string): Promise<void> {
     return new Promise((resolve) => {
       if (!tl) {
@@ -274,7 +290,25 @@
     })
   }
 
+  // Guards against re-entrancy: next() is async and drives GSAP tweens,
+  // audio playback, and multiple state writes, none of which are safe to
+  // run twice concurrently (a second call mid-flight would race the first
+  // for stepIndex/revealedCounts and start overlapping animations/audio).
+  // The dev-only skip shortcut below calls next() directly, so this also
+  // protects against someone spamming Enter mid-animation.
+  let isAdvancing = false
+
   async function next() {
+    if (isAdvancing) return
+    isAdvancing = true
+    try {
+      await advance()
+    } finally {
+      isAdvancing = false
+    }
+  }
+
+  async function advance() {
     if (stepIndex >= steps.length - 1) {
       onComplete()
       return
