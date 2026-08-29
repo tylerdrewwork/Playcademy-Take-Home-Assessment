@@ -67,8 +67,16 @@ export class LessonProgress {
     }
   }
 
-  async submitProblemAnswer(value: string | number): Promise<void> {
-    this.#progress = Progression.submitProblemAnswer(this.#progress!, this.#content, value)
+  async submitProblemAnswer(
+    value: string | number,
+    studentEvaluationTag: string | null = null
+  ): Promise<void> {
+    this.#progress = Progression.submitProblemAnswer(
+      this.#progress!,
+      this.#content,
+      value,
+      studentEvaluationTag
+    )
     try {
       await this.#storage.saveProgress(this.#progress)
     } catch (err) {

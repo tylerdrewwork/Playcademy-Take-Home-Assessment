@@ -2,6 +2,7 @@
   import { onDestroy } from 'svelte'
   import gsap from 'gsap'
   import { addition1LessonProgress } from './content/addition-1-LessonProgress.js'
+  import { addition1EvaluationRecorder } from './content/addition-1-EvaluationRecorder.js'
   import GroupsDisplay from './content/addition-1-screens/GroupsDisplay.svelte'
 
   let inputValue = $state('')
@@ -27,8 +28,69 @@
   let groupsEl = $state()
   let ctx
 
+  // ----- Answer evaluation (passive data collection; no UI behavior) -----
+
+  // Start/rotate the evaluation episode alongside the visible problem.
+  $effect(() => {
+    if (problem) addition1EvaluationRecorder.beginProblem(problem)
+  })
+
+  // Window-level capture (the "distracted" signal is about wandering
+  // anywhere on the screen, not just over the card) plus a heartbeat so
+  // behavioral episodes get recorded even if the student never submits.
+  $effect(() => {
+    const recorder = addition1EvaluationRecorder
+    let lastMoveAt = 0
+
+    const evalId = (target) =>
+      target instanceof Element
+        ? (target.closest('[data-eval-id]')?.dataset.evalId ?? null)
+        : null
+    const onPointerMove = (event) => {
+      const now = Date.now()
+      if (now - lastMoveAt < recorder.config.pointerMoveSampleMs) return
+      lastMoveAt = now
+      recorder.recordEvent({ type: 'pointer-move', x: event.clientX, y: event.clientY })
+    }
+    const onPointerDown = (event) =>
+      recorder.recordEvent({ type: 'pointer-down', target: evalId(event.target) })
+    const onKeyDown = (event) =>
+      recorder.recordEvent({ type: 'key-down', key: event.key, target: evalId(event.target) })
+    const onVisibilityChange = () => {
+      recorder.recordEvent({ type: 'visibility', hidden: document.hidden })
+      // setInterval is throttled in background tabs, so persist anything
+      // pending now rather than waiting for a heartbeat that may not come.
+      if (document.hidden) recorder.tick()
+    }
+
+    window.addEventListener('pointermove', onPointerMove)
+    window.addEventListener('pointerdown', onPointerDown)
+    window.addEventListener('keydown', onKeyDown)
+    document.addEventListener('visibilitychange', onVisibilityChange)
+    const heartbeat = setInterval(() => recorder.tick(), recorder.config.heartbeatMs)
+
+    return () => {
+      window.removeEventListener('pointermove', onPointerMove)
+      window.removeEventListener('pointerdown', onPointerDown)
+      window.removeEventListener('keydown', onKeyDown)
+      document.removeEventListener('visibilitychange', onVisibilityChange)
+      clearInterval(heartbeat)
+    }
+  })
+
+  function handleAnswerInput(event) {
+    const value = event.currentTarget.value
+    addition1EvaluationRecorder.recordEvent({ type: 'input-change', value })
+    if (!/^\d*$/.test(value)) {
+      addition1EvaluationRecorder.recordEvent({ type: 'nonnumeric-input', value })
+    }
+  }
+
   function pushTogether() {
     if (pushed || !groupsEl) return
+    // Recorded from the click handler — the interaction source of truth —
+    // never from GSAP's animation callbacks.
+    addition1EvaluationRecorder.recordEvent({ type: 'action', name: 'push-together' })
     pushedProblemId = problem.id
     ctx = gsap.context(() => {
       const groupsRow = groupsEl.querySelector('.groups-row')
@@ -72,16 +134,18 @@
 
   onDestroy(() => {
     ctx?.revert()
+    addition1EvaluationRecorder.endProblem()
   })
 
   function handleSubmit(event) {
     event.preventDefault()
-    addition1LessonProgress.submitProblemAnswer(inputValue)
+    const { primaryEvaluationTag } = addition1EvaluationRecorder.recordSubmit(inputValue)
+    addition1LessonProgress.submitProblemAnswer(inputValue, primaryEvaluationTag)
     inputValue = ''
   }
 </script>
 
-<section class="problems">
+<section class="problems" data-eval-id="problem-area">
   <p class="problem-counter">
     Problem {addition1LessonProgress.progress.problems.currentIndex + 1} of {addition1LessonProgress.progress.problems.sequence.length}
   </p>
@@ -95,7 +159,7 @@
       </div>
 
       {#if !pushed}
-        <button type="button" class="push-together" onclick={pushTogether}>Push them together</button>
+        <button type="button" class="push-together" data-eval-id="push-together" onclick={pushTogether}>Push them together</button>
       {/if}
     {/key}
 
@@ -110,9 +174,11 @@
         required
         placeholder="?"
         aria-label="Your answer"
+        data-eval-id="answer-input"
         bind:value={inputValue}
+        oninput={handleAnswerInput}
       />
-      <button type="submit" class="submit">Submit</button>
+      <button type="submit" class="submit" data-eval-id="submit">Submit</button>
     </form>
   </div>
 </section>
