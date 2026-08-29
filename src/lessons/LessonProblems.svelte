@@ -3,6 +3,8 @@
   import gsap from 'gsap'
   import { addition1LessonProgress } from './content/addition-1-LessonProgress.js'
   import { addition1EvaluationRecorder } from './content/addition-1-EvaluationRecorder.js'
+  import { celebration } from './celebration.svelte.js'
+  import { normalizeAnswer } from './progression.js'
   import GroupsDisplay from './content/addition-1-screens/GroupsDisplay.svelte'
 
   let inputValue = $state('')
@@ -12,27 +14,40 @@
   const GROUP_COLORS = ['blue', 'yellow']
 
   let problem = $derived(addition1LessonProgress.currentProblem)
+  // While a correct answer's celebration plays, progression has already
+  // advanced — keep rendering the problem that was just answered until the
+  // send-off animation finishes.
+  let displayProblem = $derived(celebration.problem ?? problem)
+  let displayIndex = $derived.by(() => {
+    const problems = addition1LessonProgress.progress?.problems
+    if (!problems) return 0
+    const index = displayProblem ? problems.sequence.indexOf(displayProblem.id) : -1
+    return index === -1 ? problems.currentIndex : index
+  })
   let displayGroups = $derived(
-    (problem?.groups ?? []).map((group, i) => ({
+    (displayProblem?.groups ?? []).map((group, i) => ({
       ...group,
       color: GROUP_COLORS[i % GROUP_COLORS.length],
     }))
   )
 
   // Which problem's groups have been pushed together. Comparing against the
-  // current problem id (rather than a plain boolean) means the button comes
-  // back on its own when the student advances to the next question.
+  // displayed problem id (rather than a plain boolean) means the button
+  // comes back on its own when the student advances to the next question.
   let pushedProblemId = $state(null)
-  let pushed = $derived(problem != null && pushedProblemId === problem.id)
+  let pushed = $derived(displayProblem != null && pushedProblemId === displayProblem.id)
 
   let groupsEl = $state()
   let ctx
 
   // ----- Answer evaluation (passive data collection; no UI behavior) -----
 
-  // Start/rotate the evaluation episode alongside the visible problem.
+  // Start/rotate the evaluation episode alongside the visible problem. Held
+  // back during a celebration so events keep landing on the just-answered
+  // problem's episode, and the next problem's clock starts when the student
+  // actually sees it.
   $effect(() => {
-    if (problem) addition1EvaluationRecorder.beginProblem(problem)
+    if (problem && !celebration.active) addition1EvaluationRecorder.beginProblem(problem)
   })
 
   // Window-level capture (the "distracted" signal is about wandering
@@ -93,7 +108,7 @@
   // answer field and focuses it, so the student can just type "5" + Enter
   // without clicking the box first.
   function handleGlobalDigit(event) {
-    if (!problem || !answerInputEl) return
+    if (!problem || !answerInputEl || celebration.active) return
     if (event.ctrlKey || event.metaKey || event.altKey) return
     if (!/^\d$/.test(event.key)) return
     const target = event.target
@@ -123,11 +138,11 @@
   }
 
   function pushTogether() {
-    if (pushed || !groupsEl) return
+    if (pushed || !groupsEl || celebration.active) return
     // Recorded from the click handler — the interaction source of truth —
     // never from GSAP's animation callbacks.
     addition1EvaluationRecorder.recordEvent({ type: 'action', name: 'push-together' })
-    pushedProblemId = problem.id
+    pushedProblemId = displayProblem.id
     ctx = gsap.context(() => {
       const groupsRow = groupsEl.querySelector('.groups-row')
       const operator = groupsEl.querySelector('.operator')
@@ -158,10 +173,10 @@
     }, groupsEl)
   }
 
-  // Kill any in-flight merge when the question changes — the keyed block
-  // below swaps out the DOM the timeline is animating.
+  // Kill any in-flight merge when the displayed question changes — the
+  // keyed block below swaps out the DOM the timeline is animating.
   $effect(() => {
-    problem?.id
+    displayProblem?.id
     return () => {
       ctx?.revert()
       ctx = undefined
@@ -171,32 +186,143 @@
   onDestroy(() => {
     ctx?.revert()
     addition1EvaluationRecorder.endProblem()
+    // If the screen is torn down mid-celebration (e.g. an admin phase jump),
+    // don't leave the shared flag stuck on.
+    celebration.end()
   })
 
   function handleSubmit(event) {
     event.preventDefault()
+    if (!problem || celebration.active) return
+    const submitted = problem
     const { primaryEvaluationTag } = addition1EvaluationRecorder.recordSubmit(inputValue)
+    const correct = normalizeAnswer(inputValue) === normalizeAnswer(submitted.answer)
+    // Progression advances right away — progress stays the source of truth
+    // (a reload mid-celebration lands on the next problem). The celebration
+    // only masks it visually until the send-off finishes.
     addition1LessonProgress.submitProblemAnswer(inputValue, primaryEvaluationTag)
     inputValue = ''
+    if (correct) celebration.start(submitted)
   }
+
+  // ----- Correct-answer celebration -----
+
+  const CELEBRATION_S = 1.6
+  const SPARK_INTERVAL_MS = 70
+  const SPARK_COLORS = ['#ffd166', '#ff9f43', '#f8d878', '#ffffff']
+
+  let successOverlayEl = $state()
+  let sparkLayerEl = $state()
+
+  function spawnSpark(balloonEl, rad) {
+    if (!sparkLayerEl) return
+    const rect = balloonEl.getBoundingClientRect()
+    const cx = rect.left + rect.width / 2
+    const cy = rect.top + rect.height / 2
+    // "Behind" is opposite the direction of travel: just past the tail.
+    const tailX = cx - Math.sin(rad) * rect.height * 0.6
+    const tailY = cy + Math.cos(rad) * rect.height * 0.6
+    const spark = document.createElement('span')
+    spark.className = 'spark'
+    spark.style.left = `${tailX}px`
+    spark.style.top = `${tailY}px`
+    spark.style.background = SPARK_COLORS[Math.floor(Math.random() * SPARK_COLORS.length)]
+    sparkLayerEl.appendChild(spark)
+    gsap.to(spark, {
+      x: -Math.sin(rad) * 30 + (Math.random() - 0.5) * 24,
+      y: Math.cos(rad) * 30 + (Math.random() - 0.5) * 24,
+      scale: 0,
+      opacity: 0,
+      duration: 0.45 + Math.random() * 0.25,
+      ease: 'power1.out',
+      onComplete: () => spark.remove(),
+    })
+  }
+
+  $effect(() => {
+    if (!celebration.active) return
+
+    const cctx = gsap.context(() => {
+      // The clock that ends the celebration lives here (not on any element
+      // animation) so the next problem appears even if an element is missing.
+      gsap.delayedCall(CELEBRATION_S, () => celebration.end())
+
+      if (successOverlayEl) {
+        gsap
+          .timeline()
+          .fromTo(
+            successOverlayEl,
+            { scale: 0, opacity: 0 },
+            { scale: 1, opacity: 1, duration: 0.45, ease: 'back.out(2)' }
+          )
+          .to(
+            successOverlayEl,
+            { scale: 1.15, opacity: 0, duration: 0.3, ease: 'power1.in' },
+            CELEBRATION_S - 0.3
+          )
+      }
+    })
+
+    // Fly-away physics: each balloon accelerates along its own up vector
+    // while spinning, so the path curves as the balloon rotates. Integrated
+    // per frame on the shared ticker (gsap.context can't track a ticker
+    // callback, so it's removed by hand in the cleanup below).
+    const flyers = [...(groupsEl?.querySelectorAll('.balloon') ?? [])].map((el) => ({
+      el,
+      x: 0,
+      y: 0,
+      angle: 0,
+      spin: (Math.random() < 0.5 ? -1 : 1) * (120 + Math.random() * 160), // deg/s
+      speed: 320 + Math.random() * 220, // px/s
+      sinceSparkMs: Math.random() * SPARK_INTERVAL_MS,
+    }))
+
+    const onTick = (_time, deltaMs) => {
+      const dt = deltaMs / 1000
+      for (const flyer of flyers) {
+        flyer.angle += flyer.spin * dt
+        const rad = (flyer.angle * Math.PI) / 180
+        flyer.x += Math.sin(rad) * flyer.speed * dt
+        flyer.y -= Math.cos(rad) * flyer.speed * dt
+        gsap.set(flyer.el, { x: flyer.x, y: flyer.y, rotation: flyer.angle })
+        flyer.sinceSparkMs += deltaMs
+        if (flyer.sinceSparkMs >= SPARK_INTERVAL_MS) {
+          flyer.sinceSparkMs = 0
+          spawnSpark(flyer.el, rad)
+        }
+      }
+    }
+    gsap.ticker.add(onTick)
+
+    return () => {
+      gsap.ticker.remove(onTick)
+      if (sparkLayerEl) {
+        gsap.killTweensOf(sparkLayerEl.children)
+        sparkLayerEl.replaceChildren()
+      }
+      cctx.revert()
+      // No need to reset the balloon transforms: the keyed block swaps in
+      // the next problem's DOM the moment the celebration ends.
+    }
+  })
 </script>
 
 <svelte:window onkeydown={handleGlobalDigit} />
 
 <section class="problems" data-eval-id="problem-area">
   <p class="problem-counter">
-    Problem {addition1LessonProgress.progress.problems.currentIndex + 1} of {addition1LessonProgress.progress.problems.sequence.length}
+    Problem {displayIndex + 1} of {addition1LessonProgress.progress.problems.sequence.length}
   </p>
 
   <div class="problem-card">
-    <p class="prompt">{problem?.prompt}</p>
+    <p class="prompt">{displayProblem?.prompt}</p>
 
-    {#key problem?.id}
+    {#key displayProblem?.id}
       <div bind:this={groupsEl}>
         <GroupsDisplay groups={displayGroups} />
       </div>
 
-      {#if !pushed}
+      {#if !pushed && !celebration.active}
         <button type="button" class="push-together" data-eval-id="push-together" onclick={pushTogether}>Push them together</button>
       {/if}
     {/key}
@@ -214,14 +340,34 @@
         placeholder="?"
         aria-label="Your answer"
         data-eval-id="answer-input"
+        disabled={celebration.active}
         bind:this={answerInputEl}
         bind:value={inputValue}
         oninput={handleAnswerInput}
       />
-      <button type="submit" class="submit" data-eval-id="submit">Submit</button>
+      <button type="submit" class="submit" data-eval-id="submit" disabled={celebration.active}>Submit</button>
     </form>
   </div>
 </section>
+
+{#if celebration.active}
+  <div class="spark-layer" bind:this={sparkLayerEl} aria-hidden="true"></div>
+  <!-- Fixed overlay: floats above the problem area without shifting layout. -->
+  <div class="success-overlay" bind:this={successOverlayEl} style="opacity: 0" role="status">
+    <svg class="check" viewBox="0 0 64 64" aria-hidden="true">
+      <circle cx="32" cy="32" r="30" fill="#3f9d46" />
+      <path
+        d="M18 33 L28 43 L45 24"
+        stroke="#ffffff"
+        stroke-width="7"
+        fill="none"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
+    </svg>
+    <p>You got it!</p>
+  </div>
+{/if}
 
 <style>
   .problems {
@@ -301,5 +447,52 @@
 
   .submit:hover {
     border-color: #2f6cb0;
+  }
+
+  .spark-layer {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 15;
+    overflow: hidden;
+  }
+
+  /* Sparks are created imperatively during the fly-away, so they need a
+     global selector to escape Svelte's style scoping. */
+  .spark-layer :global(.spark) {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    margin: -4px 0 0 -4px;
+    border-radius: 50%;
+    box-shadow: 0 0 6px rgba(255, 200, 80, 0.8);
+  }
+
+  .success-overlay {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    pointer-events: none;
+    z-index: 20;
+  }
+
+  .success-overlay .check {
+    width: clamp(5rem, 18vw, 8rem);
+    height: auto;
+    filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.25));
+  }
+
+  .success-overlay p {
+    margin: 0;
+    font-size: clamp(1.8rem, 6vw, 2.6rem);
+    font-weight: 800;
+    color: #3f9d46;
+    text-shadow:
+      0 0 2px light-dark(#ffffff, #000000),
+      0 2px 8px rgba(0, 0, 0, 0.2);
   }
 </style>

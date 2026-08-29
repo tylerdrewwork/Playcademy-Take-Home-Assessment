@@ -1,5 +1,6 @@
 <script>
   import { addition1LessonProgress } from './content/addition-1-LessonProgress.js'
+  import { celebration } from './celebration.svelte.js'
   import LessonInstruction from './content/addition-1-LessonInstruction.svelte'
   import LessonProblems from './LessonProblems.svelte'
   import LessonComplete from './LessonComplete.svelte'
@@ -10,7 +11,9 @@
 {:then}
   {#if addition1LessonProgress.progress.phase === 'instruction'}
     <LessonInstruction />
-  {:else if addition1LessonProgress.progress.phase === 'problems'}
+  {:else if addition1LessonProgress.progress.phase === 'problems' || (addition1LessonProgress.progress.phase === 'complete' && celebration.active)}
+    <!-- The last problem flips the phase to 'complete' immediately; keep the
+         problems screen up until its correct-answer celebration finishes. -->
     <LessonProblems />
   {:else}
     <LessonComplete />
