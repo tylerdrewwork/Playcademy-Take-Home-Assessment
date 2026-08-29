@@ -1,4 +1,6 @@
 <script>
+  import { onDestroy } from 'svelte'
+  import gsap from 'gsap'
   import { addition1LessonProgress } from './content/addition-1-LessonProgress.js'
   import GroupsDisplay from './content/addition-1-screens/GroupsDisplay.svelte'
 
@@ -16,6 +18,62 @@
     }))
   )
 
+  // Which problem's groups have been pushed together. Comparing against the
+  // current problem id (rather than a plain boolean) means the button comes
+  // back on its own when the student advances to the next question.
+  let pushedProblemId = $state(null)
+  let pushed = $derived(problem != null && pushedProblemId === problem.id)
+
+  let groupsEl = $state()
+  let ctx
+
+  function pushTogether() {
+    if (pushed || !groupsEl) return
+    pushedProblemId = problem.id
+    ctx = gsap.context(() => {
+      const groupsRow = groupsEl.querySelector('.groups-row')
+      const operator = groupsEl.querySelector('.operator')
+      const boxes = groupsEl.querySelectorAll('.group-box')
+      const headers = groupsEl.querySelectorAll('.group-box h3')
+      if (!groupsRow || boxes.length < 2) return
+
+      // Same targets and values as the lesson's 'combine' step, so pushing
+      // the groups together here reads identically to the demo the student
+      // just watched.
+      gsap.set(operator, { overflow: 'hidden' })
+      gsap.timeline()
+        .to(operator, { width: 0, opacity: 0, duration: 0.4, ease: 'power1.in' })
+        .to(groupsRow, { gap: '0px', duration: 0.5, ease: 'power2.inOut' }, '<')
+        .to(boxes[0], { paddingRight: '0.25rem', duration: 0.5, ease: 'power2.inOut' }, '<')
+        .to(boxes[1], { paddingLeft: '0.25rem', duration: 0.5, ease: 'power2.inOut' }, '<')
+        .to(headers, { opacity: 0, height: 0, marginBottom: 0, duration: 0.3, ease: 'power1.in' }, '<')
+        .set(boxes[0], {
+          borderTopRightRadius: 0,
+          borderBottomRightRadius: 0,
+          borderRight: 'none',
+        })
+        .set(boxes[1], {
+          borderTopLeftRadius: 0,
+          borderBottomLeftRadius: 0,
+          borderLeft: 'none',
+        })
+    }, groupsEl)
+  }
+
+  // Kill any in-flight merge when the question changes — the keyed block
+  // below swaps out the DOM the timeline is animating.
+  $effect(() => {
+    problem?.id
+    return () => {
+      ctx?.revert()
+      ctx = undefined
+    }
+  })
+
+  onDestroy(() => {
+    ctx?.revert()
+  })
+
   function handleSubmit(event) {
     event.preventDefault()
     addition1LessonProgress.submitProblemAnswer(inputValue)
@@ -31,9 +89,15 @@
   <div class="problem-card">
     <p class="prompt">{problem?.prompt}</p>
 
-    <GroupsDisplay groups={displayGroups} />
+    {#key problem?.id}
+      <div bind:this={groupsEl}>
+        <GroupsDisplay groups={displayGroups} />
+      </div>
 
-    <button type="button" class="push-together">Push them together</button>
+      {#if !pushed}
+        <button type="button" class="push-together" onclick={pushTogether}>Push them together</button>
+      {/if}
+    {/key}
 
     {#if addition1LessonProgress.lastAttempt && !addition1LessonProgress.lastAttempt.correct}
       <p class="feedback">Not quite — try again.</p>
