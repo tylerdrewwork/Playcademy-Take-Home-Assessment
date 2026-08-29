@@ -4,6 +4,8 @@
   import LessonInstruction from './content/addition-1-LessonInstruction.svelte'
   import LessonProblems from './LessonProblems.svelte'
   import LessonComplete from './LessonComplete.svelte'
+
+  let { onPlayMultiplayer } = $props()
 </script>
 
 {#await addition1LessonProgress.ready}
@@ -16,7 +18,7 @@
          problems screen up until its correct-answer celebration finishes. -->
     <LessonProblems />
   {:else}
-    <LessonComplete />
+    <LessonComplete {onPlayMultiplayer} />
   {/if}
   {#if addition1LessonProgress.error}
     <p>Something went wrong saving your progress.</p>

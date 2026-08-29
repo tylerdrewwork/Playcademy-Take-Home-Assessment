@@ -11,6 +11,6 @@
   {#if view === 'multiplayer'}
     <MultiplayerScreen onExit={() => (view = 'lesson')} />
   {:else}
-    <LessonScreen />
+    <LessonScreen onPlayMultiplayer={() => (view = 'multiplayer')} />
   {/if}
 </main>
