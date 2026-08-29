@@ -53,9 +53,18 @@
       recorder.recordEvent({ type: 'pointer-move', x: event.clientX, y: event.clientY })
     }
     const onPointerDown = (event) =>
-      recorder.recordEvent({ type: 'pointer-down', target: evalId(event.target) })
-    const onKeyDown = (event) =>
+      recorder.recordEvent({
+        type: 'pointer-down',
+        x: event.clientX,
+        y: event.clientY,
+        target: evalId(event.target),
+      })
+    const onKeyDown = (event) => {
+      // A held-down key auto-repeats; only genuine presses count, so a held
+      // backspace doesn't read as keyboard mashing.
+      if (event.repeat) return
       recorder.recordEvent({ type: 'key-down', key: event.key, target: evalId(event.target) })
+    }
     const onVisibilityChange = () => {
       recorder.recordEvent({ type: 'visibility', hidden: document.hidden })
       // setInterval is throttled in background tabs, so persist anything
@@ -77,6 +86,33 @@
       clearInterval(heartbeat)
     }
   })
+
+  let answerInputEl = $state()
+
+  // Pressing a digit anywhere on the problem screen types it into the
+  // answer field and focuses it, so the student can just type "5" + Enter
+  // without clicking the box first.
+  function handleGlobalDigit(event) {
+    if (!problem || !answerInputEl) return
+    if (event.ctrlKey || event.metaKey || event.altKey) return
+    if (!/^\d$/.test(event.key)) return
+    const target = event.target
+    if (target === answerInputEl) return // already typing in the field
+    // Leave other editable elements and open dialogs (Admin Tools) alone.
+    if (
+      target instanceof Element &&
+      (target.closest('dialog') || target.matches('input, textarea, select, [contenteditable]'))
+    ) {
+      return
+    }
+    event.preventDefault()
+    answerInputEl.focus()
+    if (inputValue.length >= 2) return // same 2-digit cap as the field itself
+    inputValue += event.key
+    // bind:value updates don't fire oninput, so mirror what typing into the
+    // field would have recorded.
+    addition1EvaluationRecorder.recordEvent({ type: 'input-change', value: inputValue })
+  }
 
   function handleAnswerInput(event) {
     const value = event.currentTarget.value
@@ -145,6 +181,8 @@
   }
 </script>
 
+<svelte:window onkeydown={handleGlobalDigit} />
+
 <section class="problems" data-eval-id="problem-area">
   <p class="problem-counter">
     Problem {addition1LessonProgress.progress.problems.currentIndex + 1} of {addition1LessonProgress.progress.problems.sequence.length}
@@ -171,10 +209,12 @@
       <input
         type="text"
         inputmode="numeric"
+        maxlength="2"
         required
         placeholder="?"
         aria-label="Your answer"
         data-eval-id="answer-input"
+        bind:this={answerInputEl}
         bind:value={inputValue}
         oninput={handleAnswerInput}
       />

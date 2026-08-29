@@ -92,7 +92,7 @@ describe('EvaluationRecorder', () => {
   it('ignores events and submits when no problem is active', async () => {
     const { recorder } = makeHarness()
     await recorder.ready
-    recorder.recordEvent({ type: 'pointer-down', target: null })
+    recorder.recordEvent({ type: 'pointer-down', x: 0, y: 0, target: null })
     const result = recorder.recordSubmit('5')
     expect(result.findings).toHaveLength(0)
     expect(result.primaryEvaluationTag).toBeNull()
@@ -189,13 +189,13 @@ describe('EvaluationRecorder', () => {
     recorder.beginProblem(p1)
     for (const t of [100, 300, 500, 700, 900]) {
       clock.now = t
-      recorder.recordEvent({ type: 'pointer-down', target: 'submit' })
+      recorder.recordEvent({ type: 'pointer-down', x: 100, y: 100, target: 'submit' })
     }
-    clock.now = 2000 // quiet not yet elapsed (needs 4000ms)
+    clock.now = 1500 // quiet not yet elapsed (needs 1000ms)
     recorder.endProblem()
     const rage = recorder.findings.find((f) => f.signal === 'rage-clicking')
     expect(rage).toBeDefined()
-    expect(rage?.detail).toMatchObject({ truncated: true, count: 5 })
+    expect(rage?.detail).toMatchObject({ truncated: true, count: 5, kind: 'area-clicks' })
     expect(rage?.problemId).toBe('p1')
   })
 
@@ -233,7 +233,7 @@ describe('EvaluationRecorder', () => {
     for (let i = 0; i < 5; i++) {
       recorder.recordEvent({ type: 'pointer-move', x: i, y: 0 })
     }
-    recorder.recordEvent({ type: 'pointer-down', target: 'submit' })
+    recorder.recordEvent({ type: 'pointer-down', x: 0, y: 0, target: 'submit' })
     recorder.tick()
     expect(seen).toHaveLength(5)
     expect(seen[0].type).toBe('problem-shown') // never shed while moves remain

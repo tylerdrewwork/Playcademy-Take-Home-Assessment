@@ -8,14 +8,23 @@
   let confirming = $state(false)
   let justReset = $state(false)
   let showEvaluationLog = $state(false)
-  // Snapshot taken when the dialog opens — a dev tool doesn't need live
-  // updates, and the recorder is deliberately not reactive.
   let evaluationFindings = $state([])
+
+  // The recorder is deliberately not reactive, so the on-screen panel polls
+  // it while visible — a rolling view that picks up findings as they land.
+  $effect(() => {
+    if (!showEvaluationLog) return
+    const refresh = () => {
+      evaluationFindings = [...addition1EvaluationRecorder.findings].reverse()
+    }
+    refresh()
+    const interval = setInterval(refresh, 1000)
+    return () => clearInterval(interval)
+  })
 
   function open() {
     confirming = false
     justReset = false
-    showEvaluationLog = false
     evaluationFindings = [...addition1EvaluationRecorder.findings].reverse()
     dialog.showModal()
   }
@@ -80,28 +89,6 @@
           {showEvaluationLog ? 'Hide' : 'Show'}
         </button>
       </div>
-      {#if showEvaluationLog}
-        <ul class="eval-findings">
-          {#each evaluationFindings as finding}
-            <li>
-              <span class="polarity" class:concern={finding.polarity === 'concern'}>
-                {finding.polarity === 'concern' ? '⚠' : '✓'}
-              </span>
-              <span class="signal">{finding.signal}</span>
-              <span class="meta">
-                {finding.problemId}
-                {#if finding.attemptIndex != null}· attempt {finding.attemptIndex + 1}{/if}
-                · {new Date(finding.t).toLocaleTimeString()}
-              </span>
-              {#if finding.detail}
-                <span class="detail">{JSON.stringify(finding.detail)}</span>
-              {/if}
-            </li>
-          {:else}
-            <li class="empty">No findings recorded yet.</li>
-          {/each}
-        </ul>
-      {/if}
     </div>
 
     <div class="actions">
@@ -110,6 +97,32 @@
     </div>
   {/if}
 </dialog>
+
+{#if showEvaluationLog}
+  <aside class="eval-panel" aria-label="Evaluation log">
+    <p class="eval-panel-title">Evaluation log ({evaluationFindings.length})</p>
+    <ul class="eval-findings">
+      {#each evaluationFindings as finding}
+        <li>
+          <span class="polarity" class:concern={finding.polarity === 'concern'}>
+            {finding.polarity === 'concern' ? '⚠' : '✓'}
+          </span>
+          <span class="signal">{finding.signal}</span>
+          <span class="meta">
+            {finding.problemId}
+            {#if finding.attemptIndex != null}· attempt {finding.attemptIndex + 1}{/if}
+            · {new Date(finding.t).toLocaleTimeString()}
+          </span>
+          {#if finding.detail}
+            <span class="detail">{JSON.stringify(finding.detail)}</span>
+          {/if}
+        </li>
+      {:else}
+        <li class="empty">No findings recorded yet.</li>
+      {/each}
+    </ul>
+  </aside>
+{/if}
 
 {#if justReset}
   <p class="toast">Progress reset</p>
@@ -157,12 +170,31 @@
     gap: 0.5rem;
   }
 
+  /* Rolling on-screen log, pinned directly under the Admin Tools trigger. */
+  .eval-panel {
+    position: fixed;
+    top: 3.75rem;
+    right: 1rem;
+    z-index: 10;
+    width: min(24rem, calc(100vw - 2rem));
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    background-color: #1a1a1a;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+    text-align: left;
+  }
+
+  .eval-panel-title {
+    margin: 0;
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+
   .eval-findings {
     list-style: none;
     margin: 0.5rem 0 0;
     padding: 0;
-    max-height: 14rem;
-    max-width: 28rem;
+    max-height: min(50vh, 18rem);
     overflow-y: auto;
     font-size: 0.8rem;
     text-align: left;
@@ -210,7 +242,8 @@
 
   @media (prefers-color-scheme: light) {
     dialog,
-    .toast {
+    .toast,
+    .eval-panel {
       background-color: #f9f9f9;
     }
   }
