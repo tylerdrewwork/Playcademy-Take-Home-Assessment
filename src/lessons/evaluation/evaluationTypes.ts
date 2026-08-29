@@ -35,13 +35,17 @@ export interface Finding {
   // buffer don't record the same episode twice.
   t: number
   contentVersion: number
+  // Version of the problem set the student was answering when this was
+  // recorded — problems can change independently of the wider content.
+  problemSetVersion: number
   // Plain-cloneable values only — this goes through IndexedDB structured clone.
   detail?: Record<string, unknown>
 }
 
-// Evaluators return findings without problemId/contentVersion; the recorder
-// stamps those so an evaluator can never mislabel which problem it saw.
-export type EvaluatorFinding = Omit<Finding, 'problemId' | 'contentVersion'>
+// Evaluators return findings without problemId/contentVersion/
+// problemSetVersion; the recorder stamps those so an evaluator can never
+// mislabel which problem it saw.
+export type EvaluatorFinding = Omit<Finding, 'problemId' | 'contentVersion' | 'problemSetVersion'>
 
 export interface SubmitContext<TProblem extends Problem = Problem> {
   problem: TProblem

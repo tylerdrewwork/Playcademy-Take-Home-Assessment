@@ -19,6 +19,7 @@ import {
 export interface RecorderOptions<TProblem extends Problem = Problem> {
   lessonId: string
   contentVersion: number
+  problemSetVersion: number
   config: EvaluationConfig
   // Roster order matters: the first matching concern (or, on a correct
   // answer, the first matching positive) becomes the attempt's
@@ -59,6 +60,7 @@ export class EvaluationRecorder<TProblem extends Problem = Problem> {
 
   #lessonId: string
   #contentVersion: number
+  #problemSetVersion: number
   #submitEvaluators: SubmitEvaluator<TProblem>[]
   #behavioralDetectors: BehavioralDetector[]
   #storage: EvaluationStorage
@@ -67,6 +69,7 @@ export class EvaluationRecorder<TProblem extends Problem = Problem> {
   constructor(opts: RecorderOptions<TProblem>) {
     this.#lessonId = opts.lessonId
     this.#contentVersion = opts.contentVersion
+    this.#problemSetVersion = opts.problemSetVersion
     this.config = opts.config
     this.#submitEvaluators = opts.submitEvaluators
     this.#behavioralDetectors = opts.behavioralDetectors
@@ -265,14 +268,20 @@ export class EvaluationRecorder<TProblem extends Problem = Problem> {
     return this.#commit(raw)
   }
 
-  // Stamp problemId/contentVersion and drop findings already recorded — the
-  // same episode re-detected on every heartbeat re-scan must land once.
+  // Stamp problemId/contentVersion/problemSetVersion and drop findings
+  // already recorded — the same episode re-detected on every heartbeat
+  // re-scan must land once.
   #commit(raw: EvaluatorFinding[]): Finding[] {
     const problemId = this.#currentProblem?.id
     if (!problemId) return []
     const added: Finding[] = []
     for (const entry of raw) {
-      const finding: Finding = { ...entry, problemId, contentVersion: this.#contentVersion }
+      const finding: Finding = {
+        ...entry,
+        problemId,
+        contentVersion: this.#contentVersion,
+        problemSetVersion: this.#problemSetVersion,
+      }
       const key = findingKey(finding)
       if (this.#recordedKeys.has(key)) continue
       this.#recordedKeys.add(key)

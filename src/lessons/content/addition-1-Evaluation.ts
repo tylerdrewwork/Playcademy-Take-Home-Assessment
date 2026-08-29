@@ -74,6 +74,7 @@ export function createAddition1EvaluationRecorder(
   return new EvaluationRecorder<Addition1Problem>({
     lessonId: addition1Content.lessonId,
     contentVersion: addition1Content.contentVersion,
+    problemSetVersion: addition1Content.problemSetVersion,
     config: ADDITION_1_EVALUATION_CONFIG,
     // Roster order is tag priority: on a wrong answer the misconception
     // tags win in this order; on a correct answer 'fast-correct' beats

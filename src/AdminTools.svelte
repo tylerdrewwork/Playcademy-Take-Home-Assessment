@@ -111,6 +111,7 @@
           <span class="meta">
             {finding.problemId}
             {#if finding.attemptIndex != null}· attempt {finding.attemptIndex + 1}{/if}
+            · set v{finding.problemSetVersion}
             · {new Date(finding.t).toLocaleTimeString()}
           </span>
           {#if finding.detail}

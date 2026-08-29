@@ -10,6 +10,7 @@ const DummyComponent = (() => {}) as unknown as Component
 class TestContent extends LessonContent<InstructionScreen, Problem> {
   readonly lessonId = 'test-lesson'
   readonly contentVersion = 1
+  readonly problemSetVersion = 1
   readonly instruction = {
     screens: [
       { id: 'screen-1', component: DummyComponent },

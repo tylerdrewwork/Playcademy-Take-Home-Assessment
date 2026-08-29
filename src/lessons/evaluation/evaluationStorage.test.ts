@@ -38,6 +38,7 @@ describe('IndexedDbEvaluationStorage', () => {
           attemptIndex: 0,
           t: 1500,
           contentVersion: 1,
+          problemSetVersion: 1,
           detail: { value: 4, answer: 5 },
         },
       ],

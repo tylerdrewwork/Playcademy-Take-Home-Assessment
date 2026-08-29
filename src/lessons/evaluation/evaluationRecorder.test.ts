@@ -47,6 +47,7 @@ function makeHarness(opts: Harness = {}) {
   const recorder = new EvaluationRecorder({
     lessonId: 'test-lesson',
     contentVersion: 1,
+    problemSetVersion: 1,
     config: { ...DEFAULT_EVALUATION_CONFIG, ...opts.config },
     submitEvaluators: opts.submitEvaluators ?? [offByOneEvaluator, fastCorrectEvaluator],
     behavioralDetectors: opts.behavioralDetectors ?? [],
@@ -57,7 +58,7 @@ function makeHarness(opts: Harness = {}) {
 }
 
 describe('EvaluationRecorder', () => {
-  it('stamps problemId and contentVersion on submit findings and returns the tag', async () => {
+  it('stamps problemId and versions on submit findings and returns the tag', async () => {
     const { recorder, clock } = makeHarness()
     await recorder.ready
     recorder.beginProblem(p1)
@@ -68,6 +69,7 @@ describe('EvaluationRecorder', () => {
       signal: 'off-by-one',
       problemId: 'p1',
       contentVersion: 1,
+      problemSetVersion: 1,
       attemptIndex: 0,
       t: 5000,
     })
@@ -307,6 +309,7 @@ describe('EvaluationRecorder', () => {
           attemptIndex: 0,
           t: 42,
           contentVersion: 1,
+          problemSetVersion: 1,
         },
       ],
       episodes: [{ problemId: 'p0', shownAt: 0, endedAt: 10, attemptCount: 1, eventCounts: {} }],
@@ -337,6 +340,7 @@ describe('EvaluationRecorder', () => {
           attemptIndex: 0,
           t: 42,
           contentVersion: 999,
+          problemSetVersion: 1,
         },
       ],
       episodes: [],

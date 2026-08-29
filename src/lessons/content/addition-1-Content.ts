@@ -16,6 +16,9 @@ class Addition1Content extends LessonContent<InstructionScreen, Addition1Problem
   // v2: instruction restructured from flat steps to screens, so progress
   // saved under v1 is discarded on load rather than misread.
   readonly contentVersion = 2
+  // Bump whenever the problems below change in any way; evaluation findings
+  // are stamped with this so they stay traceable to the set the student saw.
+  readonly problemSetVersion = 1
   readonly instruction = {
     screens: [
       { id: 'intro', component: IntroScreen },
