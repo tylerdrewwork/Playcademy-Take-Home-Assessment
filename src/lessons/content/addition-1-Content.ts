@@ -16,6 +16,11 @@ class Addition1Content extends LessonContent<InstructionScreen, Addition1Problem
   // v2: instruction restructured from flat steps to screens, so progress
   // saved under v1 is discarded on load rather than misread.
   readonly contentVersion = 2
+  // Bump whenever the problems below change in any way; evaluation findings
+  // are stamped with this so they stay traceable to the set the student saw.
+  // v2: prompts no longer state the group counts — the student counts the
+  // balloons instead of reading the numbers.
+  readonly problemSetVersion = 2
   readonly instruction = {
     screens: [
       { id: 'intro', component: IntroScreen },
@@ -23,16 +28,16 @@ class Addition1Content extends LessonContent<InstructionScreen, Addition1Problem
     ] satisfies InstructionScreen[],
   }
   readonly problems: Addition1Problem[] = [
-    { id: 'p1', prompt: 'There are 2 balls and 3 more balls. How many balls in all?', groups: [{ count: 2, object: 'ball' }, { count: 3, object: 'ball' }], answer: 5 },
-    { id: 'p2', prompt: 'There are 4 balls and 1 more ball. How many balls in all?', groups: [{ count: 4, object: 'ball' }, { count: 1, object: 'ball' }], answer: 5 },
-    { id: 'p3', prompt: 'There are 3 balls and 3 more balls. How many balls in all?', groups: [{ count: 3, object: 'ball' }, { count: 3, object: 'ball' }], answer: 6 },
-    { id: 'p4', prompt: 'There are 5 balls and 2 more balls. How many balls in all?', groups: [{ count: 5, object: 'ball' }, { count: 2, object: 'ball' }], answer: 7 },
-    { id: 'p5', prompt: 'There is 1 ball and 6 more balls. How many balls in all?', groups: [{ count: 1, object: 'ball' }, { count: 6, object: 'ball' }], answer: 7 },
-    { id: 'p6', prompt: 'There are 4 balls and 4 more balls. How many balls in all?', groups: [{ count: 4, object: 'ball' }, { count: 4, object: 'ball' }], answer: 8 },
-    { id: 'p7', prompt: 'There are 2 balls and 7 more balls. How many balls in all?', groups: [{ count: 2, object: 'ball' }, { count: 7, object: 'ball' }], answer: 9 },
-    { id: 'p8', prompt: 'There are 6 balls and 1 more ball. How many balls in all?', groups: [{ count: 6, object: 'ball' }, { count: 1, object: 'ball' }], answer: 7 },
-    { id: 'p9', prompt: 'There are 3 balls and 5 more balls. How many balls in all?', groups: [{ count: 3, object: 'ball' }, { count: 5, object: 'ball' }], answer: 8 },
-    { id: 'p10', prompt: 'There are 4 balls and 3 more balls. How many balls in all?', groups: [{ count: 4, object: 'ball' }, { count: 3, object: 'ball' }], answer: 7 },
+    { id: 'p1', prompt: 'How many balloons in total?', groups: [{ count: 2, object: 'ball' }, { count: 3, object: 'ball' }], answer: 5 },
+    { id: 'p2', prompt: 'How many balloons in total?', groups: [{ count: 4, object: 'ball' }, { count: 1, object: 'ball' }], answer: 5 },
+    { id: 'p3', prompt: 'How many balloons in total?', groups: [{ count: 3, object: 'ball' }, { count: 3, object: 'ball' }], answer: 6 },
+    { id: 'p4', prompt: 'How many balloons in total?', groups: [{ count: 5, object: 'ball' }, { count: 2, object: 'ball' }], answer: 7 },
+    { id: 'p5', prompt: 'How many balloons in total?', groups: [{ count: 1, object: 'ball' }, { count: 6, object: 'ball' }], answer: 7 },
+    { id: 'p6', prompt: 'How many balloons in total?', groups: [{ count: 4, object: 'ball' }, { count: 4, object: 'ball' }], answer: 8 },
+    { id: 'p7', prompt: 'How many balloons in total?', groups: [{ count: 2, object: 'ball' }, { count: 7, object: 'ball' }], answer: 9 },
+    { id: 'p8', prompt: 'How many balloons in total?', groups: [{ count: 6, object: 'ball' }, { count: 1, object: 'ball' }], answer: 7 },
+    { id: 'p9', prompt: 'How many balloons in total?', groups: [{ count: 3, object: 'ball' }, { count: 5, object: 'ball' }], answer: 8 },
+    { id: 'p10', prompt: 'How many balloons in total?', groups: [{ count: 4, object: 'ball' }, { count: 3, object: 'ball' }], answer: 7 },
   ]
 }
 

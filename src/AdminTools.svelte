@@ -1,15 +1,31 @@
 <script>
   import { addition1LessonProgress } from './lessons/content/addition-1-LessonProgress.js'
+  import { addition1EvaluationRecorder } from './lessons/content/addition-1-EvaluationRecorder.js'
 
   let { onShowSection } = $props()
 
   let dialog = $state(null)
   let confirming = $state(false)
   let justReset = $state(false)
+  let showEvaluationLog = $state(false)
+  let evaluationFindings = $state([])
+
+  // The recorder is deliberately not reactive, so the on-screen panel polls
+  // it while visible — a rolling view that picks up findings as they land.
+  $effect(() => {
+    if (!showEvaluationLog) return
+    const refresh = () => {
+      evaluationFindings = [...addition1EvaluationRecorder.findings].reverse()
+    }
+    refresh()
+    const interval = setInterval(refresh, 1000)
+    return () => clearInterval(interval)
+  })
 
   function open() {
     confirming = false
     justReset = false
+    evaluationFindings = [...addition1EvaluationRecorder.findings].reverse()
     dialog.showModal()
   }
 
@@ -27,6 +43,8 @@
 
   async function confirmReset() {
     await addition1LessonProgress.resetProgress()
+    await addition1EvaluationRecorder.reset()
+    evaluationFindings = []
     confirming = false
     justReset = true
     dialog.close()
@@ -64,12 +82,48 @@
         <button onclick={() => jumpTo('multiplayer')}>Multiplayer</button>
       </div>
     </div>
+    <div class="eval-log">
+      <div class="eval-log-header">
+        <span class="jump-label">Evaluation log ({evaluationFindings.length})</span>
+        <button onclick={() => (showEvaluationLog = !showEvaluationLog)}>
+          {showEvaluationLog ? 'Hide' : 'Show'}
+        </button>
+      </div>
+    </div>
+
     <div class="actions">
       <button onclick={requestReset}>Reset Progress</button>
       <button onclick={close}>Close</button>
     </div>
   {/if}
 </dialog>
+
+{#if showEvaluationLog}
+  <aside class="eval-panel" aria-label="Evaluation log">
+    <p class="eval-panel-title">Evaluation log ({evaluationFindings.length})</p>
+    <ul class="eval-findings">
+      {#each evaluationFindings as finding}
+        <li>
+          <span class="polarity" class:concern={finding.polarity === 'concern'}>
+            {finding.polarity === 'concern' ? '⚠' : '✓'}
+          </span>
+          <span class="signal">{finding.signal}</span>
+          <span class="meta">
+            {finding.problemId}
+            {#if finding.attemptIndex != null}· attempt {finding.attemptIndex + 1}{/if}
+            · set v{finding.problemSetVersion}
+            · {new Date(finding.t).toLocaleTimeString()}
+          </span>
+          {#if finding.detail}
+            <span class="detail">{JSON.stringify(finding.detail)}</span>
+          {/if}
+        </li>
+      {:else}
+        <li class="empty">No findings recorded yet.</li>
+      {/each}
+    </ul>
+  </aside>
+{/if}
 
 {#if justReset}
   <p class="toast">Progress reset</p>
@@ -107,6 +161,77 @@
     margin-bottom: 1rem;
   }
 
+  .eval-log {
+    margin-bottom: 1rem;
+  }
+
+  .eval-log-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  /* Rolling on-screen log, pinned directly under the Admin Tools trigger. */
+  .eval-panel {
+    position: fixed;
+    top: 3.75rem;
+    right: 1rem;
+    z-index: 10;
+    width: min(24rem, calc(100vw - 2rem));
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    background-color: #1a1a1a;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+    text-align: left;
+  }
+
+  .eval-panel-title {
+    margin: 0;
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+
+  .eval-findings {
+    list-style: none;
+    margin: 0.5rem 0 0;
+    padding: 0;
+    max-height: min(50vh, 18rem);
+    overflow-y: auto;
+    font-size: 0.8rem;
+    text-align: left;
+  }
+
+  .eval-findings li {
+    padding: 0.25rem 0;
+    border-bottom: 1px solid rgba(128, 128, 128, 0.25);
+  }
+
+  .eval-findings .polarity {
+    color: #3f9d46;
+  }
+
+  .eval-findings .polarity.concern {
+    color: #e0a030;
+  }
+
+  .eval-findings .signal {
+    font-weight: 600;
+  }
+
+  .eval-findings .meta {
+    opacity: 0.75;
+  }
+
+  .eval-findings .detail {
+    display: block;
+    opacity: 0.6;
+    word-break: break-all;
+  }
+
+  .eval-findings .empty {
+    opacity: 0.6;
+  }
+
   .toast {
     position: fixed;
     top: 4rem;
@@ -118,7 +243,8 @@
 
   @media (prefers-color-scheme: light) {
     dialog,
-    .toast {
+    .toast,
+    .eval-panel {
       background-color: #f9f9f9;
     }
   }

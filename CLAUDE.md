@@ -44,6 +44,10 @@ There is no test suite or linter configured in this repository yet.
 - **Auth:** Firebase Anonymous Auth for players. No teacher/admin authorization exists yet.
 - **Crash/error monitoring:** Firebase Crashlytics does not support Web (only Android/iOS/Flutter/Unity/NDK), so this app uses Firebase Performance Monitoring plus logging caught exceptions as Analytics events instead.
 
+## Problem set versioning
+
+Every lesson's content class declares a `problemSetVersion` (see `LessonContent` in `src/lessons/lessonContent.ts`) covering its `problems` array alone. Whenever a problem is added, removed, or edited (prompt, groups, answer), increment that lesson's `problemSetVersion`. The answer-evaluation recorder stamps this version on every finding it records, so logged evaluation data always identifies which revision of the problem set the student was answering.
+
 ## Workflow
 
 Do not open a pull request when finishing a task. Instead, verify locally that the change is ready to be merged into `main` (tests pass, build/lint clean, diff reviewed), then explicitly alert the user with an input request that it's ready to merge — do not merge it yourself.

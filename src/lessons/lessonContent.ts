@@ -27,6 +27,10 @@ export abstract class LessonContent<
 > {
   abstract readonly lessonId: string
   abstract readonly contentVersion: number
+  // Version of the `problems` array alone. Bump it whenever a problem is
+  // added, removed, or edited (prompt, groups, answer) so recorded data can
+  // always be traced back to the exact problem set the student saw.
+  abstract readonly problemSetVersion: number
   abstract readonly instruction: { screens: TScreen[] }
   abstract readonly problems: TProblem[]
 

@@ -10,6 +10,7 @@ const DummyComponent = (() => {}) as unknown as Component
 class TestContent extends LessonContent<InstructionScreen, Problem> {
   readonly lessonId = 'test-lesson'
   readonly contentVersion = 1
+  readonly problemSetVersion = 1
   readonly instruction = {
     screens: [
       { id: 'screen-1', component: DummyComponent },
@@ -82,12 +83,20 @@ describe('submitProblemAnswer', () => {
     expect(next.phase).toBe('problems')
   })
 
-  it('records a wrong answer, does not advance, and stamps a null studentErrorTag', () => {
+  it('records a wrong answer, does not advance, and stamps a null studentEvaluationTag', () => {
     const progress = progressAtFirstProblem()
     const next = Progression.submitProblemAnswer(progress, testContent, '4')
     expect(next.problems.currentIndex).toBe(0)
     expect(next.problems.attempts.p1).toHaveLength(1)
-    expect(next.problems.attempts.p1[0]).toMatchObject({ value: '4', correct: false, studentErrorTag: null })
+    expect(next.problems.attempts.p1[0]).toMatchObject({ value: '4', correct: false, studentEvaluationTag: null })
+  })
+
+  it('stamps the provided studentEvaluationTag on the attempt', () => {
+    const progress = progressAtFirstProblem()
+    const wrong = Progression.submitProblemAnswer(progress, testContent, '4', 'off-by-one')
+    expect(wrong.problems.attempts.p1[0]).toMatchObject({ correct: false, studentEvaluationTag: 'off-by-one' })
+    const right = Progression.submitProblemAnswer(wrong, testContent, '5', 'solved-without-merge')
+    expect(right.problems.attempts.p1[1]).toMatchObject({ correct: true, studentEvaluationTag: 'solved-without-merge' })
   })
 
   it('keeps a wrong attempt in history when the student then answers correctly', () => {

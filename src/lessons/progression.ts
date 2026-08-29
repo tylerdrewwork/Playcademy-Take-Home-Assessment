@@ -5,7 +5,11 @@ export type Phase = 'instruction' | 'problems' | 'complete'
 export interface Attempt {
   value: string | number
   correct: boolean
-  studentErrorTag: string | null
+  // Single evaluation signal for this attempt — a misconception tag on a
+  // wrong answer (e.g. 'partial-counting') or a mastery tag on a correct
+  // one (e.g. 'fast-correct'). The full multi-finding record lives in the
+  // evaluation module; this is just the headline.
+  studentEvaluationTag: string | null
   contentVersion: number
   timestamp: number
 }
@@ -29,7 +33,9 @@ export interface Progress {
   updatedAt: number
 }
 
-function normalizeAnswer(value: string | number): number {
+// Exported so the evaluation recorder judges correctness with the exact
+// same rule — the two must never disagree.
+export function normalizeAnswer(value: string | number): number {
   if (typeof value === 'number') return value
   const trimmed = String(value).trim()
   return trimmed === '' ? NaN : Number(trimmed)
@@ -76,7 +82,12 @@ export class Progression {
     }
   }
 
-  static submitProblemAnswer(progress: Progress, content: LessonContent, value: string | number): Progress {
+  static submitProblemAnswer(
+    progress: Progress,
+    content: LessonContent,
+    value: string | number,
+    studentEvaluationTag: string | null = null
+  ): Progress {
     if (progress.phase !== 'problems') return progress
 
     const now = Date.now()
@@ -89,7 +100,7 @@ export class Progression {
     const attempt: Attempt = {
       value,
       correct,
-      studentErrorTag: null,
+      studentEvaluationTag,
       contentVersion: progress.contentVersion,
       timestamp: now,
     }
