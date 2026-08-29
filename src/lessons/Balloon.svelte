@@ -47,10 +47,12 @@
 <style>
   .balloon {
     /* Scales with the viewport and shrinks as the combined balloon count
-       grows, targeting a touch-friendly size — but flex-shrink (below) is
-       what actually guarantees every balloon fits on one row without
+       grows, targeting a touch-friendly size. Capped by vh as well as vw
+       so a tall balloon (aspect-ratio below) doesn't push the card past
+       100dvh on a short screen — flex-shrink (below) is the final
+       guarantee that every balloon still fits on one row without
        wrapping, even below this target on very small/crowded screens. */
-    width: clamp(4rem, calc(80vw / var(--balloon-count, 5)), 10rem);
+    width: clamp(2rem, min(calc(80vw / var(--balloon-count, 5)), 12vh), 10rem);
     min-width: 0;
     flex-shrink: 1;
     height: auto;

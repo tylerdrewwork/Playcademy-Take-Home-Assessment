@@ -353,10 +353,16 @@
 
 <style>
   h2 {
-    margin-top: 0;
+    margin: 0;
   }
 
   p {
-    font-size: 4rem;
+    /* 4rem on a typically-tall screen, but scaled down on a short viewport
+       so a long, wrapped transcript can't push the card past 100dvh — the
+       page has no scrollbar to fall back on. Browser default margins on
+       both this and h2 are zeroed out; the .lesson-card's own flex `gap`
+       handles spacing instead. */
+    font-size: clamp(1.5rem, 8vh, 4rem);
+    margin: 0;
   }
 </style>

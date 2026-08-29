@@ -28,18 +28,17 @@
     flex-direction: column;
     justify-content: center;
     gap: 1rem;
-    /* Fills most of the viewport and scales with it. Targets a fixed size
-       for a given screen so it doesn't visibly resize between steps, but
-       min-height (rather than a hard height) lets it grow on short/wide
-       screens where a step's content — e.g. the 4rem transcript text plus
-       a full balloon row — needs more room than that target, instead of
-       clipping it. Content that doesn't fill it is just centered instead
-       of top-anchored with blank space below. */
+    /* Fills most of the viewport and scales with it, but never exceeds it —
+       the page itself is a fixed 100dvh with no scrollbar (see app.css),
+       so this card has to fit within that, not grow past it. Centered by
+       the flex layout in App.svelte rather than margin. Content sizing
+       (transcript font-size, balloon size) is itself vh-aware so it fits
+       here instead of needing to be clipped. */
     width: min(95vw, 85rem);
-    min-height: min(88vh, 60rem);
+    height: min(94vh, 62rem);
     min-width: 20rem;
-    margin: 2rem auto;
-    padding: clamp(1.5rem, 3vw, 3rem);
+    overflow: hidden;
+    padding: clamp(1rem, 3vh, 2rem) clamp(1.5rem, 3vw, 3rem);
     border-radius: 1rem;
     background: light-dark(#ffffff, #1a1a1a);
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);

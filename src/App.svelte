@@ -14,3 +14,14 @@
     <LessonScreen />
   {/if}
 </main>
+
+<style>
+  main {
+    box-sizing: border-box;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+</style>
