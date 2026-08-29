@@ -8,6 +8,22 @@
   session.join()
 
   onDestroy(() => session.leave())
+
+  let answerText = $state('')
+
+  const moneyFormatter = new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+  })
+
+  function handleSubmit(event: SubmitEvent): void {
+    event.preventDefault()
+    const answer = Number(answerText)
+    if (answerText.trim() === '' || !Number.isFinite(answer)) return
+
+    session.submitAnswer(answer)
+    answerText = ''
+  }
 </script>
 
 <section class="multiplayer-screen">
@@ -20,9 +36,32 @@
   {:else if session.status === 'joined'}
     <p>You're presented with {session.coinsPresented} coins to count.</p>
     <p>{session.playerCount} player{session.playerCount === 1 ? '' : 's'} in the room.</p>
+
+    <form class="answer-form" onsubmit={handleSubmit}>
+      <input
+        type="number"
+        inputmode="numeric"
+        min="0"
+        placeholder="How many coins?"
+        aria-label="How many coins do you count?"
+        bind:value={answerText}
+        disabled={session.submitting}
+      />
+      <button type="submit" disabled={session.submitting}>Submit</button>
+    </form>
+
+    {#if session.lastResult === 'correct'}
+      <p class="feedback correct">Correct! Here's a new group to count.</p>
+    {:else if session.lastResult === 'incorrect'}
+      <p class="feedback incorrect">Not quite — count again and resubmit.</p>
+    {/if}
   {/if}
 
   <button onclick={onExit}>Back to lesson</button>
+
+  {#if session.status === 'joined'}
+    <p class="total-money">Total money earned: {moneyFormatter.format(session.totalMoney)}</p>
+  {/if}
 </section>
 
 <style>
@@ -37,5 +76,39 @@
 
   .error {
     color: #b3261e;
+  }
+
+  .answer-form {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .answer-form input {
+    width: 8rem;
+    padding: 0.4rem 0.6rem;
+    font-size: 1rem;
+  }
+
+  .answer-form button {
+    padding: 0.4rem 0.8rem;
+  }
+
+  .feedback {
+    margin: 0;
+    font-weight: bold;
+  }
+
+  .feedback.correct {
+    color: #1a7f37;
+  }
+
+  .feedback.incorrect {
+    color: #b3261e;
+  }
+
+  .total-money {
+    margin-top: auto;
+    font-size: 1.1rem;
+    font-weight: bold;
   }
 </style>

@@ -5,6 +5,9 @@
     ".write": false,
     "games": {
       "$gameId": {
+        "totalMoney": {
+          ".read": "auth != null"
+        },
         "players": {
           ".read": "auth != null",
           "$uid": {

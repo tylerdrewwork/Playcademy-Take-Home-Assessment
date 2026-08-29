@@ -8,6 +8,11 @@ interface JoinGameResult {
   coinsPresented: number
 }
 
+interface SubmitAnswerResult {
+  correct: boolean
+  coinsPresented: number
+}
+
 interface PlayerRecord {
   joinedAt: number
   coinsPresented: number
@@ -21,9 +26,13 @@ export class GameSession {
   #error: unknown = $state.raw(null)
   #coinsPresented: number | null = $state.raw(null)
   #players: Record<string, PlayerRecord> = $state.raw({})
+  #totalMoney: number = $state(0)
+  #submitting: boolean = $state(false)
+  #lastResult: 'correct' | 'incorrect' | null = $state.raw(null)
   #uid: string | null = null
   #gameId: string | null = null
   #unsubscribeRoster: Unsubscribe | null = null
+  #unsubscribeTotal: Unsubscribe | null = null
 
   get status(): GameSessionStatus {
     return this.#status
@@ -39,6 +48,18 @@ export class GameSession {
 
   get playerCount(): number {
     return Object.keys(this.#players).length
+  }
+
+  get totalMoney(): number {
+    return this.#totalMoney
+  }
+
+  get submitting(): boolean {
+    return this.#submitting
+  }
+
+  get lastResult(): 'correct' | 'incorrect' | null {
+    return this.#lastResult
   }
 
   async join(): Promise<void> {
@@ -63,6 +84,11 @@ export class GameSession {
         this.#players = snapshot.val() ?? {}
       })
 
+      const totalRef = ref(rtdb, `games/${data.gameId}/totalMoney`)
+      this.#unsubscribeTotal = onValue(totalRef, (snapshot) => {
+        this.#totalMoney = snapshot.val() ?? 0
+      })
+
       this.#status = 'joined'
     } catch (err) {
       this.#error = err
@@ -70,9 +96,30 @@ export class GameSession {
     }
   }
 
+  async submitAnswer(answer: number): Promise<void> {
+    if (this.#submitting || this.#status !== 'joined') return
+    this.#submitting = true
+
+    try {
+      const callSubmitAnswer = httpsCallable<{ answer: number }, SubmitAnswerResult>(
+        functions,
+        'submitAnswer',
+      )
+      const { data } = await callSubmitAnswer({ answer })
+      this.#coinsPresented = data.coinsPresented
+      this.#lastResult = data.correct ? 'correct' : 'incorrect'
+    } catch (err) {
+      this.#error = err
+    } finally {
+      this.#submitting = false
+    }
+  }
+
   leave(): void {
     this.#unsubscribeRoster?.()
     this.#unsubscribeRoster = null
+    this.#unsubscribeTotal?.()
+    this.#unsubscribeTotal = null
 
     if (this.#uid && this.#gameId) {
       remove(ref(rtdb, `games/${this.#gameId}/players/${this.#uid}`)).catch(() => {})
@@ -83,5 +130,8 @@ export class GameSession {
     this.#status = 'idle'
     this.#coinsPresented = null
     this.#players = {}
+    this.#totalMoney = 0
+    this.#lastResult = null
+    this.#submitting = false
   }
 }

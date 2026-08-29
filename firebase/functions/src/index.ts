@@ -5,3 +5,4 @@ initializeApp();
 setGlobalOptions({maxInstances: 10});
 
 export {joinGame} from "./joinGame.js";
+export {submitAnswer} from "./submitAnswer.js";
