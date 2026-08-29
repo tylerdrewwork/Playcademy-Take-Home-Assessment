@@ -3,10 +3,7 @@
   import introVoUrl from '../../../assets/lesson/addition-1/intro-1-vo.wav'
   import type { ScreenStep } from '../../lessonContent.js'
 
-  let {
-    onComplete,
-    isLastScreen,
-  }: { onComplete: () => void; isLastScreen: boolean } = $props()
+  let { onComplete }: { onComplete: () => void } = $props()
 
   const steps: ScreenStep[] = [
     {
@@ -20,24 +17,19 @@
   let stepIndex = $state(0)
   let current = $derived(steps[stepIndex])
 
-  // 'begin' -> 'playing' (voice-over) -> 'done' (Next button shown)
-  let phase = $state<'begin' | 'playing' | 'done'>('begin')
+  // 'begin' -> 'playing' (voice-over), then straight through to onComplete —
+  // no Next button in between, the narration itself gates progression.
+  let phase = $state<'begin' | 'playing'>('begin')
   let audio: HTMLAudioElement | undefined
 
   function begin() {
     phase = 'playing'
     audio = new Audio(introVoUrl)
-    audio.addEventListener('ended', () => {
-      phase = 'done'
-    })
-    // If the clip fails to load or play, don't leave the student stuck
-    // with no button — reveal Next anyway.
-    audio.addEventListener('error', () => {
-      phase = 'done'
-    })
-    audio.play().catch(() => {
-      phase = 'done'
-    })
+    audio.addEventListener('ended', onComplete)
+    // If the clip fails to load or play, don't leave the student stuck —
+    // move on anyway.
+    audio.addEventListener('error', onComplete)
+    audio.play().catch(onComplete)
   }
 
   onDestroy(() => {
@@ -51,10 +43,6 @@
 
 {#if phase === 'begin'}
   <button class="primary" onclick={begin}>Begin</button>
-{:else if phase === 'done'}
-  <button class="primary" onclick={onComplete}>
-    {isLastScreen ? "Got it! Let's Practice!" : 'Next'}
-  </button>
 {/if}
 
 <style>
