@@ -174,10 +174,11 @@
   let containerEl: HTMLDivElement
   let tl: gsap.core.Timeline | undefined
   let ctx: gsap.Context | undefined
+  let groupsRow: Element | null = null
 
   onMount(() => {
     ctx = gsap.context(() => {
-      const groupsRow = containerEl.querySelector('.groups-row')
+      groupsRow = containerEl.querySelector('.groups-row')
       const operator = containerEl.querySelector('.operator')
       const boxes = containerEl.querySelectorAll('.group-box')
       const headers = containerEl.querySelectorAll('.group-box h3')
@@ -254,6 +255,16 @@
     })
   }
 
+  function fadeTo(opacity: number): Promise<void> {
+    return new Promise((resolve) => {
+      if (!groupsRow) {
+        resolve()
+        return
+      }
+      gsap.to(groupsRow, { opacity, duration: 0.4, ease: opacity === 0 ? 'power1.in' : 'power1.out', onComplete: resolve })
+    })
+  }
+
   async function next() {
     if (stepIndex >= steps.length - 1) {
       onComplete()
@@ -292,16 +303,18 @@
     }
 
     if (leavingLabel === 'combine') {
-      // Fade the merged numbers, unmerge the boxes back to the resting
-      // state, then swap in the "we do" amounts for the guided-practice
-      // pass through the same sequence.
+      // Fade the whole merged group out, reset to the single-group resting
+      // state while hidden, then fade back in on an empty slate — the new
+      // "we do" amounts, nothing revealed yet — rather than reverse-playing
+      // the merge animation with the old group's sizing.
       phase = 'transitioning'
-      revealedCounts = [0, 0]
-      await wait(NUMBER_FADE_MS)
+      await fadeTo(0)
       stepIndex++
-      groups = weDoGroups
+      revealedCounts = [0, 0]
       continuousNumbering = false
-      await tweenToLabel('group-1')
+      groups = weDoGroups
+      tl?.seek('group-1')
+      await fadeTo(1)
       phase = 'narrating'
       return
     }
