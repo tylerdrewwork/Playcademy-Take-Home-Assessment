@@ -1,0 +1,33 @@
+#!/bin/sh
+# Auto-cleanup for the .claude/worktrees/<name> <-> worktree-<name> convention:
+# after any merge into main, remove worktrees whose branch is now fully merged.
+# Local-only: never touches remote branches (those need explicit confirmation).
+
+set -eu
+
+REPO_ROOT=$(git rev-parse --show-toplevel)
+CURRENT_BRANCH=$(git symbolic-ref --short HEAD 2>/dev/null || echo "")
+
+if [ "$CURRENT_BRANCH" != "main" ]; then
+  exit 0
+fi
+
+git for-each-ref --format='%(refname:short)' 'refs/heads/worktree-*' | while IFS= read -r branch; do
+  if git merge-base --is-ancestor "$branch" main 2>/dev/null; then
+    name=${branch#worktree-}
+    wt_path="$REPO_ROOT/.claude/worktrees/$name"
+
+    if git worktree list --porcelain | grep -qx "worktree $wt_path"; then
+      if git worktree remove "$wt_path" 2>/tmp/post-merge-wt-err; then
+        echo "post-merge: removed merged worktree .claude/worktrees/$name"
+      else
+        echo "post-merge: left .claude/worktrees/$name in place ($(cat /tmp/post-merge-wt-err | tr '\n' ' '))"
+        continue
+      fi
+    fi
+
+    if git branch -d "$branch" >/tmp/post-merge-br-out 2>&1; then
+      echo "post-merge: deleted merged local branch $branch"
+    fi
+  fi
+done
