@@ -329,4 +329,8 @@
   h2 {
     margin-top: 0;
   }
+
+  p {
+    font-size: 4rem;
+  }
 </style>
