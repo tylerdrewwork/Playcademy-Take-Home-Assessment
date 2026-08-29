@@ -43,10 +43,13 @@
 
 <style>
   .balloon {
-    /* Scales with the viewport and shrinks as its group gets more crowded,
-       but never below a touch-friendly size — kids on tablets need to be
-       able to land a finger on it. */
-    width: clamp(4rem, calc(50vw / var(--balloon-count, 4)), 10rem);
+    /* Scales with the viewport and shrinks as the combined balloon count
+       grows, targeting a touch-friendly size — but flex-shrink (below) is
+       what actually guarantees every balloon fits on one row without
+       wrapping, even below this target on very small/crowded screens. */
+    width: clamp(4rem, calc(80vw / var(--balloon-count, 5)), 10rem);
+    min-width: 0;
+    flex-shrink: 1;
     height: auto;
     aspect-ratio: 40 / 56;
     display: block;
