@@ -19,7 +19,7 @@
     {#if i > 0}<span class="operator">+</span>{/if}
     <div class="group-box">
       <h3>Group {i + 1}</h3>
-      <div class="balloon-row">
+      <div class="balloon-row" style="--balloon-count: {group.count}">
         {#each Array.from({ length: group.count }) as _, j}
           <Balloon color={group.color} number={j < (revealedCounts[i] ?? 0) ? numberOffset(i) + j + 1 : undefined} />
         {/each}
@@ -57,7 +57,9 @@
 
   .balloon-row {
     display: flex;
+    align-items: flex-end;
     justify-content: center;
-    gap: 0.5rem;
+    flex-wrap: wrap;
+    gap: clamp(0.5rem, 1.5vw, 1.25rem);
   }
 </style>

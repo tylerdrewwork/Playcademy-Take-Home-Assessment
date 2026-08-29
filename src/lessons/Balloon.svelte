@@ -43,8 +43,12 @@
 
 <style>
   .balloon {
-    width: 2.5rem;
-    height: 3.5rem;
+    /* Scales with the viewport and shrinks as its group gets more crowded,
+       but never below a touch-friendly size — kids on tablets need to be
+       able to land a finger on it. */
+    width: clamp(4rem, calc(50vw / var(--balloon-count, 4)), 10rem);
+    height: auto;
+    aspect-ratio: 40 / 56;
     display: block;
   }
 
