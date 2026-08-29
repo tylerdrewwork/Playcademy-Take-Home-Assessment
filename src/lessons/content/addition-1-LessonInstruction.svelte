@@ -28,16 +28,16 @@
     flex-direction: column;
     justify-content: center;
     gap: 1rem;
-    /* Fills most of the viewport and scales with it, but is still fixed
-       for a given screen size — it never resizes as steps swap in
-       shorter/longer transcripts, an extra balloon group, or a button
-       appearing. Content that doesn't fill it is just centered instead
+    /* Fills most of the viewport and scales with it. Targets a fixed size
+       for a given screen so it doesn't visibly resize between steps, but
+       min-height (rather than a hard height) lets it grow on short/wide
+       screens where a step's content — e.g. the 4rem transcript text plus
+       a full balloon row — needs more room than that target, instead of
+       clipping it. Content that doesn't fill it is just centered instead
        of top-anchored with blank space below. */
     width: min(95vw, 85rem);
-    height: min(88vh, 60rem);
+    min-height: min(88vh, 60rem);
     min-width: 20rem;
-    min-height: 28rem;
-    overflow: hidden;
     margin: 2rem auto;
     padding: clamp(1.5rem, 3vw, 3rem);
     border-radius: 1rem;
