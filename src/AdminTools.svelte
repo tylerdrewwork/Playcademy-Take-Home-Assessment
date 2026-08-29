@@ -1,7 +1,7 @@
 <script>
   import { addition1LessonProgress } from './lessons/content/addition-1-LessonProgress.js'
 
-  let { onSkipToMultiplayer } = $props()
+  let { onShowSection } = $props()
 
   let dialog = $state(null)
   let confirming = $state(false)
@@ -35,9 +35,12 @@
     }, 3000)
   }
 
-  function skipToMultiplayer() {
+  async function jumpTo(section) {
     close()
-    onSkipToMultiplayer()
+    if (section !== 'multiplayer') {
+      await addition1LessonProgress.jumpToPhase(section === 'lesson' ? 'instruction' : 'problems')
+    }
+    onShowSection(section === 'multiplayer' ? 'multiplayer' : 'lesson')
   }
 </script>
 
@@ -53,9 +56,16 @@
       <button onclick={cancelReset}>Cancel</button>
     </div>
   {:else}
+    <div class="jump-group">
+      <span class="jump-label">Jump to:</span>
+      <div class="actions">
+        <button onclick={() => jumpTo('lesson')}>Lesson</button>
+        <button onclick={() => jumpTo('problems')}>Problems</button>
+        <button onclick={() => jumpTo('multiplayer')}>Multiplayer</button>
+      </div>
+    </div>
     <div class="actions">
       <button onclick={requestReset}>Reset Progress</button>
-      <button onclick={skipToMultiplayer}>Skip to Multiplayer</button>
       <button onclick={close}>Close</button>
     </div>
   {/if}
@@ -88,6 +98,13 @@
   .actions {
     display: flex;
     gap: 0.5rem;
+  }
+
+  .jump-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
   }
 
   .toast {

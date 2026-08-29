@@ -110,6 +110,35 @@ describe('submitProblemAnswer', () => {
   })
 })
 
+describe('jumpToPhase', () => {
+  it('jumps to the instruction phase at screen 0 from anywhere', () => {
+    const progress = progressAtFirstProblem()
+    const next = Progression.jumpToPhase(progress, 'instruction')
+    expect(next.phase).toBe('instruction')
+    expect(next.instruction.currentScreenIndex).toBe(0)
+  })
+
+  it('jumps to the problems phase without touching attempts or sequence', () => {
+    const initial = Progression.createInitialProgress(testContent)
+    const next = Progression.jumpToPhase(initial, 'problems')
+    expect(next.phase).toBe('problems')
+    expect(next.problems.currentIndex).toBe(0)
+    expect(next.problems.attempts).toEqual(initial.problems.attempts)
+    expect(next.problems.sequence).toEqual(initial.problems.sequence)
+  })
+
+  it('clamps currentIndex back to the last problem when jumping in from complete', () => {
+    let progress = progressAtFirstProblem()
+    progress = Progression.submitProblemAnswer(progress, testContent, '5')
+    progress = Progression.submitProblemAnswer(progress, testContent, '6')
+    progress = Progression.submitProblemAnswer(progress, testContent, '7')
+    expect(progress.phase).toBe('complete')
+    const next = Progression.jumpToPhase(progress, 'problems')
+    expect(next.phase).toBe('problems')
+    expect(next.problems.currentIndex).toBe(2)
+  })
+})
+
 describe('isMultiplayerUnlocked', () => {
   it('is false before the lesson is complete and true after', () => {
     let progress = progressAtFirstProblem()

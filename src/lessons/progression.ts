@@ -121,6 +121,32 @@ export class Progression {
     }
   }
 
+  static jumpToPhase(progress: Progress, phase: 'instruction' | 'problems'): Progress {
+    const now = Date.now()
+
+    if (phase === 'instruction') {
+      return {
+        ...progress,
+        phase: 'instruction',
+        instruction: { ...progress.instruction, currentScreenIndex: 0 },
+        updatedAt: now,
+      }
+    }
+
+    // After the lesson completes, currentIndex sits one past the end of the
+    // sequence, so clamp it back to the last problem when jumping in.
+    const lastIndex = Math.max(progress.problems.sequence.length - 1, 0)
+    return {
+      ...progress,
+      phase: 'problems',
+      problems: {
+        ...progress.problems,
+        currentIndex: Math.min(progress.problems.currentIndex, lastIndex),
+      },
+      updatedAt: now,
+    }
+  }
+
   static isMultiplayerUnlocked(progress: Progress): boolean {
     return progress.phase === 'complete'
   }

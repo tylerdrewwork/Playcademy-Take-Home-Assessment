@@ -76,6 +76,16 @@ export class LessonProgress {
     }
   }
 
+  async jumpToPhase(phase: 'instruction' | 'problems'): Promise<void> {
+    await this.ready
+    this.#progress = Progression.jumpToPhase(this.#progress!, phase)
+    try {
+      await this.#storage.saveProgress(this.#progress)
+    } catch (err) {
+      this.#error = err
+    }
+  }
+
   async resetProgress(): Promise<void> {
     this.#progress = Progression.createInitialProgress(this.#content)
     try {

@@ -7,7 +7,7 @@
 </script>
 
 <main>
-  <AdminTools onSkipToMultiplayer={() => (view = 'multiplayer')} />
+  <AdminTools onShowSection={(section) => (view = section)} />
   {#if view === 'multiplayer'}
     <MultiplayerScreen onExit={() => (view = 'lesson')} />
   {:else}
