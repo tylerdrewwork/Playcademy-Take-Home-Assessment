@@ -37,7 +37,7 @@
     {
       label: 'group-1',
       title: 'Counting one group',
-      transcript: "Here are some red balloons. I'll count them: 1, 2.",
+      transcript: "Here are some blue balloons. I'll count them: 1, 2.",
     },
     {
       label: 'both-groups',
