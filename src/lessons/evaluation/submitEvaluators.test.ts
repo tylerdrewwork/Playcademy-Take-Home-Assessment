@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { fastCorrectEvaluator, invalidInputEvaluator, offByOneEvaluator } from './submitEvaluators.js'
+import {
+  farOffEvaluator,
+  fastCorrectEvaluator,
+  invalidInputEvaluator,
+  offByOneEvaluator,
+} from './submitEvaluators.js'
 import { DEFAULT_EVALUATION_CONFIG } from './evaluationTypes.js'
 import type { InteractionEvent, SubmitContext } from './evaluationTypes.js'
 import { normalizeAnswer } from '../progression.js'
@@ -50,6 +55,44 @@ describe('offByOneEvaluator', () => {
 
   it('does not fire on a non-numeric answer', () => {
     expect(offByOneEvaluator.evaluate(makeCtx('abc'))).toHaveLength(0)
+  })
+})
+
+describe('farOffEvaluator', () => {
+  it('fires when the answer is more than 2 too high, reporting the distance', () => {
+    const findings = farOffEvaluator.evaluate(makeCtx('8'))
+    expect(findings).toHaveLength(1)
+    expect(findings[0]).toMatchObject({
+      signal: 'far-off',
+      polarity: 'concern',
+      attemptIndex: 0,
+      t: 5000,
+      detail: { value: 8, answer: 5, offBy: 3 },
+    })
+  })
+
+  it('fires when the answer is more than 2 too low', () => {
+    const findings = farOffEvaluator.evaluate(makeCtx('1'))
+    expect(findings).toHaveLength(1)
+    expect(findings[0].detail).toMatchObject({ value: 1, answer: 5, offBy: 4 })
+  })
+
+  it('does not fire at exactly 2 away', () => {
+    expect(farOffEvaluator.evaluate(makeCtx('3'))).toHaveLength(0)
+    expect(farOffEvaluator.evaluate(makeCtx('7'))).toHaveLength(0)
+  })
+
+  it('does not fire on an off-by-one answer', () => {
+    expect(farOffEvaluator.evaluate(makeCtx('4'))).toHaveLength(0)
+    expect(farOffEvaluator.evaluate(makeCtx('6'))).toHaveLength(0)
+  })
+
+  it('does not fire on a correct answer', () => {
+    expect(farOffEvaluator.evaluate(makeCtx('5'))).toHaveLength(0)
+  })
+
+  it('does not fire on a non-numeric answer', () => {
+    expect(farOffEvaluator.evaluate(makeCtx('abc'))).toHaveLength(0)
   })
 })
 

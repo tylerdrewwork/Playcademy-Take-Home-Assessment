@@ -135,6 +135,28 @@ describe('createAddition1EvaluationRecorder tag priority', () => {
     expect(result.primaryEvaluationTag).toBe('partial-counting')
   })
 
+  it('prefers partial-counting over far-off when both fire', async () => {
+    // p7: 2 + 7 = 9; answering '2' matches the first group AND is 7 away
+    // from correct — the misconception diagnosis wins over the distance.
+    const { recorder } = await makeRecorder()
+    recorder.beginProblem(findProblem('p7'))
+    const result = recorder.recordSubmit('2')
+    expect(result.findings.map((f) => f.signal)).toEqual(
+      expect.arrayContaining(['partial-counting', 'far-off'])
+    )
+    expect(result.primaryEvaluationTag).toBe('partial-counting')
+  })
+
+  it('tags far-off when a wrong answer matches no more specific concern', async () => {
+    // p1: 2 + 3 = 5; '9' matches neither group count and is not adjacent.
+    const { recorder } = await makeRecorder()
+    recorder.beginProblem(findProblem('p1'))
+    const result = recorder.recordSubmit('9')
+    expect(result.primaryEvaluationTag).toBe('far-off')
+    const farOff = result.findings.find((f) => f.signal === 'far-off')
+    expect(farOff?.detail).toMatchObject({ value: 9, answer: 5, offBy: 4 })
+  })
+
   it('tags a fast unassisted solve as fast-correct (beats solved-without-merge)', async () => {
     const { recorder, clock } = await makeRecorder()
     recorder.beginProblem(findProblem('p1'))

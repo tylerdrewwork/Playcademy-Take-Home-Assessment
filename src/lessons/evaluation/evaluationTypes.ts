@@ -78,6 +78,9 @@ export type BehavioralDetector = (
 export interface EvaluationConfig {
   // A correct first attempt within this window earns the 'fast-correct' tag.
   fastAnswerMs: number
+  // A wrong numeric answer more than this far from the correct one is
+  // tagged 'far-off' — likely guessing rather than a small miscount.
+  farOffDistance: number
   // Pointer moves are sampled no faster than this at capture time.
   pointerMoveSampleMs: number
   // How often the UI heartbeat asks detectors to re-scan the buffer.
@@ -112,6 +115,7 @@ export interface EvaluationConfig {
 
 export const DEFAULT_EVALUATION_CONFIG: EvaluationConfig = {
   fastAnswerMs: 10_000,
+  farOffDistance: 2,
   pointerMoveSampleMs: 100,
   heartbeatMs: 1_000,
   maxBufferedEvents: 3_000,

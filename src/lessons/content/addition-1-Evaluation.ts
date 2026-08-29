@@ -3,6 +3,7 @@ import { addition1Content } from './addition-1-Content.js'
 import type { EvaluationConfig, SubmitEvaluator } from '../evaluation/evaluationTypes.js'
 import { DEFAULT_EVALUATION_CONFIG } from '../evaluation/evaluationTypes.js'
 import {
+  farOffEvaluator,
   fastCorrectEvaluator,
   invalidInputEvaluator,
   offByOneEvaluator,
@@ -80,6 +81,7 @@ export function createAddition1EvaluationRecorder(
     submitEvaluators: [
       partialCountingEvaluator,
       offByOneEvaluator,
+      farOffEvaluator,
       invalidInputEvaluator,
       fastCorrectEvaluator,
       solvedWithoutMergeEvaluator,

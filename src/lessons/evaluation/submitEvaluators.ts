@@ -20,6 +20,28 @@ export const offByOneEvaluator: SubmitEvaluator = {
   },
 }
 
+// Wrong by a lot — more than config.farOffDistance away from the correct
+// answer. Where off-by-one suggests a single-object miscount, this suggests
+// guessing or a misunderstanding of what's being asked.
+export const farOffEvaluator: SubmitEvaluator = {
+  id: 'far-off',
+  evaluate(ctx) {
+    const value = ctx.normalizedValue
+    if (ctx.correct || Number.isNaN(value)) return []
+    const offBy = Math.abs(value - ctx.problem.answer)
+    if (offBy <= ctx.config.farOffDistance) return []
+    return [
+      {
+        signal: 'far-off',
+        polarity: 'concern',
+        attemptIndex: ctx.attemptIndex,
+        t: ctx.submittedAt,
+        detail: { value, answer: ctx.problem.answer, offBy },
+      },
+    ]
+  },
+}
+
 // Events belonging to the current attempt: everything after the previous
 // submit (the current submit event is the last entry in the buffer).
 function eventsForCurrentAttempt(events: readonly InteractionEvent[]): readonly InteractionEvent[] {
