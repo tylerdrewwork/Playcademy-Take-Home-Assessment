@@ -155,7 +155,10 @@ export class GameSession {
         'submitAnswer',
       )
       const { data } = await callSubmitAnswer({ answer })
-      this.#problem = data.problem
+      // On an incorrect answer the server echoes the same problem back as a
+      // fresh object; keep the existing one so the coin layout (keyed on the
+      // coins array's identity) doesn't reshuffle under the student.
+      if (data.correct) this.#problem = data.problem
       this.#lastResult = data.correct ? 'correct' : 'incorrect'
     } catch (err) {
       this.#error = err

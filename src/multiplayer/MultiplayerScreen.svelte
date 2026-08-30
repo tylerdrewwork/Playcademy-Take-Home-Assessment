@@ -16,6 +16,31 @@
   // <input type="number" bind:value> gives Svelte a number (or undefined
   // when the field is empty), never a string — don't treat this as text.
   let answer: number | undefined = $state(undefined)
+  let answerInputEl: HTMLInputElement | undefined = $state()
+
+  // Pressing a digit anywhere on the screen types it into the answer field
+  // and focuses it, so the student can just type "5" + Enter without
+  // clicking the box first — same behavior as the lesson's problem screen.
+  function handleGlobalDigit(event: KeyboardEvent): void {
+    if (session.status !== 'joined' || !session.problem || !answerInputEl) return
+    if (session.submitting) return // field is disabled; focus() would no-op
+    if (event.ctrlKey || event.metaKey || event.altKey) return
+    if (!/^\d$/.test(event.key)) return
+    const target = event.target
+    if (target === answerInputEl) return // already typing in the field
+    // Leave other editable elements and open dialogs (Admin Tools) alone.
+    if (
+      target instanceof Element &&
+      (target.closest('dialog') || target.matches('input, textarea, select, [contenteditable]'))
+    ) {
+      return
+    }
+    event.preventDefault()
+    answerInputEl.focus()
+    const digits = answer === undefined ? '' : String(answer)
+    if (digits.length >= 3) return // sums max out at 100 cents
+    answer = Number(digits + event.key)
+  }
 
   const moneyFormatter = new Intl.NumberFormat('en-US', {
     style: 'currency',
@@ -30,6 +55,8 @@
     answer = undefined
   }
 </script>
+
+<svelte:window onkeydown={handleGlobalDigit} />
 
 <section class="multiplayer-screen">
   <h2>Multiplayer Coin Game</h2>
@@ -52,6 +79,7 @@
             min="0"
             placeholder="How many cents?"
             aria-label="How many cents do the coins add up to?"
+            bind:this={answerInputEl}
             bind:value={answer}
             disabled={session.submitting}
           />
