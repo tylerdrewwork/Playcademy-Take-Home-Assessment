@@ -144,3 +144,6 @@ vite.config.ts.timestamp-*
 
 # Editor
 .vscode/
+
+# Claude Code local (per-machine) settings
+.claude/settings.local.json

@@ -6,32 +6,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This project is a teaching application targeted toward a student working on CCSS 2.MD.C.8 as the capstone standard. The lesson's focus is: "Understand how to combine two numbers, represented by groups of objects (2 balls and 3 balls) and count the total." The objects/shapes used may vary (they need not be balls), and the implementation approach for this lesson has not been decided yet. Once the lesson is finished, the student may play the multiplayer coin counting game.
 
-The codebase is currently the unmodified Svelte + Vite scaffold (see "Current state" below) — the lesson and multiplayer game described above have not been implemented yet.
-
 ## Multiplayer game description
 
 Each player is presented with their own group of coins to count. Once a player answers correctly, that coin amount is added to the "total money" — a single running total of every coin amount any player has ever guessed correctly, shared across the whole game. Players may join and leave at will; the player list updates live for everyone as people come and go. A game room holds up to 20 players at once.
 
 ## Commands
 
-```bash
-npm install       # install dependencies
-npm run dev       # start the Vite dev server (http://localhost:5173)
-npm run build     # production build, output to dist/
-npm run preview   # locally preview the production build in dist/
-```
-
-There is no test suite or linter configured in this repository yet.
-
 `firebase-tools` is a devDependency, not installed globally — run it as `npx firebase <command>` (e.g. `npx firebase deploy`, `npx firebase emulators:start`), not a bare `firebase` command.
-
-## Architecture
-
-- Stack: Svelte 5 + Vite, no framework router or state management library is installed.
-- Entry point: `index.html` loads `src/main.js`, which calls Svelte 5's `mount()` to render `src/App.svelte` into `#app`.
-- `src/App.svelte` is currently the default Vite/Svelte template placeholder (lorem ipsum copy, a hero image, and three buttons that only `console.log` on click) — not yet the lesson or game UI.
-- `src/app.css` holds global styles; component-scoped styles live in each `.svelte` file's `<style>` block.
-- `src/assets/` is for assets imported by components (bundled by Vite); `public/` is for static assets served as-is at the site root.
 
 ## Tech Stack
 
@@ -54,4 +35,4 @@ Do not open a pull request when finishing a task. Instead, verify locally that t
 
 ## Current state
 
-There is no counting/combining lesson, quiz/assessment flow, or multiplayer coin counting game implemented yet — only the stock scaffold described above. When building these features, use the `pedagogy-review` skill to check the instructional design (scaffolding, feedback loops, difficulty progression) against the CCSS 2.MD.C.8 target.
+When building the lesson and multiplayer game features, use the `pedagogy-review` skill to check the instructional design (scaffolding, feedback loops, difficulty progression) against the CCSS 2.MD.C.8 target.
