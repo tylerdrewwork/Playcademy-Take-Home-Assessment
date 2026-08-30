@@ -6,6 +6,7 @@ import {enforceRateLimit} from "./rateLimit.js";
 
 interface Player {
   joinedAt: number;
+  playerNumber: number;
   problem: CoinProblem;
   lastResult: "correct" | "incorrect" | null;
 }
@@ -16,6 +17,24 @@ interface JoinGameResult {
 }
 
 type Players = Record<string, Player>;
+
+/**
+ * Smallest 1-based seat number no current player holds, so labels like
+ * "Player 3" stay stable for a player's whole stay even as others come
+ * and go. Seats freed by leavers are reused by later joiners.
+ * @param {Players} players The room's current players, keyed by uid.
+ * @return {number} The lowest unclaimed seat number, starting at 1.
+ */
+function lowestFreePlayerNumber(players: Players): number {
+  const taken = new Set(
+    Object.values(players).map((player) => player.playerNumber),
+  );
+  let seat = 1;
+  while (taken.has(seat)) {
+    seat++;
+  }
+  return seat;
+}
 
 export const joinGame = onCall<void, Promise<JoinGameResult>>(
   async (request) => {
@@ -41,7 +60,12 @@ export const joinGame = onCall<void, Promise<JoinGameResult>>(
       if (Object.keys(players).length >= MAX_PLAYERS) {
         return; // abort: the room is full
       }
-      players[uid] = {joinedAt: Date.now(), problem, lastResult: null};
+      players[uid] = {
+        joinedAt: Date.now(),
+        playerNumber: lowestFreePlayerNumber(players),
+        problem,
+        lastResult: null,
+      };
       return players;
     });
 

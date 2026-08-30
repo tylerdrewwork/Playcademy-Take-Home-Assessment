@@ -2,11 +2,14 @@
   import { onDestroy } from 'svelte'
   import { GameSession } from './gameSession.svelte.js'
   import CoinScatter from './CoinScatter.svelte'
+  import OtherPlayerColumn from './OtherPlayerColumn.svelte'
 
   let { onExit } = $props()
 
   const session = new GameSession()
   session.join()
+
+  const otherPlayers = $derived(session.players.filter((player) => !player.isSelf))
 
   onDestroy(() => session.leave())
 
@@ -36,28 +39,36 @@
   {:else if session.status === 'error'}
     <p class="error">Couldn't join the game. Please check your connection and try again.</p>
   {:else if session.status === 'joined' && session.problem}
-    <p>How many cents are these coins worth?</p>
-    <CoinScatter coins={session.problem.coins} />
-    <p>{session.playerCount} player{session.playerCount === 1 ? '' : 's'} in the room.</p>
+    <div class="columns">
+      <div class="self-column">
+        <p>How many cents are these coins worth?</p>
+        <CoinScatter coins={session.problem.coins} />
+        <p>{session.playerCount} player{session.playerCount === 1 ? '' : 's'} in the room.</p>
 
-    <form class="answer-form" onsubmit={handleSubmit}>
-      <input
-        type="number"
-        inputmode="numeric"
-        min="0"
-        placeholder="How many cents?"
-        aria-label="How many cents do the coins add up to?"
-        bind:value={answer}
-        disabled={session.submitting}
-      />
-      <button type="submit" disabled={session.submitting}>Submit</button>
-    </form>
+        <form class="answer-form" onsubmit={handleSubmit}>
+          <input
+            type="number"
+            inputmode="numeric"
+            min="0"
+            placeholder="How many cents?"
+            aria-label="How many cents do the coins add up to?"
+            bind:value={answer}
+            disabled={session.submitting}
+          />
+          <button type="submit" disabled={session.submitting}>Submit</button>
+        </form>
 
-    {#if session.lastResult === 'correct'}
-      <p class="feedback correct">Correct! Here's a new group to count.</p>
-    {:else if session.lastResult === 'incorrect'}
-      <p class="feedback incorrect">Not quite — count again and resubmit.</p>
-    {/if}
+        {#if session.lastResult === 'correct'}
+          <p class="feedback correct">Correct! Here's a new group to count.</p>
+        {:else if session.lastResult === 'incorrect'}
+          <p class="feedback incorrect">Not quite — count again and resubmit.</p>
+        {/if}
+      </div>
+
+      {#each otherPlayers as player (player.uid)}
+        <OtherPlayerColumn name={player.name} lastAward={player.lastAward} />
+      {/each}
+    </div>
   {/if}
 
   <button onclick={onExit}>Back to lesson</button>
@@ -77,6 +88,25 @@
     gap: 1rem;
     padding: 2rem;
     text-align: center;
+    max-height: 100%;
+    overflow-y: auto;
+  }
+
+  .columns {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;
+    justify-content: center;
+    gap: 0.75rem;
+    max-width: 100%;
+  }
+
+  /* Same stack the screen rendered before other players got columns. */
+  .self-column {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
   }
 
   .error {

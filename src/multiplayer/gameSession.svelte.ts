@@ -20,10 +20,26 @@ interface SubmitAnswerResult {
   problem: CoinProblem
 }
 
+export interface PlayerAward {
+  cents: number
+  at: number
+}
+
 interface PlayerRecord {
   joinedAt: number
+  playerNumber?: number
   problem: CoinProblem
   lastResult: 'correct' | 'incorrect' | null
+  lastAward?: PlayerAward
+}
+
+/** One roster entry, ready for rendering as a player column. */
+export interface PlayerView {
+  uid: string
+  isSelf: boolean
+  name: string
+  joinedAt: number
+  lastAward: PlayerAward | null
 }
 
 export type GameSessionStatus = 'idle' | 'joining' | 'joined' | 'error'
@@ -36,7 +52,7 @@ export class GameSession {
   #totalMoneyCents: number = $state(0)
   #submitting: boolean = $state(false)
   #lastResult: 'correct' | 'incorrect' | null = $state.raw(null)
-  #uid: string | null = null
+  #uid: string | null = $state.raw(null)
   #gameId: string | null = null
   #unsubscribeRoster: Unsubscribe | null = null
   #unsubscribeTotal: Unsubscribe | null = null
@@ -55,6 +71,21 @@ export class GameSession {
 
   get playerCount(): number {
     return Object.keys(this.#players).length
+  }
+
+  /** Everyone in the room, in join order. Names come from the server-assigned
+   * seat number so "Player 3" stays "Player 3" while others come and go;
+   * records written before seats existed fall back to join-order numbering. */
+  get players(): PlayerView[] {
+    return Object.entries(this.#players)
+      .sort(([uidA, a], [uidB, b]) => a.joinedAt - b.joinedAt || uidA.localeCompare(uidB))
+      .map(([uid, record], index) => ({
+        uid,
+        isSelf: uid === this.#uid,
+        name: `Player ${record.playerNumber ?? index + 1}`,
+        joinedAt: record.joinedAt,
+        lastAward: record.lastAward ?? null,
+      }))
   }
 
   /** Running total across all players' correct answers, in cents. */
