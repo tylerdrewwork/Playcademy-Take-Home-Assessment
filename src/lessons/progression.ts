@@ -64,16 +64,30 @@ export class Progression {
     }
   }
 
+  // Once every problem has been answered correctly, the problems phase is
+  // never re-entered — currentIndex sits one past the end of the sequence, so
+  // re-entering would present a problem that doesn't exist.
+  static areProblemsComplete(progress: Progress): boolean {
+    return progress.problems.completedAt !== null
+  }
+
   static advanceInstructionStep(progress: Progress, content: LessonContent): Progress {
     if (progress.phase !== 'instruction') return progress
 
     const now = Date.now()
     const nextIndex = progress.instruction.currentScreenIndex + 1
     const reachedEnd = nextIndex >= content.instruction.screens.length
+    // Replaying the instruction after finishing the lesson skips straight
+    // back to 'complete' — the problems are already answered.
+    const nextPhase = !reachedEnd
+      ? 'instruction'
+      : Progression.areProblemsComplete(progress)
+        ? 'complete'
+        : 'problems'
 
     return {
       ...progress,
-      phase: reachedEnd ? 'problems' : 'instruction',
+      phase: nextPhase,
       instruction: {
         currentScreenIndex: nextIndex,
         completedAt: reachedEnd ? now : progress.instruction.completedAt,
@@ -144,16 +158,16 @@ export class Progression {
       }
     }
 
-    // After the lesson completes, currentIndex sits one past the end of the
-    // sequence, so clamp it back to the last problem when jumping in.
-    const lastIndex = Math.max(progress.problems.sequence.length - 1, 0)
+    // The problems phase is not re-enterable once every problem is answered
+    // (currentIndex is past the end of the sequence) — land on 'complete'
+    // instead so a nonexistent problem can never be presented.
+    if (Progression.areProblemsComplete(progress)) {
+      return { ...progress, phase: 'complete', updatedAt: now }
+    }
+
     return {
       ...progress,
       phase: 'problems',
-      problems: {
-        ...progress.problems,
-        currentIndex: Math.min(progress.problems.currentIndex, lastIndex),
-      },
       updatedAt: now,
     }
   }

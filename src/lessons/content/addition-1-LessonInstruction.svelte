@@ -2,11 +2,21 @@
   import { addition1LessonProgress } from './addition-1-LessonProgress.js'
   import { addition1Content } from './addition-1-Content.js'
 
+  let { onPlayMultiplayer } = $props()
+
   let screen = $derived(
     addition1Content.instruction.screens[
       addition1LessonProgress.progress.instruction.currentScreenIndex
     ]
   )
+
+  async function handleScreenComplete() {
+    await addition1LessonProgress.advanceStep()
+    // Finishing the instruction normally lands on 'problems'. Landing on
+    // 'complete' means the problems were already all answered (a replay via
+    // Admin Tools) — the problems screen is skipped, go straight to the game.
+    if (addition1LessonProgress.progress?.phase === 'complete') onPlayMultiplayer?.()
+  }
 </script>
 
 {#if screen}
@@ -15,7 +25,7 @@
       <screen.component
         {...screen.props}
         isLastScreen={addition1LessonProgress.isLastScreen}
-        onComplete={() => addition1LessonProgress.advanceStep()}
+        onComplete={handleScreenComplete}
       />
     </div>
   {/key}

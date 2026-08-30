@@ -55,10 +55,15 @@
 
   async function jumpTo(section) {
     close()
-    if (section !== 'multiplayer') {
-      await addition1LessonProgress.jumpToPhase(section === 'lesson' ? 'instruction' : 'problems')
+    if (section === 'multiplayer') {
+      onShowSection('multiplayer')
+      return
     }
-    onShowSection(section === 'multiplayer' ? 'multiplayer' : 'lesson')
+    await addition1LessonProgress.jumpToPhase(section === 'lesson' ? 'instruction' : 'problems')
+    // Once every problem is answered, the problems phase is not re-enterable
+    // (the jump lands on 'complete' instead) — go straight to multiplayer.
+    const landedOnComplete = addition1LessonProgress.progress?.phase === 'complete'
+    onShowSection(section === 'problems' && landedOnComplete ? 'multiplayer' : 'lesson')
   }
 </script>
 

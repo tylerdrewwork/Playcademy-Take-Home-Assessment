@@ -136,15 +136,59 @@ describe('jumpToPhase', () => {
     expect(next.problems.sequence).toEqual(initial.problems.sequence)
   })
 
-  it('clamps currentIndex back to the last problem when jumping in from complete', () => {
+  it('lands on complete instead of problems when every problem is already answered', () => {
     let progress = progressAtFirstProblem()
     progress = Progression.submitProblemAnswer(progress, testContent, '5')
     progress = Progression.submitProblemAnswer(progress, testContent, '6')
     progress = Progression.submitProblemAnswer(progress, testContent, '7')
     expect(progress.phase).toBe('complete')
     const next = Progression.jumpToPhase(progress, 'problems')
-    expect(next.phase).toBe('problems')
-    expect(next.problems.currentIndex).toBe(2)
+    expect(next.phase).toBe('complete')
+    expect(next.problems.currentIndex).toBe(3)
+  })
+})
+
+describe('replaying instruction after the lesson is complete', () => {
+  function completedProgress() {
+    let progress = progressAtFirstProblem()
+    progress = Progression.submitProblemAnswer(progress, testContent, '5')
+    progress = Progression.submitProblemAnswer(progress, testContent, '6')
+    return Progression.submitProblemAnswer(progress, testContent, '7')
+  }
+
+  it('finishing the instruction again lands on complete, never a problem past the end', () => {
+    let progress = Progression.jumpToPhase(completedProgress(), 'instruction')
+    expect(progress.phase).toBe('instruction')
+    expect(progress.instruction.currentScreenIndex).toBe(0)
+
+    progress = Progression.advanceInstructionStep(progress, testContent)
+    expect(progress.phase).toBe('instruction')
+    progress = Progression.advanceInstructionStep(progress, testContent)
+    expect(progress.phase).toBe('complete')
+    expect(progress.problems.currentIndex).toBe(3)
+    expect(Progression.isMultiplayerUnlocked(progress)).toBe(true)
+  })
+
+  it('keeps attempts and completion timestamps intact through the replay', () => {
+    const completed = completedProgress()
+    let progress = Progression.jumpToPhase(completed, 'instruction')
+    progress = Progression.advanceInstructionStep(progress, testContent)
+    progress = Progression.advanceInstructionStep(progress, testContent)
+    expect(progress.problems.attempts).toEqual(completed.problems.attempts)
+    expect(progress.problems.completedAt).toBe(completed.problems.completedAt)
+    expect(progress.lessonCompletedAt).toBe(completed.lessonCompletedAt)
+  })
+})
+
+describe('areProblemsComplete', () => {
+  it('is false until the last problem is answered and true after', () => {
+    let progress = progressAtFirstProblem()
+    expect(Progression.areProblemsComplete(progress)).toBe(false)
+    progress = Progression.submitProblemAnswer(progress, testContent, '5')
+    progress = Progression.submitProblemAnswer(progress, testContent, '6')
+    expect(Progression.areProblemsComplete(progress)).toBe(false)
+    progress = Progression.submitProblemAnswer(progress, testContent, '7')
+    expect(Progression.areProblemsComplete(progress)).toBe(true)
   })
 })
 
