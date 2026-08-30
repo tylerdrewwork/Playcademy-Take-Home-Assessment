@@ -6,8 +6,10 @@ import {enforceRateLimit} from "./rateLimit.js";
 
 interface Player {
   joinedAt: number;
+  playerNumber: number;
   problem: CoinProblem;
   lastResult: "correct" | "incorrect" | null;
+  lastAward?: {cents: number; at: number};
 }
 
 interface SubmitAnswerRequest {
@@ -60,11 +62,17 @@ export const submitAnswer = onCall<
       correct = answer === player.problem.sum;
       centsAwarded = player.problem.sum;
       nextProblem = correct ? randomCoinProblem() : player.problem;
-      return {
+      const next: Player = {
         ...player,
         problem: nextProblem,
         lastResult: correct ? "correct" : "incorrect",
       };
+      if (correct) {
+        // Lets every client float an "Earned N cents!" notice for this
+        // player; `at` disambiguates back-to-back awards of equal cents.
+        next.lastAward = {cents: centsAwarded, at: Date.now()};
+      }
+      return next;
     });
 
     if (!result.committed || result.snapshot.val() === null) {
