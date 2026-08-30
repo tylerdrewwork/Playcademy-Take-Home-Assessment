@@ -8,20 +8,18 @@
   let { coins }: { coins: CoinValue[] } = $props()
 
   // Diameters keep the coins' real-world size order (quarter > nickel >
-  // penny > dime). The transparent source images center the coin but with
-  // varying empty margin, so `coinFrac` records what fraction of the image's
-  // height the coin itself spans — the image is scaled by its inverse to make
-  // the drawn coin exactly `diameter` wide.
+  // penny > dime). The transparent source images are square crops sized
+  // exactly to the coin's edge, so the drawn coin is exactly `diameter` wide
+  // with no per-asset margin compensation.
   const COIN_ART: Record<CoinValue, {
     src: string
     names: [singular: string, plural: string]
     diameter: number
-    coinFrac: number
   }> = {
-    25: { src: quarterImg, names: ['quarter', 'quarters'], diameter: 58, coinFrac: 0.914 },
-    10: { src: dimeImg, names: ['dime', 'dimes'], diameter: 43, coinFrac: 0.805 },
-    5: { src: nickelImg, names: ['nickel', 'nickels'], diameter: 51, coinFrac: 0.863 },
-    1: { src: pennyImg, names: ['penny', 'pennies'], diameter: 46, coinFrac: 0.922 },
+    25: { src: quarterImg, names: ['quarter', 'quarters'], diameter: 58 },
+    10: { src: dimeImg, names: ['dime', 'dimes'], diameter: 43 },
+    5: { src: nickelImg, names: ['nickel', 'nickels'], diameter: 51 },
+    1: { src: pennyImg, names: ['penny', 'pennies'], diameter: 46 },
   }
 
   const AREA_SIZE = 280 // diameter of the circular scatter area, px
@@ -37,7 +35,6 @@
 
   interface PlacedCoin {
     src: string
-    coinFrac: number
     x: number // offset from the area's center, px
     y: number
     size: number // rendered diameter, px
@@ -48,25 +45,28 @@
     const placed: (PlacedCoin & { r: number })[] = []
     for (const value of values) {
       const art = COIN_ART[value]
-      const r = (art.diameter * scale) / 2
+      // Whole-pixel positions and even-pixel diameters keep the artwork (and
+      // its centering translate of -size/2) off half-pixel boundaries, where
+      // resampling blurs it.
+      const size = Math.max(2, 2 * Math.round((art.diameter * scale) / 2))
+      const r = size / 2
       let spot: { x: number; y: number } | null = null
       for (let i = 0; i < PLACEMENT_TRIES && !spot; i++) {
         // sqrt keeps the distribution uniform over the circle's area, and
         // the (RADIUS - r) bound keeps the whole coin inside the area.
         const angle = Math.random() * Math.PI * 2
         const dist = Math.sqrt(Math.random()) * Math.max(RADIUS - r, 0)
-        const x = Math.cos(angle) * dist
-        const y = Math.sin(angle) * dist
+        const x = Math.round(Math.cos(angle) * dist)
+        const y = Math.round(Math.sin(angle) * dist)
         const clear = placed.every((p) => Math.hypot(p.x - x, p.y - y) >= p.r + r + EDGE_GAP)
         if (clear) spot = { x, y }
       }
       if (!spot) return null
       placed.push({
         src: art.src,
-        coinFrac: art.coinFrac,
         x: spot.x,
         y: spot.y,
-        size: r * 2,
+        size,
         r,
         tilt: (Math.random() * 2 - 1) * MAX_TILT_DEG,
       })
@@ -124,7 +124,7 @@
       style:top={`calc(50% + ${coin.y}px)`}
       style:transform={`translate(-50%, -50%) rotate(${coin.tilt}deg)`}
     >
-      <img src={coin.src} alt="" style:height={`${100 / coin.coinFrac}%`} />
+      <img src={coin.src} alt="" />
     </div>
   {/each}
 </div>
@@ -142,11 +142,9 @@
   }
 
   .coin img {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    width: auto;
+    display: block;
+    width: 100%;
+    height: 100%;
     /* Shadow hugs the coin's alpha silhouette, not the image rectangle. */
     filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.25));
   }
