@@ -1,6 +1,7 @@
 <script>
   import { addition1LessonProgress } from './lessons/content/addition-1-LessonProgress.js'
   import { addition1EvaluationRecorder } from './lessons/content/addition-1-EvaluationRecorder.js'
+  import { adminSettings } from './adminSettings.svelte.js'
 
   let { onShowSection } = $props()
 
@@ -96,6 +97,14 @@
       </div>
     </div>
 
+    <label class="setting-row">
+      <input type="checkbox" bind:checked={adminSettings.simpleMultiplayer} />
+      <span>
+        Simple Multiplayer
+        <span class="setting-hint">— this player's coin problems cap at 10¢</span>
+      </span>
+    </label>
+
     <div class="actions">
       <button onclick={requestReset}>Reset Progress</button>
       <button onclick={close}>Close</button>
@@ -168,6 +177,20 @@
 
   .eval-log {
     margin-bottom: 1rem;
+  }
+
+  .setting-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    cursor: pointer;
+    text-align: left;
+  }
+
+  .setting-hint {
+    opacity: 0.7;
+    font-size: 0.85em;
   }
 
   .eval-log-header {
