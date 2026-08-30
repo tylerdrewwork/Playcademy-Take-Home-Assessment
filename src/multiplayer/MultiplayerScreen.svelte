@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onDestroy } from 'svelte'
   import { GameSession } from './gameSession.svelte.js'
+  import CoinScatter from './CoinScatter.svelte'
 
   let { onExit } = $props()
 
@@ -17,30 +18,6 @@
     style: 'currency',
     currency: 'USD',
   })
-
-  const COIN_NAMES: Record<number, [string, string]> = {
-    25: ['quarter', 'quarters'],
-    10: ['dime', 'dimes'],
-    5: ['nickel', 'nickels'],
-    1: ['penny', 'pennies'],
-  }
-
-  // Placeholder text description of the coin assortment — the underlying
-  // `coins` array (one entry per physical coin) is what a future visual
-  // rendering (one image per coin) will iterate over instead.
-  function describeCoins(coins: number[]): string {
-    const counts = new Map<number, number>()
-    for (const value of coins) counts.set(value, (counts.get(value) ?? 0) + 1)
-
-    return [25, 10, 5, 1]
-      .filter((value) => counts.has(value))
-      .map((value) => {
-        const count = counts.get(value)!
-        const [singular, plural] = COIN_NAMES[value]
-        return `${count} ${count === 1 ? singular : plural}`
-      })
-      .join(', ')
-  }
 
   function handleSubmit(event: SubmitEvent): void {
     event.preventDefault()
@@ -59,7 +36,8 @@
   {:else if session.status === 'error'}
     <p class="error">Couldn't join the game. Please check your connection and try again.</p>
   {:else if session.status === 'joined' && session.problem}
-    <p>Count the coins: {describeCoins(session.problem.coins)}.</p>
+    <p>How many cents are these coins worth?</p>
+    <CoinScatter coins={session.problem.coins} />
     <p>{session.playerCount} player{session.playerCount === 1 ? '' : 's'} in the room.</p>
 
     <form class="answer-form" onsubmit={handleSubmit}>
