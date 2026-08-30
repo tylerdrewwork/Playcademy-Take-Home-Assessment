@@ -11,13 +11,14 @@ interface Player {
 }
 
 interface SubmitAnswerRequest {
-  answer: number;
+  answer?: number;
+  /** When true, only spin up the instance — no answer is judged. */
+  warmup?: boolean;
 }
 
-interface SubmitAnswerResult {
-  correct: boolean;
-  problem: CoinProblem;
-}
+type SubmitAnswerResult =
+  | {correct: boolean; problem: CoinProblem}
+  | {warmed: true};
 
 export const submitAnswer = onCall<
   SubmitAnswerRequest, Promise<SubmitAnswerResult>
@@ -32,6 +33,13 @@ export const submitAnswer = onCall<
     }
 
     await enforceRateLimit(uid);
+
+    if (request.data?.warmup === true) {
+      // Called when a player joins a previously empty room: the rate-limit
+      // transaction above has already exercised the admin database
+      // connection, so the instance is warm for the first real answer.
+      return {warmed: true};
+    }
 
     const answer = request.data?.answer;
     if (typeof answer !== "number" || !Number.isFinite(answer)) {

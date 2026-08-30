@@ -13,6 +13,7 @@ export interface CoinProblem {
 interface JoinGameResult {
   gameId: string
   problem: CoinProblem
+  firstPlayer: boolean
 }
 
 interface SubmitAnswerResult {
@@ -98,6 +99,15 @@ export class GameSession {
       })
 
       this.#status = 'joined'
+
+      if (data.firstPlayer) {
+        // The room was empty, so submitAnswer's instance has likely scaled
+        // to zero. Warm it now, fire-and-forget, so this player's first
+        // answer doesn't sit behind a multi-second cold start.
+        httpsCallable<{ warmup: true }, { warmed: true }>(functions, 'submitAnswer')({
+          warmup: true,
+        }).catch(() => {})
+      }
     } catch (err) {
       this.#error = err
       this.#status = 'error'
