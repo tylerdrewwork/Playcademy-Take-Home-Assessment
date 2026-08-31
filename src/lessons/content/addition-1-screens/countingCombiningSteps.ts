@@ -13,17 +13,17 @@ export const countingCombiningSteps: ScreenStep[] = [
   {
     label: 'group-1',
     title: 'Counting one group',
-    transcript: "Here are some blue balloons. I'll count them: 1, 2.",
+    transcript: "Here are some blue balloons. I'll count them.",
   },
   {
     label: 'both-groups',
     title: 'Counting the second group',
-    transcript: "Over here are some yellow balloons. I'll count them: 1, 2, 3.",
+    transcript: "Over here are some yellow balloons. I'll count them.",
   },
   {
     label: 'combine',
     title: 'How to Combine Groups',
-    transcript: "Now let's put both groups together and count all the balloons: 1, 2, 3, 4, 5. There are 5 balloons in all.",
+    transcript: "Now let's put both groups together and count all the balloons. There are 5 balloons in all.",
   },
   {
     label: 'we-do-start',
@@ -33,17 +33,17 @@ export const countingCombiningSteps: ScreenStep[] = [
   {
     label: 'we-do-group-1',
     title: '',
-    transcript: "Let's count the blue balloons together. 1, 2, 3, 4. There are 4 blue balloons.",
+    transcript: "Let's count the blue balloons together. There are 4 blue balloons.",
   },
   {
     label: 'we-do-group-2',
     title: '',
-    transcript: "Now let's count the yellow balloons together. 1, 2, 3, 4, 5. There are 5 yellow balloons.",
+    transcript: "Now let's count the yellow balloons together. There are 5 yellow balloons.",
   },
   {
     label: 'we-do-group-combined',
     title: '',
-    transcript: "Now let's put both groups together and count all the balloons: 1, 2, 3, 4, 5, 6, 7, 8, 9. There are 9 balloons!",
+    transcript: "Now let's put both groups together and count all the balloons. There are 9 balloons!",
   },
   {
     label: 'problems-pre-transition',
