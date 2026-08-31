@@ -88,7 +88,6 @@
       <div class="columns">
         <div class="self-column">
           <p>How many cents are these coins worth?</p>
-          <CoinScatter coins={session.problem.coins} />
           <p>{session.playerCount} player{session.playerCount === 1 ? '' : 's'} in the room.</p>
 
           <form class="answer-form" onsubmit={handleSubmit}>
@@ -126,6 +125,12 @@
       </p>
     {/if}
   </section>
+
+  {#if session.status === 'joined' && session.problem}
+    <div class="counter-tray">
+      <CoinScatter coins={session.problem.coins} />
+    </div>
+  {/if}
 </div>
 
 <style>
@@ -134,8 +139,9 @@
     width: 100%;
     height: 100%;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: center;
+    padding-top: 3%;
     border-radius: 16px;
     overflow: hidden;
   }
@@ -172,6 +178,21 @@
     background: rgba(255, 248, 235, 0.9);
     border-radius: 16px;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  }
+
+  /* The counter's wood surface in background_fg.webp starts at 72.2% of
+     that image's height and runs to the bottom edge — a band only ~28% of
+     the frame tall. Anchoring from the bottom (rather than the top) keeps
+     the tray from running past the visible frame on shorter viewports;
+     the scale-down plus bottom-anchored transform-origin keeps it sized to
+     fit that band while holding its footprint on the wood. */
+  .counter-tray {
+    position: absolute;
+    bottom: 3%;
+    left: 50%;
+    transform: translateX(-50%) scale(0.82);
+    transform-origin: 50% 100%;
+    z-index: 2;
   }
 
   .columns {
