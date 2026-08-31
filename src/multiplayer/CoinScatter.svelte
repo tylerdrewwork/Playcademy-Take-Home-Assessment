@@ -26,6 +26,10 @@
   const AREA_WIDTH = AREA_HEIGHT * 1.5
   const HALF_WIDTH = AREA_WIDTH / 2
   const HALF_HEIGHT = AREA_HEIGHT / 2
+  // Renders coins 35% larger than COIN_ART's diameters without touching the
+  // scatter area itself; folded into totalArea below too, so the
+  // MAX_FILL crowding check still reflects what's actually drawn.
+  const SIZE_MULTIPLIER = 1.35
   const EDGE_GAP = 2 // minimum space between coin edges, px
   // Random placement stops finding gaps well before the rectangle is half
   // covered, so dense assortments (e.g. dozens of pennies) get scaled down
@@ -50,7 +54,7 @@
       // Whole-pixel positions and even-pixel diameters keep the artwork (and
       // its centering translate of -size/2) off half-pixel boundaries, where
       // resampling blurs it.
-      const size = Math.max(2, 2 * Math.round((art.diameter * scale) / 2))
+      const size = Math.max(2, 2 * Math.round((art.diameter * SIZE_MULTIPLIER * scale) / 2))
       const r = size / 2
       let spot: { x: number; y: number } | null = null
       const xBound = Math.max(HALF_WIDTH - r, 0)
@@ -78,7 +82,7 @@
     // Largest coins first pack far more reliably.
     const sorted = [...values].sort((a, b) => COIN_ART[b].diameter - COIN_ART[a].diameter)
     const totalArea = sorted.reduce(
-      (sum, value) => sum + Math.PI * (COIN_ART[value].diameter / 2) ** 2,
+      (sum, value) => sum + Math.PI * ((COIN_ART[value].diameter * SIZE_MULTIPLIER) / 2) ** 2,
       0
     )
     let scale = Math.min(1, Math.sqrt((MAX_FILL * AREA_WIDTH * AREA_HEIGHT) / totalArea))
