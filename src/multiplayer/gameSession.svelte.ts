@@ -34,6 +34,7 @@ export interface PlayerAward {
 interface PlayerRecord {
   joinedAt: number
   playerNumber?: number
+  name?: string
   problem: CoinProblem
   lastResult: 'correct' | 'incorrect' | null
   lastAward?: PlayerAward
@@ -79,16 +80,17 @@ export class GameSession {
     return Object.keys(this.#players).length
   }
 
-  /** Everyone in the room, in join order. Names come from the server-assigned
-   * seat number so "Player 3" stays "Player 3" while others come and go;
-   * records written before seats existed fall back to join-order numbering. */
+  /** Everyone in the room, in join order. Names are server-assigned on join
+   * (random, unique within the room) and stay fixed for a player's whole
+   * stay; records written before names existed fall back to the old
+   * seat-number label. */
   get players(): PlayerView[] {
     return Object.entries(this.#players)
       .sort(([uidA, a], [uidB, b]) => a.joinedAt - b.joinedAt || uidA.localeCompare(uidB))
       .map(([uid, record], index) => ({
         uid,
         isSelf: uid === this.#uid,
-        name: `Player ${record.playerNumber ?? index + 1}`,
+        name: record.name ?? `Player ${record.playerNumber ?? index + 1}`,
         joinedAt: record.joinedAt,
         lastAward: record.lastAward ?? null,
       }))

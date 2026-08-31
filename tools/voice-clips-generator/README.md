@@ -40,6 +40,34 @@ limit a run to the clip you actually want redone. `manifest.json`
 produced each clip currently on disk. Commit the generated `.wav` files
 and `manifest.json` together.
 
+## Cleaning generated clips
+
+`clean-voice-clips.ts` post-processes generated `.wav` files in place, in
+one pass per clip:
+
+1. **Removes noise blips** at the head/tail — short bursts (< 0.25s)
+   separated from the speech by silence, like mic pops or TTS artifacts.
+2. **Trims leading/trailing silence**, keeping a 60ms pad around the speech
+   and adding an 8ms fade at each cut so word onsets and decays are never
+   clipped and cuts never click.
+3. **Loudness-normalizes** to −16 LUFS / −1.5 dBTP (EBU R128, two-pass
+   linear gain, so the voice's own dynamics are untouched), keeping every
+   clip at the same volume.
+
+It needs `ffmpeg`/`ffprobe` (3.1+, for `loudnorm`) — not an npm dependency.
+By default it runs whatever `ffmpeg`/`ffprobe` PATH resolves to; if that
+build is too old (the script checks and says so), point the `FFMPEG` and
+`FFPROBE` env vars at a newer binary — they can go in `.env`. Clips already
+trimmed and within 0.5 LU of the target are skipped untouched, so re-runs
+are idempotent. Cleaning doesn't touch `manifest.json`, and generating a
+clip overwrites the cleaned file — so run cleaning again after generating.
+
+```sh
+npm run clean:voice-clips                                 # clean the transcripts folder (default)
+npm run clean:voice-clips -- --dry-run                    # report what would change; writes nothing
+npm run clean:voice-clips -- src/assets/general/numbers   # clean another folder or specific .wav files
+```
+
 ## Rate limiting
 
 The Replicate account allows at most 6 API requests per minute, so every
