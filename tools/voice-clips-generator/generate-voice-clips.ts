@@ -328,8 +328,8 @@ async function main(): Promise<number> {
   if (!values['dry-run'] && (apiToken === undefined || apiToken === '')) {
     console.error(
       'REPLICATE_API_TOKEN is not set.\n' +
-        '  1. Copy .env.example to .env in the repo root\n' +
-        '  2. Paste a token from https://replicate.com/account/api-tokens\n' +
+        '  1. Create a .env file in the repo root (it is gitignored)\n' +
+        '  2. Add: REPLICATE_API_TOKEN=<token from https://replicate.com/account/api-tokens>\n' +
         '(--dry-run works without a token.)',
     )
     return 1

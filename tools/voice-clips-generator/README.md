@@ -14,12 +14,15 @@ automatically.
 
 ## Setup
 
-1. Copy `.env.example` (repo root) to `.env` — it's gitignored.
-2. Paste a token from <https://replicate.com/account/api-tokens> into
-   `REPLICATE_API_TOKEN`.
+Create a `.env` file in the repo root (it's gitignored) containing:
 
-Optional `.env` overrides: `REPLICATE_TTS_MODEL` (defaults to
-`google/gemini-3.1-flash-tts`) and `REPLICATE_TTS_VOICE`.
+```sh
+REPLICATE_API_TOKEN=   # from https://replicate.com/account/api-tokens
+
+# Optional overrides:
+# REPLICATE_TTS_MODEL=google/gemini-3.1-flash-tts
+# REPLICATE_TTS_VOICE=
+```
 
 ## Usage
 
