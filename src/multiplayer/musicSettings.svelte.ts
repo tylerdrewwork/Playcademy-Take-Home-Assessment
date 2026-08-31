@@ -1,10 +1,25 @@
+import type { MusicSettingsStorage } from './musicSettingsStorage.js'
+
 /**
  * Background music mute toggle, flipped from the mute button on the
- * multiplayer screen. Session-scoped on purpose (not persisted): each visit
- * starts unmuted.
+ * multiplayer screen. Persisted in IndexedDB so the player's preference
+ * carries across visits.
  */
-class MusicSettings {
+export class MusicSettings {
   muted = $state(false)
-}
+  #storage: MusicSettingsStorage
+  readonly ready: Promise<void>
 
-export const musicSettings = new MusicSettings()
+  constructor(storage: MusicSettingsStorage) {
+    this.#storage = storage
+    this.ready = (async () => {
+      const stored = await storage.load()
+      this.muted = stored?.muted ?? false
+    })()
+  }
+
+  async setMuted(muted: boolean): Promise<void> {
+    this.muted = muted
+    await this.#storage.save({ muted })
+  }
+}
