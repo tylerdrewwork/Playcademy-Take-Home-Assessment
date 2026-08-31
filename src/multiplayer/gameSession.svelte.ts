@@ -2,12 +2,17 @@ import { signInAnonymously } from 'firebase/auth'
 import { httpsCallable } from 'firebase/functions'
 import { ref, onValue, onDisconnect, remove, type Unsubscribe } from 'firebase/database'
 import { auth, rtdb, functions } from '../lib/firebase.js'
+import { adminSettings } from '../adminSettings.svelte.js'
 
 export type CoinValue = 25 | 10 | 5 | 1
 
 export interface CoinProblem {
   sum: number
   coins: CoinValue[]
+}
+
+interface JoinGameRequest {
+  simpleMultiplayer?: boolean
 }
 
 interface JoinGameResult {
@@ -109,8 +114,8 @@ export class GameSession {
 
     try {
       const user = auth.currentUser ?? (await signInAnonymously(auth)).user
-      const callJoinGame = httpsCallable<void, JoinGameResult>(functions, 'joinGame')
-      const { data } = await callJoinGame()
+      const callJoinGame = httpsCallable<JoinGameRequest, JoinGameResult>(functions, 'joinGame')
+      const { data } = await callJoinGame({ simpleMultiplayer: adminSettings.simpleMultiplayer })
 
       this.#uid = user.uid
       this.#gameId = data.gameId
@@ -150,11 +155,14 @@ export class GameSession {
     this.#submitting = true
 
     try {
-      const callSubmitAnswer = httpsCallable<{ answer: number }, SubmitAnswerResult>(
-        functions,
-        'submitAnswer',
-      )
-      const { data } = await callSubmitAnswer({ answer })
+      const callSubmitAnswer = httpsCallable<
+        { answer: number; simpleMultiplayer?: boolean },
+        SubmitAnswerResult
+      >(functions, 'submitAnswer')
+      const { data } = await callSubmitAnswer({
+        answer,
+        simpleMultiplayer: adminSettings.simpleMultiplayer,
+      })
       // On an incorrect answer the server echoes the same problem back as a
       // fresh object; keep the existing one so the coin layout (keyed on the
       // coins array's identity) doesn't reshuffle under the student.

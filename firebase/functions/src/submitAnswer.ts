@@ -1,7 +1,11 @@
 import {onCall, HttpsError} from "firebase-functions/https";
 import {getDatabase} from "firebase-admin/database";
 import {GAME_ID} from "./gameConfig.js";
-import {randomCoinProblem, type CoinProblem} from "./coinProblem.js";
+import {
+  randomCoinProblem,
+  SIMPLE_MAX_SUM,
+  type CoinProblem,
+} from "./coinProblem.js";
 import {enforceRateLimit} from "./rateLimit.js";
 
 interface Player {
@@ -16,6 +20,8 @@ interface SubmitAnswerRequest {
   answer?: number;
   /** When true, only spin up the instance — no answer is judged. */
   warmup?: boolean;
+  /** Admin toggle: cap this player's next coin problem at 10 cents. */
+  simpleMultiplayer?: boolean;
 }
 
 type SubmitAnswerResult =
@@ -61,7 +67,10 @@ export const submitAnswer = onCall<
       }
       correct = answer === player.problem.sum;
       centsAwarded = player.problem.sum;
-      nextProblem = correct ? randomCoinProblem() : player.problem;
+      const simple = request.data?.simpleMultiplayer === true;
+      nextProblem = correct ?
+        randomCoinProblem(simple ? SIMPLE_MAX_SUM : undefined) :
+        player.problem;
       const next: Player = {
         ...player,
         problem: nextProblem,
