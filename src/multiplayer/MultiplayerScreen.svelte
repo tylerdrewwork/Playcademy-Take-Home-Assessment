@@ -2,7 +2,6 @@
   import { onDestroy } from 'svelte'
   import { GameSession } from './gameSession.svelte.js'
   import CoinScatter from './CoinScatter.svelte'
-  import OtherPlayerColumn from './OtherPlayerColumn.svelte'
   import { adminSettings } from '../adminSettings.svelte.js'
   import backgroundBg from '../assets/multiplayer/background_bg.webp'
   import backgroundFg from '../assets/multiplayer/background_fg.webp'
@@ -11,8 +10,6 @@
 
   const session = new GameSession()
   session.join()
-
-  const otherPlayers = $derived(session.players.filter((player) => !player.isSelf))
 
   onDestroy(() => session.leave())
 
@@ -57,11 +54,6 @@
     answer = Number(digits + event.key)
   }
 
-  const moneyFormatter = new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-  })
-
   function handleSubmit(event: SubmitEvent): void {
     event.preventDefault()
     if (answer === undefined || !Number.isFinite(answer)) return
@@ -77,59 +69,49 @@
   <img class="stage-layer stage-bg" src={backgroundBg} alt="" aria-hidden="true" />
   <img class="stage-layer stage-fg" src={backgroundFg} alt="" aria-hidden="true" />
 
-  <section class="multiplayer-screen">
-    <h2>Multiplayer Coin Game</h2>
-
-    {#if session.status === 'joining'}
-      <p>Joining game…</p>
-    {:else if session.status === 'error'}
-      <p class="error">Couldn't join the game. Please check your connection and try again.</p>
-    {:else if session.status === 'joined' && session.problem}
-      <div class="columns">
-        <div class="self-column">
-          <p>How many cents are these coins worth?</p>
-          <p>{session.playerCount} player{session.playerCount === 1 ? '' : 's'} in the room.</p>
-
-          <form class="answer-form" onsubmit={handleSubmit}>
-            <input
-              type="number"
-              inputmode="numeric"
-              min="0"
-              placeholder="How many cents?"
-              aria-label="How many cents do the coins add up to?"
-              bind:this={answerInputEl}
-              bind:value={answer}
-              disabled={session.submitting}
-            />
-            <button type="submit" disabled={session.submitting}>Submit</button>
-          </form>
-
-          {#if session.lastResult === 'correct'}
-            <p class="feedback correct">Correct! Here's a new group to count.</p>
-          {:else if session.lastResult === 'incorrect'}
-            <p class="feedback incorrect">Not quite — count again and resubmit.</p>
-          {/if}
-        </div>
-
-        {#each otherPlayers as player (player.uid)}
-          <OtherPlayerColumn name={player.name} lastAward={player.lastAward} />
+  {#if session.status === 'joining'}
+    <p class="status-message">Joining game…</p>
+  {:else if session.status === 'error'}
+    <p class="status-message error">Couldn't join the game. Please check your connection and try again.</p>
+  {:else if session.status === 'joined'}
+    <div class="scoreboard">
+      <h3>Players ({session.playerCount})</h3>
+      <ul>
+        {#each session.players as player (player.uid)}
+          <li class:self={player.isSelf}>{player.name}{player.isSelf ? ' (You)' : ''}</li>
         {/each}
+      </ul>
+    </div>
+
+    {#if session.problem}
+      <div class="counter-tray">
+        <CoinScatter coins={session.problem.coins} />
+      </div>
+
+      <div class="answer-bar">
+        <p class="prompt">How many cents are these coins worth?</p>
+
+        <form class="answer-form" onsubmit={handleSubmit}>
+          <input
+            type="number"
+            inputmode="numeric"
+            min="0"
+            placeholder="How many cents?"
+            aria-label="How many cents do the coins add up to?"
+            bind:this={answerInputEl}
+            bind:value={answer}
+            disabled={session.submitting}
+          />
+          <button type="submit" disabled={session.submitting}>Submit</button>
+        </form>
+
+        {#if session.lastResult === 'correct'}
+          <p class="feedback correct">Correct! Here's a new group to count.</p>
+        {:else if session.lastResult === 'incorrect'}
+          <p class="feedback incorrect">Not quite — count again and resubmit.</p>
+        {/if}
       </div>
     {/if}
-
-    <button onclick={onExit}>Back to lesson</button>
-
-    {#if session.status === 'joined'}
-      <p class="total-money">
-        Total money earned: {moneyFormatter.format(session.totalMoneyCents / 100)}
-      </p>
-    {/if}
-  </section>
-
-  {#if session.status === 'joined' && session.problem}
-    <div class="counter-tray">
-      <CoinScatter coins={session.problem.coins} />
-    </div>
   {/if}
 </div>
 
@@ -138,11 +120,6 @@
     position: relative;
     width: 100%;
     height: 100%;
-    display: flex;
-    align-items: flex-start;
-    justify-content: center;
-    padding-top: 3%;
-    border-radius: 16px;
     overflow: hidden;
   }
 
@@ -152,6 +129,7 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
+    object-position: left center;
     pointer-events: none;
     user-select: none;
   }
@@ -163,57 +141,87 @@
     z-index: 1;
   }
 
-  .multiplayer-screen {
-    position: relative;
+  .status-message,
+  .scoreboard {
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
     z-index: 2;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1rem;
-    padding: 2rem;
-    text-align: center;
-    max-height: 100%;
-    overflow-y: auto;
+    max-width: 12rem;
+    padding: 0.6rem 0.9rem;
+    border-radius: 12px;
     color: #2b1d0e;
     background: rgba(255, 248, 235, 0.9);
-    border-radius: 16px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+    text-align: left;
+  }
+
+  .status-message {
+    margin: 0;
+    font-size: 0.9rem;
+  }
+
+  .status-message.error {
+    color: #b3261e;
+  }
+
+  .scoreboard h3 {
+    margin: 0 0 0.4rem;
+    font-size: 0.9rem;
+  }
+
+  .scoreboard ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    font-size: 0.85rem;
+  }
+
+  .scoreboard li {
+    padding: 0.15rem 0;
+  }
+
+  .scoreboard li.self {
+    font-weight: bold;
   }
 
   /* The counter's wood surface in background_fg.webp starts at 72.2% of
      that image's height and runs to the bottom edge — a band only ~28% of
-     the frame tall. Anchoring from the bottom (rather than the top) keeps
-     the tray from running past the visible frame on shorter viewports;
-     the scale-down plus bottom-anchored transform-origin keeps it sized to
-     fit that band while holding its footprint on the wood. */
+     the frame tall. Anchoring from a fixed distance above the answer bar
+     (rather than a percentage of stage height) keeps the tray's footprint
+     on the wood regardless of viewport height, with room reserved below
+     it for the bar itself. */
   .counter-tray {
     position: absolute;
-    bottom: 3%;
+    bottom: 3.5rem;
     left: 50%;
     transform: translateX(-50%) scale(0.66);
     transform-origin: 50% 100%;
     z-index: 2;
   }
 
-  .columns {
+  /* Docked to the very bottom of the screen, underneath the counter tray —
+     reads as the counter's front edge, where a player would be standing to
+     answer. */
+  .answer-bar {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 2;
     display: flex;
     flex-wrap: wrap;
-    align-items: stretch;
+    align-items: center;
     justify-content: center;
     gap: 0.75rem;
-    max-width: 100%;
+    padding: 0.75rem 1rem;
+    background: rgba(43, 29, 14, 0.75);
+    color: #fff8ec;
   }
 
-  /* Same stack the screen rendered before other players got columns. */
-  .self-column {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1rem;
-  }
-
-  .error {
-    color: #b3261e;
+  .answer-bar .prompt {
+    margin: 0;
+    font-weight: bold;
   }
 
   .answer-form {
@@ -229,13 +237,6 @@
 
   .answer-form button {
     padding: 0.4rem 0.8rem;
-  }
-
-  /* The card's fixed cream background and dark text don't track the OS
-     light/dark scheme, so buttons need their own fixed colors too —
-     otherwise dark mode's near-black button background hides this dark
-     text. */
-  .multiplayer-screen button {
     background-color: #6b4423;
     color: #fff8ec;
   }
@@ -246,16 +247,10 @@
   }
 
   .feedback.correct {
-    color: #1a7f37;
+    color: #7fd88f;
   }
 
   .feedback.incorrect {
-    color: #b3261e;
-  }
-
-  .total-money {
-    margin-top: auto;
-    font-size: 1.1rem;
-    font-weight: bold;
+    color: #ff9d90;
   }
 </style>
