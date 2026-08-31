@@ -190,7 +190,7 @@
     position: absolute;
     bottom: 3%;
     left: 50%;
-    transform: translateX(-50%) scale(0.82);
+    transform: translateX(-50%) scale(0.66);
     transform-origin: 50% 100%;
     z-index: 2;
   }
