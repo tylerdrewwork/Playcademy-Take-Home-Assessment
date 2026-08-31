@@ -65,7 +65,7 @@ const INPUT_DEFAULTS: Record<string, unknown> = {
 
 const INPUT_DEFAULTS_NUMBERS: Record<string, unknown> = {
   voice: "Despina",
-  prompt: "Say the following, quickly, in a neutral teaching tone."
+  prompt: "Say the following, quickly, as a teacher, without extreme fluctuation."
 }
 
 // Parameter names differ per model ('text' vs 'prompt', 'voice' vs
