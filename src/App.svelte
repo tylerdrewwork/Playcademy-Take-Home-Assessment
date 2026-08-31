@@ -1,13 +1,19 @@
 <script>
   import LessonScreen from './lessons/LessonScreen.svelte'
   import MultiplayerScreen from './multiplayer/MultiplayerScreen.svelte'
+  import MusicMuteButton from './multiplayer/MusicMuteButton.svelte'
   import AdminTools from './AdminTools.svelte'
 
   let view = $state('lesson')
 </script>
 
 <main>
-  <AdminTools onShowSection={(section) => (view = section)} />
+  <div class="top-right-controls">
+    {#if view === 'multiplayer'}
+      <MusicMuteButton />
+    {/if}
+    <AdminTools onShowSection={(section) => (view = section)} />
+  </div>
   {#if view === 'multiplayer'}
     <MultiplayerScreen onExit={() => (view = 'lesson')} />
   {:else}
@@ -23,5 +29,15 @@
     align-items: center;
     justify-content: center;
     padding: 1rem;
+  }
+
+  .top-right-controls {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
   }
 </style>
