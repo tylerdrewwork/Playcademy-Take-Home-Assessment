@@ -144,13 +144,6 @@
 {/if}
 
 <style>
-  .admin-tools-trigger {
-    position: fixed;
-    top: 1rem;
-    right: 1rem;
-    z-index: 10;
-  }
-
   dialog {
     border-radius: 8px;
     border: none;

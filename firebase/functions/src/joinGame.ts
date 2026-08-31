@@ -7,10 +7,13 @@ import {
   type CoinProblem,
 } from "./coinProblem.js";
 import {enforceRateLimit} from "./rateLimit.js";
+import {pickPlayerName} from "./playerNames.js";
 
 interface Player {
   joinedAt: number;
   playerNumber: number;
+  /** Display name, unique within the room for the player's whole stay. */
+  name: string;
   problem: CoinProblem;
   lastResult: "correct" | "incorrect" | null;
 }
@@ -77,6 +80,9 @@ export const joinGame = onCall<JoinGameRequest, Promise<JoinGameResult>>(
       players[uid] = {
         joinedAt: Date.now(),
         playerNumber: lowestFreePlayerNumber(players),
+        name: pickPlayerName(
+          Object.values(players).map((player) => player.name),
+        ),
         problem,
         lastResult: null,
       };
