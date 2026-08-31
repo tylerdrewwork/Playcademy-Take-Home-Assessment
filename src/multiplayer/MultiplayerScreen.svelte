@@ -4,6 +4,8 @@
   import CoinScatter from './CoinScatter.svelte'
   import OtherPlayerColumn from './OtherPlayerColumn.svelte'
   import { adminSettings } from '../adminSettings.svelte.js'
+  import { musicSettings } from './musicSettings.svelte.js'
+  import bgMusicUrl from '../assets/multiplayer/background-music.ogg'
 
   let { onExit } = $props()
 
@@ -13,6 +15,23 @@
   const otherPlayers = $derived(session.players.filter((player) => !player.isSelf))
 
   onDestroy(() => session.leave())
+
+  const bgMusic = new Audio(bgMusicUrl)
+  bgMusic.loop = true
+  bgMusic.volume = 0.25
+
+  $effect(() => {
+    if (musicSettings.muted) {
+      bgMusic.pause()
+    } else {
+      bgMusic.play().catch(() => {})
+    }
+  })
+
+  onDestroy(() => {
+    bgMusic.pause()
+    bgMusic.src = ''
+  })
 
   // When the Simple Multiplayer toggle flips mid-game, swap in a freshly
   // generated problem right away so the new difficulty doesn't wait for the
