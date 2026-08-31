@@ -22,12 +22,14 @@
     1: { src: pennyImg, names: ['penny', 'pennies'], diameter: 46 },
   }
 
-  const AREA_SIZE = 280 // diameter of the circular scatter area, px
-  const RADIUS = AREA_SIZE / 2
+  const AREA_HEIGHT = 280 // height of the rectangular scatter area, px
+  const AREA_WIDTH = AREA_HEIGHT * 1.5
+  const HALF_WIDTH = AREA_WIDTH / 2
+  const HALF_HEIGHT = AREA_HEIGHT / 2
   const EDGE_GAP = 2 // minimum space between coin edges, px
-  // Random placement stops finding gaps well before the circle is half
+  // Random placement stops finding gaps well before the rectangle is half
   // covered, so dense assortments (e.g. dozens of pennies) get scaled down
-  // until the coins' total area fits under this fraction of the circle.
+  // until the coins' total area fits under this fraction of the rectangle.
   const MAX_FILL = 0.45
   const PLACEMENT_TRIES = 80
   // "Spawn tilt" is at most 10% of a full turn in either direction.
@@ -51,13 +53,11 @@
       const size = Math.max(2, 2 * Math.round((art.diameter * scale) / 2))
       const r = size / 2
       let spot: { x: number; y: number } | null = null
+      const xBound = Math.max(HALF_WIDTH - r, 0)
+      const yBound = Math.max(HALF_HEIGHT - r, 0)
       for (let i = 0; i < PLACEMENT_TRIES && !spot; i++) {
-        // sqrt keeps the distribution uniform over the circle's area, and
-        // the (RADIUS - r) bound keeps the whole coin inside the area.
-        const angle = Math.random() * Math.PI * 2
-        const dist = Math.sqrt(Math.random()) * Math.max(RADIUS - r, 0)
-        const x = Math.round(Math.cos(angle) * dist)
-        const y = Math.round(Math.sin(angle) * dist)
+        const x = Math.round((Math.random() * 2 - 1) * xBound)
+        const y = Math.round((Math.random() * 2 - 1) * yBound)
         const clear = placed.every((p) => Math.hypot(p.x - x, p.y - y) >= p.r + r + EDGE_GAP)
         if (clear) spot = { x, y }
       }
@@ -81,7 +81,7 @@
       (sum, value) => sum + Math.PI * (COIN_ART[value].diameter / 2) ** 2,
       0
     )
-    let scale = Math.min(1, Math.sqrt((MAX_FILL * Math.PI * RADIUS ** 2) / totalArea))
+    let scale = Math.min(1, Math.sqrt((MAX_FILL * AREA_WIDTH * AREA_HEIGHT) / totalArea))
     // An unlucky arrangement can still wedge itself in; retry slightly
     // smaller each time, so this always terminates.
     for (;;) {
@@ -110,8 +110,8 @@
 
 <div
   class="coin-scatter"
-  style:width={`${AREA_SIZE}px`}
-  style:height={`${AREA_SIZE}px`}
+  style:width={`${AREA_WIDTH}px`}
+  style:height={`${AREA_HEIGHT}px`}
   role="img"
   aria-label={`Coins to count: ${description}`}
 >
@@ -132,7 +132,6 @@
 <style>
   .coin-scatter {
     position: relative;
-    border-radius: 50%;
   }
 
   .coin {
