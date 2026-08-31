@@ -9,6 +9,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "vitest run",
+    "generate:voice-clips": "node --env-file-if-exists=.env tools/voice-clips-generator/generate-voice-clips.ts",
     "check": "svelte-check --tsconfig ./tsconfig.json"
   },
   "devDependencies": {
