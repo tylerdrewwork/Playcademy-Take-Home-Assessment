@@ -23,18 +23,39 @@ const DEFAULT_MODEL = 'google/gemini-3.1-flash-tts'
 // Model-specific input defaults beyond the text/voice fields (e.g. sample
 // rate or output format where a model supports one) live here so switching
 // models means touching one object.
-const INPUT_DEFAULTS: Record<string, unknown> = {}
+const INPUT_DEFAULTS: Record<string, unknown> = {
+  voice: "Despina",
+  prompt: "Say the following, patiently and with a hint of excitement, like a teacher."
+}
 
 // Parameter names differ per model ('text' vs 'prompt', 'voice' vs
 // 'voice_id'...). On a real run the model's input schema is fetched and the
 // names resolved from it; these are the fallbacks if that fetch fails.
-const TEXT_PARAM_CANDIDATES = ['text', 'prompt']
+// Gemini TTS uses 'prompt' for style direction (see INPUT_DEFAULTS), so it
+// must never be treated as the transcript-text field.
+const TEXT_PARAM_CANDIDATES = ['text']
 const VOICE_PARAM_CANDIDATES = ['voice', 'voice_id', 'voice_name', 'speaker']
 
 // How long to keep polling a prediction that the synchronous wait returned
 // unfinished, before counting the clip as failed.
 const PREDICTION_DEADLINE_MS = 120_000
+// Small extra sleep before each poll; in practice polls are paced by the
+// REQUEST_PAUSE_SECONDS gate below, which is what enforces the rate limit.
 const POLL_INTERVAL_MS = 2_000
+
+// Minimum gap between any two Replicate API requests (schema fetch,
+// prediction creation, polling). The account allows at most 6 requests per
+// minute; 10.1s instead of a flat 10s leaves slack for race conditions.
+const REQUEST_PAUSE_SECONDS = 10.1
+
+// A 429 (too many requests) means the rate limit was exceeded despite the
+// pause — the whole run aborts immediately rather than burning more of the
+// request budget on clips that would also be rejected.
+class RateLimitError extends Error {
+  constructor(url: string) {
+    super(`Replicate returned HTTP 429 (too many requests) for ${url}; aborting the run.`)
+  }
+}
 
 interface Job {
   label: string
@@ -127,8 +148,24 @@ class VoiceClipGenerator {
     }
   }
 
+  private lastApiRequestAt = 0
+
+  // Every Replicate API request goes through here so consecutive requests
+  // stay at least REQUEST_PAUSE_SECONDS apart (the 6-per-minute account
+  // limit counts schema fetches and polls, not just prediction creation).
+  private async replicateFetch(url: string, init?: RequestInit): Promise<Response> {
+    const waitMs = this.lastApiRequestAt + REQUEST_PAUSE_SECONDS * 1000 - Date.now()
+    if (waitMs > 0) {
+      await new Promise((resolve) => setTimeout(resolve, waitMs))
+    }
+    this.lastApiRequestAt = Date.now()
+    const res = await fetch(url, init)
+    if (res.status === 429) throw new RateLimitError(url)
+    return res
+  }
+
   async fetchInputSchema(): Promise<Record<string, unknown> | undefined> {
-    const res = await fetch(`https://api.replicate.com/v1/models/${this.opts.model}`, {
+    const res = await this.replicateFetch(`https://api.replicate.com/v1/models/${this.opts.model}`, {
       headers: this.authHeaders(),
     })
     if (!res.ok) {
@@ -176,7 +213,7 @@ class VoiceClipGenerator {
 
   // Resolves to the URL of the generated audio file.
   async generateClip(job: Job): Promise<string> {
-    const res = await fetch(`https://api.replicate.com/v1/models/${this.opts.model}/predictions`, {
+    const res = await this.replicateFetch(`https://api.replicate.com/v1/models/${this.opts.model}/predictions`, {
       method: 'POST',
       headers: { ...this.authHeaders(), Prefer: 'wait=60' },
       body: JSON.stringify({ input: this.buildInput(job) }),
@@ -201,7 +238,7 @@ class VoiceClipGenerator {
         throw new Error(`prediction is ${prediction.status} but has no polling URL: ${JSON.stringify(prediction)}`)
       }
       await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS))
-      const pollRes = await fetch(pollUrl, { headers: this.authHeaders() })
+      const pollRes = await this.replicateFetch(pollUrl, { headers: this.authHeaders() })
       if (!pollRes.ok) {
         throw new Error(`polling prediction returned HTTP ${pollRes.status}: ${await pollRes.text()}`)
       }
@@ -290,6 +327,14 @@ class VoiceClipGenerator {
       } catch (err) {
         console.error(`FAILED                ${job.label}: ${(err as Error).message}`)
         failed.push(job.label)
+        if (err instanceof RateLimitError) {
+          const remaining = jobs.slice(jobs.indexOf(job) + 1).map((j) => j.label)
+          if (remaining.length > 0) {
+            console.error(`Aborting: ${remaining.length} clip(s) not attempted: ${remaining.join(', ')}`)
+          }
+          failed.push(...remaining)
+          break
+        }
       }
     }
 

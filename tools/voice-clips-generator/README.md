@@ -43,6 +43,16 @@ voice changed — or the audio file is missing. The manifest is saved after
 every successful clip, so a partially failed batch re-runs only its
 failures. Commit the generated `.wav` files and `manifest.json` together.
 
+## Rate limiting
+
+The Replicate account allows at most 6 API requests per minute, so every
+API request (schema fetch, prediction creation, polling) is spaced at least
+`REQUEST_PAUSE_SECONDS` apart (10.1s — the 0.1 is slack for race
+conditions; configurable in `generate-voice-clips.ts`). If Replicate ever
+returns HTTP 429 anyway, the run aborts immediately instead of attempting
+further clips; the manifest keeps whatever already succeeded, so a later
+re-run picks up where it stopped.
+
 ## Notes
 
 - The script asks Replicate for the model's input schema at run time to
