@@ -1,11 +1,18 @@
-// Pre-build utility: generates lesson voice-over clips with a Replicate TTS
-// model. Run via `npm run generate:voice-clips` — see README.md alongside
-// this file. Never imported by the app; nothing here is served to visitors.
+// Pre-build utility: generates voice-over clips with a Replicate TTS model.
+// Run via `npm run generate:voice-clips` — see README.md alongside this
+// file. Never imported by the app; nothing here is served to visitors.
 //
-// NOTE: The transcript source is currently HARDCODED to the addition-1
-// lesson's CountingCombiningScreen steps, and the output folder to
-// src/assets/lesson/addition-1/transcripts. A future minor feature will
-// discover and pull transcripts from all lessons automatically.
+// Two job sources, picked by --numbers:
+//   - default: the addition-1 lesson's CountingCombiningScreen steps, one
+//     clip per step, into src/assets/lesson/addition-1/transcripts.
+//     NOTE: this source is currently HARDCODED to that one lesson. A future
+//     minor feature will discover and pull transcripts from all lessons
+//     automatically.
+//   - --numbers: three takes (1a/1b/1c ... 20a/20b/20c) of each number
+//     1-20's spoken word form, into src/assets/general/numbers. The same
+//     transcript is sent to the model three times per number — the model's
+//     own inference variance is what gives the takes some variation in
+//     delivery.
 
 import { createHash } from 'node:crypto'
 import { mkdir, readFile, rename, rm, writeFile } from 'node:fs/promises'
@@ -16,7 +23,20 @@ import { countingCombiningSteps } from '../../src/lessons/content/addition-1-scr
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..')
 const OUTPUT_DIR = path.join(REPO_ROOT, 'src', 'assets', 'lesson', 'addition-1', 'transcripts')
+const NUMBERS_OUTPUT_DIR = path.join(REPO_ROOT, 'src', 'assets', 'general', 'numbers')
 const MANIFEST_PATH = path.join(path.dirname(fileURLToPath(import.meta.url)), 'manifest.json')
+
+// --numbers job source: three takes per number, matching the numbers this
+// repo already has clips for (src/assets/general/numbers). Word forms are
+// spoken text, not digits, since the model is asked to *say* the number.
+const NUMBERS_RANGE = { min: 1, max: 20 }
+const TAKE_SUFFIXES = ['a', 'b', 'c'] as const
+const NUMBER_WORDS: Record<number, string> = {
+  1: 'one', 2: 'two', 3: 'three', 4: 'four', 5: 'five',
+  6: 'six', 7: 'seven', 8: 'eight', 9: 'nine', 10: 'ten',
+  11: 'eleven', 12: 'twelve', 13: 'thirteen', 14: 'fourteen', 15: 'fifteen',
+  16: 'sixteen', 17: 'seventeen', 18: 'eighteen', 19: 'nineteen', 20: 'twenty',
+}
 
 const DEFAULT_MODEL = 'google/gemini-3.1-flash-tts'
 
@@ -77,6 +97,7 @@ interface GeneratorOptions {
   voiceId?: string
   dryRun: boolean
   only?: string
+  numbers: boolean
 }
 
 function sha256(text: string): string {
@@ -94,18 +115,41 @@ class VoiceClipGenerator {
   }
 
   collectJobs(): Job[] {
-    const jobs = countingCombiningSteps.map((step) => ({
-      label: step.label,
-      transcript: step.transcript,
-      hash: sha256(`${this.opts.model}|${this.opts.voiceId ?? ''}|${step.transcript}`),
-    }))
+    const jobs = this.opts.numbers ? this.collectNumberJobs() : this.collectLessonJobs()
     if (this.opts.only === undefined) return jobs
     const filtered = jobs.filter((job) => job.label === this.opts.only)
     if (filtered.length === 0) {
       const known = jobs.map((job) => job.label).join(', ')
-      throw new Error(`--only=${this.opts.only} matches no step label. Known labels: ${known}`)
+      const noun = this.opts.numbers ? 'number take' : 'step'
+      throw new Error(`--only=${this.opts.only} matches no ${noun} label. Known labels: ${known}`)
     }
     return filtered
+  }
+
+  private collectLessonJobs(): Job[] {
+    return countingCombiningSteps.map((step) => ({
+      label: step.label,
+      transcript: step.transcript,
+      hash: sha256(`${this.opts.model}|${this.opts.voiceId ?? ''}|${step.transcript}`),
+    }))
+  }
+
+  private collectNumberJobs(): Job[] {
+    const jobs: Job[] = []
+    for (let n = NUMBERS_RANGE.min; n <= NUMBERS_RANGE.max; n += 1) {
+      const word = NUMBER_WORDS[n]
+      if (word === undefined) {
+        throw new Error(`No word form defined for number ${n} — add it to NUMBER_WORDS.`)
+      }
+      for (const suffix of TAKE_SUFFIXES) {
+        jobs.push({
+          label: `${n}${suffix}`,
+          transcript: word,
+          hash: sha256(`${this.opts.model}|${this.opts.voiceId ?? ''}|${word}`),
+        })
+      }
+    }
+    return jobs
   }
 
   async loadManifest(): Promise<void> {
@@ -186,6 +230,10 @@ class VoiceClipGenerator {
           `[${VOICE_PARAM_CANDIDATES.join(', ')}] input; the voice setting will be ignored.`,
       )
     }
+  }
+
+  private get outputDir(): string {
+    return this.opts.numbers ? NUMBERS_OUTPUT_DIR : OUTPUT_DIR
   }
 
   private buildInput(job: Job): Record<string, unknown> {
@@ -279,7 +327,7 @@ class VoiceClipGenerator {
     }
 
     await this.resolveInputParams()
-    await mkdir(OUTPUT_DIR, { recursive: true })
+    await mkdir(this.outputDir, { recursive: true })
 
     let generated = 0
     const failed: string[] = []
@@ -290,7 +338,7 @@ class VoiceClipGenerator {
       try {
         console.log(`generating            ${job.label}: "${job.transcript}"`)
         const outputUrl = await this.generateClip(job)
-        const dest = path.join(OUTPUT_DIR, `${job.label}.${this.extensionFor(outputUrl)}`)
+        const dest = path.join(this.outputDir, `${job.label}.${this.extensionFor(outputUrl)}`)
         await this.downloadTo(outputUrl, dest)
         this.manifest[job.label] = {
           file: path.relative(REPO_ROOT, dest).replaceAll('\\', '/'),
@@ -331,6 +379,7 @@ async function main(): Promise<number> {
       'dry-run': { type: 'boolean', default: false },
       only: { type: 'string' },
       'print-schema': { type: 'boolean', default: false },
+      numbers: { type: 'boolean', default: false },
     },
   })
 
@@ -344,6 +393,7 @@ async function main(): Promise<number> {
     voiceId,
     dryRun: values['dry-run'],
     only: values.only,
+    numbers: values.numbers,
   })
 
   if (!values['dry-run'] && (apiToken === undefined || apiToken === '')) {
