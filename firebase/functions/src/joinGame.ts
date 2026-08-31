@@ -1,7 +1,11 @@
 import {onCall, HttpsError} from "firebase-functions/https";
 import {getDatabase} from "firebase-admin/database";
 import {GAME_ID, MAX_PLAYERS} from "./gameConfig.js";
-import {randomCoinProblem, type CoinProblem} from "./coinProblem.js";
+import {
+  randomCoinProblem,
+  SIMPLE_MAX_SUM,
+  type CoinProblem,
+} from "./coinProblem.js";
 import {enforceRateLimit} from "./rateLimit.js";
 
 interface Player {
@@ -9,6 +13,11 @@ interface Player {
   playerNumber: number;
   problem: CoinProblem;
   lastResult: "correct" | "incorrect" | null;
+}
+
+interface JoinGameRequest {
+  /** Admin toggle: cap this player's coin problems at 10 cents. */
+  simpleMultiplayer?: boolean;
 }
 
 interface JoinGameResult {
@@ -38,7 +47,7 @@ function lowestFreePlayerNumber(players: Players): number {
   return seat;
 }
 
-export const joinGame = onCall<void, Promise<JoinGameResult>>(
+export const joinGame = onCall<JoinGameRequest, Promise<JoinGameResult>>(
   async (request) => {
     const uid = request.auth?.uid;
     if (!uid) {
@@ -50,7 +59,8 @@ export const joinGame = onCall<void, Promise<JoinGameResult>>(
 
     await enforceRateLimit(uid);
 
-    const problem = randomCoinProblem();
+    const simple = request.data?.simpleMultiplayer === true;
+    const problem = randomCoinProblem(simple ? SIMPLE_MAX_SUM : undefined);
     const playersRef = getDatabase().ref(`games/${GAME_ID}/players`);
 
     let roomWasEmpty = false;
