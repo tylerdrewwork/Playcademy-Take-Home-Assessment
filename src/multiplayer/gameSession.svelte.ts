@@ -175,6 +175,32 @@ export class GameSession {
     }
   }
 
+  /** Swaps the current problem for a freshly generated one — used when the
+   * Simple Multiplayer toggle flips so the new difficulty applies right away
+   * instead of after the next correct answer. */
+  async regenerateProblem(): Promise<void> {
+    if (this.#submitting || this.#status !== 'joined') return
+    this.#submitting = true
+
+    try {
+      const callRegenerate = httpsCallable<
+        { regenerate: true; simpleMultiplayer?: boolean },
+        { regenerated: true; problem: CoinProblem }
+      >(functions, 'submitAnswer')
+      const { data } = await callRegenerate({
+        regenerate: true,
+        simpleMultiplayer: adminSettings.simpleMultiplayer,
+      })
+      this.#problem = data.problem
+      // Feedback about the previous problem no longer applies to this one.
+      this.#lastResult = null
+    } catch (err) {
+      this.#error = err
+    } finally {
+      this.#submitting = false
+    }
+  }
+
   leave(): void {
     this.#unsubscribeRoster?.()
     this.#unsubscribeRoster = null

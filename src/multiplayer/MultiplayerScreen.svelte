@@ -3,6 +3,7 @@
   import { GameSession } from './gameSession.svelte.js'
   import CoinScatter from './CoinScatter.svelte'
   import OtherPlayerColumn from './OtherPlayerColumn.svelte'
+  import { adminSettings } from '../adminSettings.svelte.js'
 
   let { onExit } = $props()
 
@@ -12,6 +13,18 @@
   const otherPlayers = $derived(session.players.filter((player) => !player.isSelf))
 
   onDestroy(() => session.leave())
+
+  // When the Simple Multiplayer toggle flips mid-game, swap in a freshly
+  // generated problem right away so the new difficulty doesn't wait for the
+  // next correct answer. Compared against the previous value so the effect's
+  // first run on mount doesn't regenerate the problem join() just dealt.
+  let lastSimpleMultiplayer = adminSettings.simpleMultiplayer
+  $effect(() => {
+    const simple = adminSettings.simpleMultiplayer
+    if (simple === lastSimpleMultiplayer) return
+    lastSimpleMultiplayer = simple
+    session.regenerateProblem()
+  })
 
   // <input type="number" bind:value> gives Svelte a number (or undefined
   // when the field is empty), never a string — don't treat this as text.
