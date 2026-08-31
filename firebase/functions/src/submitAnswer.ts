@@ -20,12 +20,20 @@ interface SubmitAnswerRequest {
   answer?: number;
   /** When true, only spin up the instance — no answer is judged. */
   warmup?: boolean;
+  /**
+   * When true, replace the caller's current problem with a freshly
+   * generated one — no answer is judged, no money is awarded. Sent when
+   * the Simple Multiplayer admin toggle flips so the new difficulty
+   * applies immediately.
+   */
+  regenerate?: boolean;
   /** Admin toggle: cap this player's next coin problem at 10 cents. */
   simpleMultiplayer?: boolean;
 }
 
 type SubmitAnswerResult =
   | {correct: boolean; problem: CoinProblem}
+  | {regenerated: true; problem: CoinProblem}
   | {warmed: true};
 
 export const submitAnswer = onCall<
@@ -49,12 +57,33 @@ export const submitAnswer = onCall<
       return {warmed: true};
     }
 
+    const playerRef = getDatabase().ref(`games/${GAME_ID}/players/${uid}`);
+    const simple = request.data?.simpleMultiplayer === true;
+
+    if (request.data?.regenerate === true) {
+      const problem = randomCoinProblem(simple ? SIMPLE_MAX_SUM : undefined);
+      const regen = await playerRef.transaction((player: Player | null) => {
+        if (!player) {
+          // Not in the room (e.g. left mid-toggle) — abort below.
+          return player;
+        }
+        // lastResult and lastAward are left as they were: nothing was
+        // answered, so no feedback or award state should change.
+        return {...player, problem};
+      });
+      if (!regen.committed || regen.snapshot.val() === null) {
+        throw new HttpsError(
+          "failed-precondition",
+          "Join the game before requesting a new problem.",
+        );
+      }
+      return {regenerated: true, problem};
+    }
+
     const answer = request.data?.answer;
     if (typeof answer !== "number" || !Number.isFinite(answer)) {
       throw new HttpsError("invalid-argument", "Answer must be a number.");
     }
-
-    const playerRef = getDatabase().ref(`games/${GAME_ID}/players/${uid}`);
 
     let correct = false;
     let centsAwarded = 0;
@@ -67,7 +96,6 @@ export const submitAnswer = onCall<
       }
       correct = answer === player.problem.sum;
       centsAwarded = player.problem.sum;
-      const simple = request.data?.simpleMultiplayer === true;
       nextProblem = correct ?
         randomCoinProblem(simple ? SIMPLE_MAX_SUM : undefined) :
         player.problem;
