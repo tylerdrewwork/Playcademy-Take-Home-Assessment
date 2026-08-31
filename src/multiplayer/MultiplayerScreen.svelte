@@ -5,7 +5,7 @@
   import { adminSettings } from '../adminSettings.svelte.js'
   import backgroundBg from '../assets/multiplayer/background_bg.webp'
   import backgroundFg from '../assets/multiplayer/background_fg.webp'
-  import { musicSettings } from './musicSettings.svelte.js'
+  import { musicSettings } from './musicSettingsSingleton.js'
   import bgMusicUrl from '../assets/multiplayer/background-music.ogg'
 
   let { onExit } = $props()
@@ -19,7 +19,14 @@
   bgMusic.loop = true
   bgMusic.volume = 0.25
 
+  // Wait for the persisted mute preference to load before touching playback,
+  // so a player who muted last visit doesn't hear a flash of audio before
+  // their preference is read back from IndexedDB.
+  let musicSettingsReady = $state(false)
+  musicSettings.ready.then(() => (musicSettingsReady = true))
+
   $effect(() => {
+    if (!musicSettingsReady) return
     if (musicSettings.muted) {
       bgMusic.pause()
     } else {
