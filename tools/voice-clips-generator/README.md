@@ -36,11 +36,21 @@ REPLICATE_API_TOKEN=   # from https://replicate.com/account/api-tokens
 
 ```sh
 npm run generate:voice-clips                              # generate every lesson clip (overwrites existing)
+npm run generate:voice-clips:numbers                      # 3 takes of each number 1-20 (1a/1b/1c ... 20a/20b/20c)
 npm run generate:voice-clips -- --dry-run                 # list what would happen; no token, no network
 npm run generate:voice-clips -- --only=problems-pre-transition   # one clip, by step label
 npm run generate:voice-clips -- --print-schema            # dump the model's input schema
-npm run generate:voice-clips -- --numbers                 # 3 takes of each number 1-20 (1a/1b/1c ... 20a/20b/20c)
 npm run generate:voice-clips -- --numbers --only=7b        # one take, by its take label
+```
+
+`npm run <script> <flag>` can't forward a bare flag to the underlying
+script — npm always tries to parse it as its own CLI option first, so
+`--numbers` needs the `-- --numbers` separator (or npm silently drops it).
+`generate:voice-clips:numbers` above sidesteps that for the common case;
+for anything else, calling `node` directly needs no separator at all:
+
+```sh
+node --env-file-if-exists=.env tools/voice-clips-generator/generate-voice-clips.ts --numbers --only=7b
 ```
 
 Every run regenerates the requested clips and **overwrites** any existing
