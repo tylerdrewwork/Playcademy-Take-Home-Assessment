@@ -2,8 +2,8 @@
   import { onMount, onDestroy } from 'svelte'
   import gsap from 'gsap'
   import GroupsDisplay from './GroupsDisplay.svelte'
-  import type { ScreenStep } from '../../lessonContent.js'
   import { playNumberAudio } from '../../../assets/general/numbers/numberAudio.js'
+  import { countingCombiningSteps as steps } from './countingCombiningSteps.js'
 
   let {
     onComplete,
@@ -27,54 +27,6 @@
   // weDoGroups when the "combine" step hands off to the "we do" stage — the
   // GSAP timeline's boxes are reused as-is for both passes.
   let groups = $state(iDoGroups)
-
-  const steps: ScreenStep[] = [
-    {
-      label: 'i-do-start',
-      title: 'Counting one group',
-      transcript: "Watch how I count these balloons.",
-    },
-    {
-      label: 'group-1',
-      title: 'Counting one group',
-      transcript: "Here are some blue balloons. I'll count them: 1, 2.",
-    },
-    {
-      label: 'both-groups',
-      title: 'Counting the second group',
-      transcript: "Over here are some yellow balloons. I'll count them: 1, 2, 3.",
-    },
-    {
-      label: 'combine',
-      title: 'How to Combine Groups',
-      transcript: "Now let's put both groups together and count all the balloons: 1, 2, 3, 4, 5. There are 5 balloons in all.",
-    },
-    {
-      label: 'we-do-start',
-      title: '',
-      transcript: "Now, let's do it together! Touch the balloons as we count them.",
-    },
-    {
-      label: 'we-do-group-1',
-      title: '',
-      transcript: "Let's count the red balloons together. 1, 2, 3, 4. There are 4 red balloons.",
-    },
-    {
-      label: 'we-do-group-2',
-      title: '',
-      transcript: "Now let's count the yellow balloons together. 1, 2, 3, 4, 5. There are 5 yellow balloons.",
-    },
-    {
-      label: 'we-do-group-combined',
-      title: '',
-      transcript: "Now let's put both groups together and count all the balloons: 1, 2, 3, 4, 5, 6, 7, 8, 9. There are 9 balloons!",
-    },
-    {
-      label: 'problems-pre-transition',
-      title: '',
-      transcript: "Now, you try.",
-    },
-  ]
 
   // Which internal step the student is on. GSAP only reacts to this via
   // tweenTo() in next() — the timeline is never the source of truth.
