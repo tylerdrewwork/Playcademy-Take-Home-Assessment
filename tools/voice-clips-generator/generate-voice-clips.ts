@@ -23,12 +23,17 @@ const DEFAULT_MODEL = 'google/gemini-3.1-flash-tts'
 // Model-specific input defaults beyond the text/voice fields (e.g. sample
 // rate or output format where a model supports one) live here so switching
 // models means touching one object.
-const INPUT_DEFAULTS: Record<string, unknown> = {}
+const INPUT_DEFAULTS: Record<string, unknown> = {
+  voice: "Despina",
+  prompt: "Say the following, patiently and with a hint of excitement, like a teacher."
+}
 
 // Parameter names differ per model ('text' vs 'prompt', 'voice' vs
 // 'voice_id'...). On a real run the model's input schema is fetched and the
 // names resolved from it; these are the fallbacks if that fetch fails.
-const TEXT_PARAM_CANDIDATES = ['text', 'prompt']
+// Gemini TTS uses 'prompt' for style direction (see INPUT_DEFAULTS), so it
+// must never be treated as the transcript-text field.
+const TEXT_PARAM_CANDIDATES = ['text']
 const VOICE_PARAM_CANDIDATES = ['voice', 'voice_id', 'voice_name', 'speaker']
 
 // How long to keep polling a prediction that the synchronous wait returned
