@@ -7,10 +7,11 @@ export const SIMPLE_MAX_SUM = 10;
 
 /**
  * Most physical coins a problem may show. Caps quantity only — the target
- * value is untouched, but sums whose cheapest representation needs more
- * coins than this (94 and 99 at a cap of 8) are excluded from selection.
+ * value is untouched. Sums whose cheapest representation needs more coins
+ * than this are excluded from selection; at a cap of 9 every sum from 1
+ * to 100 cents still fits (94 and 99 need exactly 9 coins).
  */
-export const MAX_COINS = 8;
+export const MAX_COINS = 9;
 
 export type CoinValue = typeof DENOMINATIONS[number];
 
