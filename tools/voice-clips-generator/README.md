@@ -7,10 +7,15 @@ transcript). It runs on plain Node (v25+, no extra dependencies) and is
 never part of the built site — `tools/` is outside Vite's module graph, so
 nothing here ships to visitors.
 
-Currently the transcript source is hardcoded to the addition-1 lesson's
-`CountingCombiningScreen` steps (`src/lessons/content/addition-1-screens/countingCombiningSteps.ts`).
-A future minor feature will discover transcripts across all lessons
-automatically.
+Currently the transcript sources are hardcoded to the addition-1 lesson's
+screens — `introSteps.ts` and `countingCombiningSteps.ts` in
+`src/lessons/content/addition-1-screens/`. A future minor feature will
+discover transcripts across all lessons automatically. The lesson plays
+the generated clips through
+`src/assets/lesson/addition-1/transcripts/transcriptAudio.ts`, which keys
+them by step label, so a freshly generated clip is picked up with no code
+changes; steps whose clip is missing fall back to a reading-pace timer
+(or, for the intro, the original `intro-1-vo.wav`).
 
 ## Setup
 

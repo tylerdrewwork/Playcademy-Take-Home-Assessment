@@ -3,6 +3,7 @@
   import gsap from 'gsap'
   import GroupsDisplay from './GroupsDisplay.svelte'
   import { playNumberAudio } from '../../../assets/general/numbers/numberAudio.js'
+  import { playTranscriptAudio } from '../../../assets/lesson/addition-1/transcripts/transcriptAudio.js'
   import { countingCombiningSteps as steps } from './countingCombiningSteps.js'
 
   let {
@@ -52,17 +53,18 @@
   // 'counting' plays a clip-and-reveal sequence (started automatically,
   // with no "Count them!" gate — the student watches, they don't trigger
   // it); 'transitioning' (fade + merge) shows no button while GSAP
-  // animates; 'narrating' is a pure-narration beat before any counting
-  // starts; 'done' is the pause after a count finishes. The whole demo
-  // plays itself — 'narrating' and 'done' both auto-advance on a timer,
-  // except on the last step, which waits for the student to click through
-  // into practice.
+  // animates; 'narrating' plays the step's voice-over clip before any
+  // counting starts; 'done' is the pause after a count finishes. The whole
+  // demo plays itself — narration ending (or its fallback timer) and the
+  // 'done' timer advance the flow, except on the last step, which waits
+  // for the student to click through into practice.
   let phase = $state<'counting' | 'done' | 'transitioning' | 'narrating'>('narrating')
   let countAudio: HTMLAudioElement | undefined
+  let narrationAudio: HTMLAudioElement | undefined
 
-  // No voice-over audio exists yet for these full-sentence transcripts
-  // (unlike the per-number clips used while counting), so approximate a
-  // comfortable reading pace until real narration audio is recorded.
+  // Fallback pacing for steps whose voice-over clip hasn't been generated
+  // yet: approximate a comfortable reading pace so the lesson still works
+  // without audio.
   function estimateNarrationMs(text: string): number {
     const words = text.trim().split(/\s+/).filter(Boolean).length
     const WORDS_PER_MINUTE = 150
@@ -78,10 +80,45 @@
   // in, so the two never visually overlap.
   const TRANSITION_PAUSE_MS = 300
 
+  // What a step does once its narration finishes: counting steps start
+  // their count, the combined steps recount everything, pure-narration
+  // steps just move on.
+  function afterNarration() {
+    const label = current.label
+    if (label === 'group-1' || label === 'both-groups' || label === 'we-do-group-1' || label === 'we-do-group-2') {
+      countGroup()
+    } else if (label === 'combine' || label === 'we-do-group-combined') {
+      recountCombined()
+    } else {
+      next()
+    }
+  }
+
   $effect(() => {
-    if (stepIndex === steps.length - 1) return
+    if (stepIndex === steps.length - 1) {
+      // Last step: voice the prompt, but only the button advances.
+      const handle = playTranscriptAudio(current.label)
+      if (!handle) return
+      narrationAudio = handle.audio
+      return () => handle.audio.pause()
+    }
     if (phase === 'narrating') {
-      const timer = setTimeout(next, estimateNarrationMs(current.transcript))
+      const handle = playTranscriptAudio(current.label)
+      if (handle) {
+        narrationAudio = handle.audio
+        // `played` resolves on 'ended' and on failure, so the flow always
+        // advances; the cancelled flag keeps a superseded narration (step
+        // changed, component unmounted) from advancing the flow twice.
+        let cancelled = false
+        handle.played.then(() => {
+          if (!cancelled) afterNarration()
+        })
+        return () => {
+          cancelled = true
+          handle.audio.pause()
+        }
+      }
+      const timer = setTimeout(afterNarration, estimateNarrationMs(current.transcript))
       return () => clearTimeout(timer)
     }
     if (phase === 'done') {
@@ -204,6 +241,8 @@
     ctx?.revert()
     countAudio?.pause()
     countAudio = undefined
+    narrationAudio?.pause()
+    narrationAudio = undefined
   })
 
   function tweenToLabel(label: string): Promise<void> {
@@ -235,31 +274,31 @@
     const leavingLabel = current.label
 
     if (leavingLabel === 'i-do-start' || leavingLabel === 'we-do-start') {
-      // Advance to the first group and start counting it right away —
-      // the student watches, they don't trigger the count themselves.
+      // Advance to the first group; its narration plays, then counting
+      // starts on its own — the student watches, they don't trigger it.
       stepIndex++
-      await countGroup()
+      phase = 'narrating'
       return
     }
 
     if (leavingLabel === 'group-1' || leavingLabel === 'we-do-group-1') {
-      // Reveal group 2, then start counting it automatically.
+      // Reveal group 2, narrate it, then counting starts automatically.
       phase = 'transitioning'
       stepIndex++
       await tweenToLabel('both-groups')
-      await countGroup()
+      phase = 'narrating'
       return
     }
 
     if (leavingLabel === 'both-groups' || leavingLabel === 'we-do-group-2') {
-      // Fade both groups' numbers away, merge the boxes, then recount all
-      // balloons in one continuous sequence.
+      // Fade both groups' numbers away, merge the boxes, narrate, then
+      // recount all balloons in one continuous sequence.
       phase = 'transitioning'
       revealedCounts = [0, 0]
       await wait(NUMBER_FADE_MS)
       stepIndex++
       await tweenToLabel('combine')
-      await recountCombined()
+      phase = 'narrating'
       return
     }
 

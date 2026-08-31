@@ -2,10 +2,11 @@
 // model. Run via `npm run generate:voice-clips` — see README.md alongside
 // this file. Never imported by the app; nothing here is served to visitors.
 //
-// NOTE: The transcript source is currently HARDCODED to the addition-1
-// lesson's CountingCombiningScreen steps, and the output folder to
-// src/assets/lesson/addition-1/transcripts. A future minor feature will
-// discover and pull transcripts from all lessons automatically.
+// NOTE: The transcript sources are currently HARDCODED to the addition-1
+// lesson's screens (IntroScreen and CountingCombiningScreen steps), and
+// the output folder to src/assets/lesson/addition-1/transcripts. A future
+// minor feature will discover and pull transcripts from all lessons
+// automatically.
 
 import { createHash } from 'node:crypto'
 import { mkdir, readFile, rename, rm, writeFile } from 'node:fs/promises'
@@ -13,6 +14,18 @@ import path from 'node:path'
 import { parseArgs } from 'node:util'
 import { fileURLToPath } from 'node:url'
 import { countingCombiningSteps } from '../../src/lessons/content/addition-1-screens/countingCombiningSteps.ts'
+import { introSteps } from '../../src/lessons/content/addition-1-screens/introSteps.ts'
+
+// Clip filenames come from step labels, so labels must be unique across
+// every screen that feeds this tool.
+const ALL_STEPS = [...introSteps, ...countingCombiningSteps]
+{
+  const seen = new Set<string>()
+  for (const step of ALL_STEPS) {
+    if (seen.has(step.label)) throw new Error(`Duplicate step label across screens: ${step.label}`)
+    seen.add(step.label)
+  }
+}
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..')
 const OUTPUT_DIR = path.join(REPO_ROOT, 'src', 'assets', 'lesson', 'addition-1', 'transcripts')
@@ -94,7 +107,7 @@ class VoiceClipGenerator {
   }
 
   collectJobs(): Job[] {
-    const jobs = countingCombiningSteps.map((step) => ({
+    const jobs = ALL_STEPS.map((step) => ({
       label: step.label,
       transcript: step.transcript,
       hash: sha256(`${this.opts.model}|${this.opts.voiceId ?? ''}|${step.transcript}`),

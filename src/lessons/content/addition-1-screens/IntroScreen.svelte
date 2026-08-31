@@ -1,18 +1,10 @@
 <script lang="ts">
   import { onDestroy } from 'svelte'
   import introVoUrl from '../../../assets/lesson/addition-1/intro-1-vo.wav'
-  import type { ScreenStep } from '../../lessonContent.js'
+  import { playTranscriptAudio } from '../../../assets/lesson/addition-1/transcripts/transcriptAudio.js'
+  import { introSteps as steps } from './introSteps.js'
 
   let { onComplete }: { onComplete: () => void } = $props()
-
-  const steps: ScreenStep[] = [
-    {
-      label: 'begin',
-      title: 'Meet the balloons',
-      transcript:
-        'Today we are going to combine two groups of balloons and count how many there are in all.',
-    },
-  ]
 
   let stepIndex = $state(0)
   let current = $derived(steps[stepIndex])
@@ -24,10 +16,19 @@
 
   function begin() {
     phase = 'playing'
+    // Prefer the generated narration clip for this step; fall back to the
+    // original hand-recorded intro VO until `begin.wav` has been generated.
+    // Either way a load/playback failure still moves the student on rather
+    // than leaving them stuck (playTranscriptAudio resolves `played` on
+    // error too).
+    const handle = playTranscriptAudio(current.label)
+    if (handle) {
+      audio = handle.audio
+      handle.played.then(onComplete)
+      return
+    }
     audio = new Audio(introVoUrl)
     audio.addEventListener('ended', onComplete)
-    // If the clip fails to load or play, don't leave the student stuck —
-    // move on anyway.
     audio.addEventListener('error', onComplete)
     audio.play().catch(onComplete)
   }
