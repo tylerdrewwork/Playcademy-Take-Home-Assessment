@@ -86,7 +86,7 @@ const POLL_INTERVAL_MS = 2_000
 // Minimum gap between any two Replicate API requests (schema fetch,
 // prediction creation, polling). The account allows at most 6 requests per
 // minute; 10.1s instead of a flat 10s leaves slack for race conditions.
-const REQUEST_PAUSE_SECONDS = 10.1
+const REQUEST_PAUSE_SECONDS = 1
 
 // A 429 (too many requests) means the rate limit was exceeded despite the
 // pause — the whole run aborts immediately rather than burning more of the

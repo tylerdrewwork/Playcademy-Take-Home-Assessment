@@ -47,46 +47,301 @@
   "1a": {
     "file": "src/assets/general/numbers/1a.wav",
     "hash": "14d371c7567d2d18129fbabdeeb76f06477d34552a68d9e4e7e174405a9b8928",
-    "generatedAt": "2026-08-31T19:16:27.233Z"
+    "generatedAt": "2026-08-31T19:45:28.655Z"
   },
   "1b": {
     "file": "src/assets/general/numbers/1b.wav",
     "hash": "14d371c7567d2d18129fbabdeeb76f06477d34552a68d9e4e7e174405a9b8928",
-    "generatedAt": "2026-08-31T19:16:37.518Z"
+    "generatedAt": "2026-08-31T19:45:39.079Z"
   },
   "1c": {
     "file": "src/assets/general/numbers/1c.wav",
     "hash": "14d371c7567d2d18129fbabdeeb76f06477d34552a68d9e4e7e174405a9b8928",
-    "generatedAt": "2026-08-31T19:16:47.511Z"
+    "generatedAt": "2026-08-31T19:45:48.440Z"
   },
   "2a": {
     "file": "src/assets/general/numbers/2a.wav",
     "hash": "9f1728fd5db3b182f28fbcc477806f3ed732f5990c6caeeebd1faa1264a87c56",
-    "generatedAt": "2026-08-31T19:16:57.437Z"
+    "generatedAt": "2026-08-31T19:45:58.656Z"
   },
   "2b": {
     "file": "src/assets/general/numbers/2b.wav",
     "hash": "9f1728fd5db3b182f28fbcc477806f3ed732f5990c6caeeebd1faa1264a87c56",
-    "generatedAt": "2026-08-31T19:17:07.726Z"
+    "generatedAt": "2026-08-31T19:46:08.964Z"
   },
   "2c": {
     "file": "src/assets/general/numbers/2c.wav",
     "hash": "9f1728fd5db3b182f28fbcc477806f3ed732f5990c6caeeebd1faa1264a87c56",
-    "generatedAt": "2026-08-31T19:17:17.917Z"
+    "generatedAt": "2026-08-31T19:46:19.129Z"
   },
   "3a": {
     "file": "src/assets/general/numbers/3a.wav",
     "hash": "9731260e76aed979b694df33dabb2eeef09042c9b4d825b7c953f28daf733d50",
-    "generatedAt": "2026-08-31T19:17:28.023Z"
+    "generatedAt": "2026-08-31T19:46:29.264Z"
   },
   "3b": {
     "file": "src/assets/general/numbers/3b.wav",
     "hash": "9731260e76aed979b694df33dabb2eeef09042c9b4d825b7c953f28daf733d50",
-    "generatedAt": "2026-08-31T19:17:37.940Z"
+    "generatedAt": "2026-08-31T19:46:39.171Z"
   },
   "3c": {
     "file": "src/assets/general/numbers/3c.wav",
     "hash": "9731260e76aed979b694df33dabb2eeef09042c9b4d825b7c953f28daf733d50",
-    "generatedAt": "2026-08-31T19:17:48.308Z"
+    "generatedAt": "2026-08-31T19:46:49.389Z"
+  },
+  "4a": {
+    "file": "src/assets/general/numbers/4a.wav",
+    "hash": "0a660f423701343cdcf61646579ebf5fb0259512700aa13ee5fe2d79d24cbf0d",
+    "generatedAt": "2026-08-31T19:46:59.492Z"
+  },
+  "4b": {
+    "file": "src/assets/general/numbers/4b.wav",
+    "hash": "0a660f423701343cdcf61646579ebf5fb0259512700aa13ee5fe2d79d24cbf0d",
+    "generatedAt": "2026-08-31T19:47:09.824Z"
+  },
+  "4c": {
+    "file": "src/assets/general/numbers/4c.wav",
+    "hash": "0a660f423701343cdcf61646579ebf5fb0259512700aa13ee5fe2d79d24cbf0d",
+    "generatedAt": "2026-08-31T19:47:19.657Z"
+  },
+  "5a": {
+    "file": "src/assets/general/numbers/5a.wav",
+    "hash": "f280c6274fc882ca399d08d0ed40bee5c1511c59274dbfbd727054b294b2bb44",
+    "generatedAt": "2026-08-31T19:47:29.893Z"
+  },
+  "5b": {
+    "file": "src/assets/general/numbers/5b.wav",
+    "hash": "f280c6274fc882ca399d08d0ed40bee5c1511c59274dbfbd727054b294b2bb44",
+    "generatedAt": "2026-08-31T19:47:39.797Z"
+  },
+  "5c": {
+    "file": "src/assets/general/numbers/5c.wav",
+    "hash": "f280c6274fc882ca399d08d0ed40bee5c1511c59274dbfbd727054b294b2bb44",
+    "generatedAt": "2026-08-31T19:47:49.979Z"
+  },
+  "6a": {
+    "file": "src/assets/general/numbers/6a.wav",
+    "hash": "83966aa61030c73289a1d82e6688ce7fdf9ec86e40c7daff1a120856240634fe",
+    "generatedAt": "2026-08-31T19:47:59.950Z"
+  },
+  "6b": {
+    "file": "src/assets/general/numbers/6b.wav",
+    "hash": "83966aa61030c73289a1d82e6688ce7fdf9ec86e40c7daff1a120856240634fe",
+    "generatedAt": "2026-08-31T19:48:10.393Z"
+  },
+  "6c": {
+    "file": "src/assets/general/numbers/6c.wav",
+    "hash": "83966aa61030c73289a1d82e6688ce7fdf9ec86e40c7daff1a120856240634fe",
+    "generatedAt": "2026-08-31T19:48:20.530Z"
+  },
+  "7a": {
+    "file": "src/assets/general/numbers/7a.wav",
+    "hash": "e5d974c561ddb345dc1a6eb6676e7b6ae63d60f2cc49c52b720b882d596be62b",
+    "generatedAt": "2026-08-31T19:48:30.415Z"
+  },
+  "7b": {
+    "file": "src/assets/general/numbers/7b.wav",
+    "hash": "e5d974c561ddb345dc1a6eb6676e7b6ae63d60f2cc49c52b720b882d596be62b",
+    "generatedAt": "2026-08-31T19:48:40.539Z"
+  },
+  "7c": {
+    "file": "src/assets/general/numbers/7c.wav",
+    "hash": "e5d974c561ddb345dc1a6eb6676e7b6ae63d60f2cc49c52b720b882d596be62b",
+    "generatedAt": "2026-08-31T19:48:50.584Z"
+  },
+  "8a": {
+    "file": "src/assets/general/numbers/8a.wav",
+    "hash": "9bf2396f5c2d9fe3ca91fbeed7747e18ae08830e96e7240b0ff62c455df993e5",
+    "generatedAt": "2026-08-31T19:49:00.687Z"
+  },
+  "8b": {
+    "file": "src/assets/general/numbers/8b.wav",
+    "hash": "9bf2396f5c2d9fe3ca91fbeed7747e18ae08830e96e7240b0ff62c455df993e5",
+    "generatedAt": "2026-08-31T19:49:10.748Z"
+  },
+  "8c": {
+    "file": "src/assets/general/numbers/8c.wav",
+    "hash": "9bf2396f5c2d9fe3ca91fbeed7747e18ae08830e96e7240b0ff62c455df993e5",
+    "generatedAt": "2026-08-31T19:49:20.930Z"
+  },
+  "9a": {
+    "file": "src/assets/general/numbers/9a.wav",
+    "hash": "fdc86641fc66e6c944c751959cf229c50e95e083683081f69a5499c0cb02f8d0",
+    "generatedAt": "2026-08-31T19:49:31.260Z"
+  },
+  "9b": {
+    "file": "src/assets/general/numbers/9b.wav",
+    "hash": "fdc86641fc66e6c944c751959cf229c50e95e083683081f69a5499c0cb02f8d0",
+    "generatedAt": "2026-08-31T19:49:41.146Z"
+  },
+  "9c": {
+    "file": "src/assets/general/numbers/9c.wav",
+    "hash": "fdc86641fc66e6c944c751959cf229c50e95e083683081f69a5499c0cb02f8d0",
+    "generatedAt": "2026-08-31T19:49:51.245Z"
+  },
+  "10a": {
+    "file": "src/assets/general/numbers/10a.wav",
+    "hash": "95e81afbccdb81c2365f2c0202c06fb28039eaa0c3a98338933bc5380f5e3df2",
+    "generatedAt": "2026-08-31T19:50:01.408Z"
+  },
+  "10b": {
+    "file": "src/assets/general/numbers/10b.wav",
+    "hash": "95e81afbccdb81c2365f2c0202c06fb28039eaa0c3a98338933bc5380f5e3df2",
+    "generatedAt": "2026-08-31T19:50:11.644Z"
+  },
+  "10c": {
+    "file": "src/assets/general/numbers/10c.wav",
+    "hash": "95e81afbccdb81c2365f2c0202c06fb28039eaa0c3a98338933bc5380f5e3df2",
+    "generatedAt": "2026-08-31T19:50:21.563Z"
+  },
+  "11a": {
+    "file": "src/assets/general/numbers/11a.wav",
+    "hash": "425a838764969f250b63b73ff52bc841646179ce4b7f4626a21473341275a867",
+    "generatedAt": "2026-08-31T19:50:31.742Z"
+  },
+  "11b": {
+    "file": "src/assets/general/numbers/11b.wav",
+    "hash": "425a838764969f250b63b73ff52bc841646179ce4b7f4626a21473341275a867",
+    "generatedAt": "2026-08-31T19:50:41.745Z"
+  },
+  "11c": {
+    "file": "src/assets/general/numbers/11c.wav",
+    "hash": "425a838764969f250b63b73ff52bc841646179ce4b7f4626a21473341275a867",
+    "generatedAt": "2026-08-31T19:50:52.090Z"
+  },
+  "12a": {
+    "file": "src/assets/general/numbers/12a.wav",
+    "hash": "ce4a1f90dfef60cbb62c9bd09a15a61ce8acc7403cd314ee0f0a9a2b3b5fa1ef",
+    "generatedAt": "2026-08-31T19:51:02.117Z"
+  },
+  "12b": {
+    "file": "src/assets/general/numbers/12b.wav",
+    "hash": "ce4a1f90dfef60cbb62c9bd09a15a61ce8acc7403cd314ee0f0a9a2b3b5fa1ef",
+    "generatedAt": "2026-08-31T19:51:12.280Z"
+  },
+  "12c": {
+    "file": "src/assets/general/numbers/12c.wav",
+    "hash": "ce4a1f90dfef60cbb62c9bd09a15a61ce8acc7403cd314ee0f0a9a2b3b5fa1ef",
+    "generatedAt": "2026-08-31T19:51:22.355Z"
+  },
+  "13a": {
+    "file": "src/assets/general/numbers/13a.wav",
+    "hash": "6ea113d365304320fd2d2294509ed4ab147be368bb4055036c4237b4539c31bb",
+    "generatedAt": "2026-08-31T19:51:32.448Z"
+  },
+  "13b": {
+    "file": "src/assets/general/numbers/13b.wav",
+    "hash": "6ea113d365304320fd2d2294509ed4ab147be368bb4055036c4237b4539c31bb",
+    "generatedAt": "2026-08-31T19:51:42.543Z"
+  },
+  "13c": {
+    "file": "src/assets/general/numbers/13c.wav",
+    "hash": "6ea113d365304320fd2d2294509ed4ab147be368bb4055036c4237b4539c31bb",
+    "generatedAt": "2026-08-31T19:51:52.759Z"
+  },
+  "14a": {
+    "file": "src/assets/general/numbers/14a.wav",
+    "hash": "ce08c99b4c063d0ab480af54fd1acf096f5f42e0d4dbdd37f4ed0e4667e29e96",
+    "generatedAt": "2026-08-31T19:52:02.789Z"
+  },
+  "14b": {
+    "file": "src/assets/general/numbers/14b.wav",
+    "hash": "ce08c99b4c063d0ab480af54fd1acf096f5f42e0d4dbdd37f4ed0e4667e29e96",
+    "generatedAt": "2026-08-31T19:52:13.189Z"
+  },
+  "14c": {
+    "file": "src/assets/general/numbers/14c.wav",
+    "hash": "ce08c99b4c063d0ab480af54fd1acf096f5f42e0d4dbdd37f4ed0e4667e29e96",
+    "generatedAt": "2026-08-31T19:52:23.376Z"
+  },
+  "15a": {
+    "file": "src/assets/general/numbers/15a.wav",
+    "hash": "832ff5515057bd5a466939142e43719aafc1d21ba0522b0d6577e4f4ddd8619f",
+    "generatedAt": "2026-08-31T19:52:33.450Z"
+  },
+  "15b": {
+    "file": "src/assets/general/numbers/15b.wav",
+    "hash": "832ff5515057bd5a466939142e43719aafc1d21ba0522b0d6577e4f4ddd8619f",
+    "generatedAt": "2026-08-31T19:52:43.484Z"
+  },
+  "15c": {
+    "file": "src/assets/general/numbers/15c.wav",
+    "hash": "832ff5515057bd5a466939142e43719aafc1d21ba0522b0d6577e4f4ddd8619f",
+    "generatedAt": "2026-08-31T19:52:53.399Z"
+  },
+  "16a": {
+    "file": "src/assets/general/numbers/16a.wav",
+    "hash": "38d4ce196a162830fef5b99237106b25e1875ad25d487a00f47df6ee38863b61",
+    "generatedAt": "2026-08-31T19:53:03.281Z"
+  },
+  "16b": {
+    "file": "src/assets/general/numbers/16b.wav",
+    "hash": "38d4ce196a162830fef5b99237106b25e1875ad25d487a00f47df6ee38863b61",
+    "generatedAt": "2026-08-31T19:53:13.573Z"
+  },
+  "16c": {
+    "file": "src/assets/general/numbers/16c.wav",
+    "hash": "38d4ce196a162830fef5b99237106b25e1875ad25d487a00f47df6ee38863b61",
+    "generatedAt": "2026-08-31T19:53:23.833Z"
+  },
+  "17a": {
+    "file": "src/assets/general/numbers/17a.wav",
+    "hash": "5668536bd00ff10677635b678b800fb27ef246ad3182388107a2d2662aa1f3df",
+    "generatedAt": "2026-08-31T19:53:33.720Z"
+  },
+  "17b": {
+    "file": "src/assets/general/numbers/17b.wav",
+    "hash": "5668536bd00ff10677635b678b800fb27ef246ad3182388107a2d2662aa1f3df",
+    "generatedAt": "2026-08-31T19:53:43.715Z"
+  },
+  "17c": {
+    "file": "src/assets/general/numbers/17c.wav",
+    "hash": "5668536bd00ff10677635b678b800fb27ef246ad3182388107a2d2662aa1f3df",
+    "generatedAt": "2026-08-31T19:53:54.068Z"
+  },
+  "18a": {
+    "file": "src/assets/general/numbers/18a.wav",
+    "hash": "8016f440aa4887d67bbc03705377473eb8dda46aa9d96083ebba35ec4bc165fc",
+    "generatedAt": "2026-08-31T19:54:04.746Z"
+  },
+  "18b": {
+    "file": "src/assets/general/numbers/18b.wav",
+    "hash": "8016f440aa4887d67bbc03705377473eb8dda46aa9d96083ebba35ec4bc165fc",
+    "generatedAt": "2026-08-31T19:54:14.485Z"
+  },
+  "18c": {
+    "file": "src/assets/general/numbers/18c.wav",
+    "hash": "8016f440aa4887d67bbc03705377473eb8dda46aa9d96083ebba35ec4bc165fc",
+    "generatedAt": "2026-08-31T19:54:24.395Z"
+  },
+  "19a": {
+    "file": "src/assets/general/numbers/19a.wav",
+    "hash": "8f4e59155844e751a2f56b978e9c9d677bc1d6bad3aa1c41446ecc8910b10e1a",
+    "generatedAt": "2026-08-31T19:54:34.259Z"
+  },
+  "19b": {
+    "file": "src/assets/general/numbers/19b.wav",
+    "hash": "8f4e59155844e751a2f56b978e9c9d677bc1d6bad3aa1c41446ecc8910b10e1a",
+    "generatedAt": "2026-08-31T19:54:44.688Z"
+  },
+  "19c": {
+    "file": "src/assets/general/numbers/19c.wav",
+    "hash": "8f4e59155844e751a2f56b978e9c9d677bc1d6bad3aa1c41446ecc8910b10e1a",
+    "generatedAt": "2026-08-31T19:54:54.575Z"
+  },
+  "20a": {
+    "file": "src/assets/general/numbers/20a.wav",
+    "hash": "5070ac4cb72f5ebe536999a06dadc92bd3046eb41090ff22447c88b09b4139fc",
+    "generatedAt": "2026-08-31T19:55:04.780Z"
+  },
+  "20b": {
+    "file": "src/assets/general/numbers/20b.wav",
+    "hash": "5070ac4cb72f5ebe536999a06dadc92bd3046eb41090ff22447c88b09b4139fc",
+    "generatedAt": "2026-08-31T19:55:14.835Z"
+  },
+  "20c": {
+    "file": "src/assets/general/numbers/20c.wav",
+    "hash": "5070ac4cb72f5ebe536999a06dadc92bd3046eb41090ff22447c88b09b4139fc",
+    "generatedAt": "2026-08-31T19:55:25.050Z"
   }
 }
