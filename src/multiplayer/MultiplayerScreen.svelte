@@ -4,6 +4,8 @@
   import CoinScatter from './CoinScatter.svelte'
   import OtherPlayerColumn from './OtherPlayerColumn.svelte'
   import { adminSettings } from '../adminSettings.svelte.js'
+  import backgroundBg from '../assets/multiplayer/background_bg.webp'
+  import backgroundFg from '../assets/multiplayer/background_fg.webp'
 
   let { onExit } = $props()
 
@@ -71,58 +73,93 @@
 
 <svelte:window onkeydown={handleGlobalDigit} />
 
-<section class="multiplayer-screen">
-  <h2>Multiplayer Coin Game</h2>
+<div class="stage">
+  <img class="stage-layer stage-bg" src={backgroundBg} alt="" aria-hidden="true" />
+  <img class="stage-layer stage-fg" src={backgroundFg} alt="" aria-hidden="true" />
 
-  {#if session.status === 'joining'}
-    <p>Joining game…</p>
-  {:else if session.status === 'error'}
-    <p class="error">Couldn't join the game. Please check your connection and try again.</p>
-  {:else if session.status === 'joined' && session.problem}
-    <div class="columns">
-      <div class="self-column">
-        <p>How many cents are these coins worth?</p>
-        <CoinScatter coins={session.problem.coins} />
-        <p>{session.playerCount} player{session.playerCount === 1 ? '' : 's'} in the room.</p>
+  <section class="multiplayer-screen">
+    <h2>Multiplayer Coin Game</h2>
 
-        <form class="answer-form" onsubmit={handleSubmit}>
-          <input
-            type="number"
-            inputmode="numeric"
-            min="0"
-            placeholder="How many cents?"
-            aria-label="How many cents do the coins add up to?"
-            bind:this={answerInputEl}
-            bind:value={answer}
-            disabled={session.submitting}
-          />
-          <button type="submit" disabled={session.submitting}>Submit</button>
-        </form>
+    {#if session.status === 'joining'}
+      <p>Joining game…</p>
+    {:else if session.status === 'error'}
+      <p class="error">Couldn't join the game. Please check your connection and try again.</p>
+    {:else if session.status === 'joined' && session.problem}
+      <div class="columns">
+        <div class="self-column">
+          <p>How many cents are these coins worth?</p>
+          <CoinScatter coins={session.problem.coins} />
+          <p>{session.playerCount} player{session.playerCount === 1 ? '' : 's'} in the room.</p>
 
-        {#if session.lastResult === 'correct'}
-          <p class="feedback correct">Correct! Here's a new group to count.</p>
-        {:else if session.lastResult === 'incorrect'}
-          <p class="feedback incorrect">Not quite — count again and resubmit.</p>
-        {/if}
+          <form class="answer-form" onsubmit={handleSubmit}>
+            <input
+              type="number"
+              inputmode="numeric"
+              min="0"
+              placeholder="How many cents?"
+              aria-label="How many cents do the coins add up to?"
+              bind:this={answerInputEl}
+              bind:value={answer}
+              disabled={session.submitting}
+            />
+            <button type="submit" disabled={session.submitting}>Submit</button>
+          </form>
+
+          {#if session.lastResult === 'correct'}
+            <p class="feedback correct">Correct! Here's a new group to count.</p>
+          {:else if session.lastResult === 'incorrect'}
+            <p class="feedback incorrect">Not quite — count again and resubmit.</p>
+          {/if}
+        </div>
+
+        {#each otherPlayers as player (player.uid)}
+          <OtherPlayerColumn name={player.name} lastAward={player.lastAward} />
+        {/each}
       </div>
+    {/if}
 
-      {#each otherPlayers as player (player.uid)}
-        <OtherPlayerColumn name={player.name} lastAward={player.lastAward} />
-      {/each}
-    </div>
-  {/if}
+    <button onclick={onExit}>Back to lesson</button>
 
-  <button onclick={onExit}>Back to lesson</button>
-
-  {#if session.status === 'joined'}
-    <p class="total-money">
-      Total money earned: {moneyFormatter.format(session.totalMoneyCents / 100)}
-    </p>
-  {/if}
-</section>
+    {#if session.status === 'joined'}
+      <p class="total-money">
+        Total money earned: {moneyFormatter.format(session.totalMoneyCents / 100)}
+      </p>
+    {/if}
+  </section>
+</div>
 
 <style>
+  .stage {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 16px;
+    overflow: hidden;
+  }
+
+  .stage-layer {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    pointer-events: none;
+    user-select: none;
+  }
+
+  /* Sits above the room (stage-bg); its transparent middle lets the room
+     show through while its opaque edges (espresso machine, pastry case)
+     read as furniture standing in front of the game content. */
+  .stage-fg {
+    z-index: 1;
+  }
+
   .multiplayer-screen {
+    position: relative;
+    z-index: 2;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -131,6 +168,10 @@
     text-align: center;
     max-height: 100%;
     overflow-y: auto;
+    color: #2b1d0e;
+    background: rgba(255, 248, 235, 0.9);
+    border-radius: 16px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
   }
 
   .columns {
@@ -167,6 +208,15 @@
 
   .answer-form button {
     padding: 0.4rem 0.8rem;
+  }
+
+  /* The card's fixed cream background and dark text don't track the OS
+     light/dark scheme, so buttons need their own fixed colors too —
+     otherwise dark mode's near-black button background hides this dark
+     text. */
+  .multiplayer-screen button {
+    background-color: #6b4423;
+    color: #fff8ec;
   }
 
   .feedback {
