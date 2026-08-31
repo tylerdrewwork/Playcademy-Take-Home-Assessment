@@ -55,10 +55,17 @@ const DEFAULT_MODEL = 'google/gemini-3.1-flash-tts'
 
 // Model-specific input defaults beyond the text/voice fields (e.g. sample
 // rate or output format where a model supports one) live here so switching
-// models means touching one object.
+// models means touching one object. Numbers get their own defaults
+// (INPUT_DEFAULTS_NUMBERS) since the delivery style for a single spoken word
+// differs from a full lesson sentence.
 const INPUT_DEFAULTS: Record<string, unknown> = {
   voice: "Despina",
   prompt: "Say the following, patiently and with a hint of excitement, like a teacher."
+}
+
+const INPUT_DEFAULTS_NUMBERS: Record<string, unknown> = {
+  voice: "Despina",
+  prompt: "Say the following, quickly, in a neutral teaching tone."
 }
 
 // Parameter names differ per model ('text' vs 'prompt', 'voice' vs
@@ -250,7 +257,8 @@ class VoiceClipGenerator {
   }
 
   private buildInput(job: Job): Record<string, unknown> {
-    const input: Record<string, unknown> = { ...INPUT_DEFAULTS, [this.textParam]: job.transcript }
+    const defaults = this.opts.numbers ? INPUT_DEFAULTS_NUMBERS : INPUT_DEFAULTS
+    const input: Record<string, unknown> = { ...defaults, [this.textParam]: job.transcript }
     if (this.opts.voiceId !== undefined) input[this.voiceParam] = this.opts.voiceId
     return input
   }
