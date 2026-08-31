@@ -8,7 +8,7 @@
 // discover and pull transcripts from all lessons automatically.
 
 import { createHash } from 'node:crypto'
-import { mkdir, readFile, rename, rm, stat, writeFile } from 'node:fs/promises'
+import { mkdir, readFile, rename, rm, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import { parseArgs } from 'node:util'
 import { fileURLToPath } from 'node:url'
@@ -76,21 +76,11 @@ interface GeneratorOptions {
   model: string
   voiceId?: string
   dryRun: boolean
-  force: boolean
   only?: string
 }
 
 function sha256(text: string): string {
   return createHash('sha256').update(text).digest('hex')
-}
-
-async function fileExists(filePath: string): Promise<boolean> {
-  try {
-    await stat(filePath)
-    return true
-  } catch {
-    return false
-  }
 }
 
 class VoiceClipGenerator {
@@ -124,7 +114,7 @@ class VoiceClipGenerator {
       this.manifest = JSON.parse(raw)
     } catch (err) {
       if ((err as NodeJS.ErrnoException).code !== 'ENOENT') {
-        console.warn(`Warning: could not read manifest (${(err as Error).message}); treating all clips as stale.`)
+        console.warn(`Warning: could not read manifest (${(err as Error).message}); starting a fresh record.`)
       }
       this.manifest = {}
     }
@@ -132,13 +122,6 @@ class VoiceClipGenerator {
 
   async saveManifest(): Promise<void> {
     await writeFile(MANIFEST_PATH, JSON.stringify(this.manifest, null, 2) + '\n', 'utf8')
-  }
-
-  async isUpToDate(job: Job): Promise<boolean> {
-    if (this.opts.force) return false
-    const entry = this.manifest[job.label]
-    if (entry === undefined || entry.hash !== job.hash) return false
-    return fileExists(path.join(REPO_ROOT, entry.file))
   }
 
   private authHeaders(): Record<string, string> {
@@ -290,8 +273,7 @@ class VoiceClipGenerator {
 
     if (this.opts.dryRun) {
       for (const job of jobs) {
-        const status = (await this.isUpToDate(job)) ? 'up to date (skip)' : 'would generate'
-        console.log(`${status.padEnd(18)} ${job.label}: "${job.transcript}"`)
+        console.log(`would generate     ${job.label}: "${job.transcript}"`)
       }
       return 0
     }
@@ -300,15 +282,11 @@ class VoiceClipGenerator {
     await mkdir(OUTPUT_DIR, { recursive: true })
 
     let generated = 0
-    let skipped = 0
     const failed: string[] = []
 
+    // Every requested clip is regenerated, overwriting whatever audio
+    // already exists — use --only to limit a run to a single label.
     for (const job of jobs) {
-      if (await this.isUpToDate(job)) {
-        console.log(`skipped (up to date)  ${job.label}`)
-        skipped += 1
-        continue
-      }
       try {
         console.log(`generating            ${job.label}: "${job.transcript}"`)
         const outputUrl = await this.generateClip(job)
@@ -319,8 +297,8 @@ class VoiceClipGenerator {
           hash: job.hash,
           generatedAt: new Date().toISOString(),
         }
-        // Saved per clip, not per run, so a partial failure never re-bills
-        // the clips that already succeeded.
+        // Saved per clip, not per run, so an aborted batch still records
+        // exactly which settings produced the clips that did land.
         await this.saveManifest()
         console.log(`saved                 ${path.relative(REPO_ROOT, dest)}`)
         generated += 1
@@ -338,9 +316,9 @@ class VoiceClipGenerator {
       }
     }
 
-    console.log(`\nDone: ${generated} generated, ${skipped} skipped, ${failed.length} failed.`)
+    console.log(`\nDone: ${generated} generated, ${failed.length} failed.`)
     if (failed.length > 0) {
-      console.error(`Failed labels: ${failed.join(', ')} — re-run to retry just these.`)
+      console.error(`Failed labels: ${failed.join(', ')} — re-run with --only=<label> to retry individually.`)
       return 1
     }
     return 0
@@ -351,7 +329,6 @@ async function main(): Promise<number> {
   const { values } = parseArgs({
     options: {
       'dry-run': { type: 'boolean', default: false },
-      force: { type: 'boolean', default: false },
       only: { type: 'string' },
       'print-schema': { type: 'boolean', default: false },
     },
@@ -366,7 +343,6 @@ async function main(): Promise<number> {
     model,
     voiceId,
     dryRun: values['dry-run'],
-    force: values.force,
     only: values.only,
   })
 

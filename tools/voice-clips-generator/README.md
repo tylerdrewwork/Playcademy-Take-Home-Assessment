@@ -27,21 +27,18 @@ REPLICATE_API_TOKEN=   # from https://replicate.com/account/api-tokens
 ## Usage
 
 ```sh
-npm run generate:voice-clips                              # generate anything missing/stale
+npm run generate:voice-clips                              # generate every clip (overwrites existing)
 npm run generate:voice-clips -- --dry-run                 # list what would happen; no token, no network
 npm run generate:voice-clips -- --only=problems-pre-transition   # one clip, by step label
-npm run generate:voice-clips -- --force                   # regenerate everything
 npm run generate:voice-clips -- --print-schema            # dump the model's input schema
 ```
 
-## How re-runs stay cheap
-
-Each Replicate prediction costs money, so `manifest.json` (committed,
-written by the script) records a hash of `model|voice|transcript` per clip.
-A clip is regenerated only when its transcript text, the model, or the
-voice changed — or the audio file is missing. The manifest is saved after
-every successful clip, so a partially failed batch re-runs only its
-failures. Commit the generated `.wav` files and `manifest.json` together.
+Every run regenerates the requested clips and **overwrites** any existing
+audio — each Replicate prediction costs money, so use `--only=<label>` to
+limit a run to the clip you actually want redone. `manifest.json`
+(committed, written by the script) records which model/voice/transcript
+produced each clip currently on disk. Commit the generated `.wav` files
+and `manifest.json` together.
 
 ## Rate limiting
 
@@ -50,8 +47,8 @@ API request (schema fetch, prediction creation, polling) is spaced at least
 `REQUEST_PAUSE_SECONDS` apart (10.1s — the 0.1 is slack for race
 conditions; configurable in `generate-voice-clips.ts`). If Replicate ever
 returns HTTP 429 anyway, the run aborts immediately instead of attempting
-further clips; the manifest keeps whatever already succeeded, so a later
-re-run picks up where it stopped.
+further clips; the failed labels are listed so they can be retried
+individually with `--only=<label>`.
 
 ## Notes
 
