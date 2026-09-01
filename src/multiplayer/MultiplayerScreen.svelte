@@ -5,7 +5,7 @@
   import CharacterQueue from './CharacterQueue.svelte'
   import { adminSettings } from '../adminSettings.svelte.js'
   import backgroundBg from '../assets/multiplayer/background_bg.webp'
-  import backgroundFg from '../assets/multiplayer/background_fg.webp'
+  import counterImg from '../assets/multiplayer/counter.webp'
   import { musicSettings } from './musicSettingsSingleton.js'
   import bgMusicUrl from '../assets/multiplayer/background-music.ogg'
 
@@ -131,7 +131,7 @@
 <div class="stage">
   <img class="stage-layer stage-bg" src={backgroundBg} alt="" aria-hidden="true" />
   <CharacterQueue bind:this={characterQueue} />
-  <img class="stage-layer stage-fg" src={backgroundFg} alt="" aria-hidden="true" />
+  <img class="stage-counter" src={counterImg} alt="" aria-hidden="true" />
 
   {#if session.status === 'joining'}
     <p class="status-message">Joining game…</p>
@@ -198,12 +198,25 @@
     user-select: none;
   }
 
-  /* Sits above the room (stage-bg) and the character line queued up in it;
-     its transparent middle lets both show through while its opaque edges
-     (espresso machine, pastry case) read as furniture standing in front of
-     the game content. */
-  .stage-fg {
+  /* Sits above the room (stage-bg) and the character line queued up in it,
+     reading as the counter's wood surface standing in front of the game
+     content. Anchored to the stage's bottom edge (rather than stretched to
+     cover the full stage like the other layers) and scaled up vertically so
+     the wood band fills the answer-bar area without warping horizontally;
+     the negative bottom offset tucks the image's own bottom edge just out
+     of view so no seam shows beneath it. */
+  .stage-counter {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -1%;
+    width: 100%;
+    height: auto;
+    transform: scaleY(1.5);
+    transform-origin: 50% 100%;
     z-index: 2;
+    pointer-events: none;
+    user-select: none;
   }
 
   .status-message,
