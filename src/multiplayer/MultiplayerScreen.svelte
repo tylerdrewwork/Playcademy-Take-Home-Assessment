@@ -201,23 +201,23 @@
   /* Sits above the room (stage-bg) and the character line queued up in it,
      reading as the counter's wood surface standing in front of the game
      content. Anchored to the stage's bottom edge (rather than stretched to
-     cover the full stage like the other layers). Sized off stage HEIGHT
-     (like .character's height:44% below) rather than width — a width-based
-     size (e.g. width:100%; height:auto) grows without bound as the window
-     gets wider without getting taller, ballooning over the character line,
-     since nothing there caps it the way the character's height already
-     caps its own scaling. object-fit:cover crops to fill that fixed box
-     instead of stretching the art. The negative bottom offset tucks the
-     image's own bottom edge just out of view so no seam shows beneath it. */
+     cover the full stage like the other layers). height:auto scales the
+     counter up with width normally (tracking the character's own growth),
+     but max-height caps it at the same point the character's own
+     height:44% (below) stops growing — past that width, the box can no
+     longer grow taller, so object-fit:fill (the <img> default) stretches
+     the art horizontally to keep covering the full width instead of
+     cropping it. The negative bottom offset tucks the image's own bottom
+     edge just out of view so no seam shows beneath it. */
   .stage-counter {
     position: absolute;
     left: 0;
     right: 0;
     bottom: -1%;
-    width: 100%;
-    height: 24%;
-    object-fit: cover;
-    object-position: center bottom;
+    width: 200%;
+    height: auto;
+    max-height: 100%;
+    object-fit: fill;
     z-index: 2;
     pointer-events: none;
     user-select: none;
