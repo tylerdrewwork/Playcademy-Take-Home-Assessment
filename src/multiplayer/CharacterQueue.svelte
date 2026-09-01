@@ -118,21 +118,20 @@
      and object-position keep each character's feet flush with the box's
      bottom edge no matter how much it letterboxes.
 
-     right: 50% + margin-right: -14.5% (half of the 29% width) centers
-     every rank on the same vertical line regardless of its scale — margin
-     is resolved at layout time, before the transform's scale() is
-     applied, so shrinking a rank never pulls its center off that line. */
+     width:100% (spanning the full character-line, left:0) rather than a
+     narrow centered column — object-position's "center" keeps each rank's
+     sprite centered on the same vertical line regardless of its scale,
+     since object-fit:contain draws it centered within the box no matter
+     how much wider than the sprite that box is. */
   .character {
     position: absolute;
-    right: 50%;
-    margin-right: -14.5%;
-    width: 29%;
+    left: 0;
+    width: 100%;
     height: 44%;
     object-fit: contain;
     object-position: bottom center;
     transform-origin: bottom center;
     transition:
-      right 0.7s ease,
       bottom 0.7s ease,
       transform 0.7s ease,
       filter 0.7s ease,
@@ -174,11 +173,14 @@
     opacity: 0;
   }
 
-  /* Declared after .rank-0 so it wins the right/opacity tie-break: the
-     departing front character keeps rank-0's size/brightness but slides
-     off the right edge and fades as it goes. */
+  /* Declared after .rank-0 so it wins the transform/opacity tie-break: the
+     departing front character keeps rank-0's scale (restated here since
+     transform doesn't merge across rules) but slides off to the right and
+     fades as it goes. left+width are both set on .character now, which
+     leaves a plain "right" over-constrained and inert — translateX moves
+     it instead. */
   .character.exiting {
-    right: -100%;
+    transform: translateX(100%) scale(2);
     opacity: 0;
   }
 </style>

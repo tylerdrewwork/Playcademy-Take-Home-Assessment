@@ -23,6 +23,21 @@
   let coinJar: CoinJar | undefined = $state()
   let coinJarDeposit: CoinJarDeposit | undefined = $state()
 
+  // The coin tray scales itself off the counter's actual rendered height
+  // (see CoinScatter's trayHeightPx prop) rather than a fixed CSS
+  // transform, so it needs that height as a real pixel measurement.
+  let counterEl: HTMLDivElement | undefined = $state()
+  let counterHeightPx = $state(0)
+
+  $effect(() => {
+    if (!counterEl) return
+    const observer = new ResizeObserver(([entry]) => {
+      counterHeightPx = entry.contentRect.height
+    })
+    observer.observe(counterEl)
+    return () => observer.disconnect()
+  })
+
   // The server hands over a fresh problem the instant a correct answer
   // lands, but the coins shown on screen should stay put until the
   // character line has finished stepping up — otherwise the coins would
@@ -219,79 +234,91 @@
 
 <svelte:window onkeydown={handleGlobalDigit} />
 
-<div class="stage">
-  <img class="stage-layer stage-bg" src={backgroundBg} alt="" aria-hidden="true" />
-  <CharacterQueue bind:this={characterQueue} />
-  <img class="stage-counter" src={counterImg} alt="" aria-hidden="true" />
-
-  <!-- Sits on the counter's right side — see .coin-jar-wrap for how the
-       exact spot was picked. -->
-  <div class="coin-jar-wrap">
-    <CoinJar bind:this={coinJar} text={formatTotal(revealedTotalCents)} />
-  </div>
-  <CoinJarDeposit bind:this={coinJarDeposit} />
-
-  {#if session.status === 'joining'}
-    <p class="status-message">Joining game…</p>
-  {:else if session.status === 'error'}
-    <p class="status-message error">Couldn't join the game. Please check your connection and try again.</p>
-  {:else if session.status === 'joined'}
-    <div class="scoreboard">
-      <h3>Current Employees ({session.playerCount})</h3>
-      <ul>
-        {#each session.players as player (player.uid)}
-          <li class:self={player.isSelf}>
-            <span class="player-name">{player.name}{player.isSelf ? ' (You)' : ''}</span>
-            <span class="earn-message">{earnMessages[player.uid] ?? ''}</span>
-          </li>
-        {/each}
-      </ul>
+<div class="multiplayer-screen">
+  <div class="stage">
+    <img class="stage-layer stage-bg" src={backgroundBg} alt="" aria-hidden="true" />
+    <CharacterQueue bind:this={characterQueue} />
+    <div class="stage-counter" bind:this={counterEl}>
+      <img class="stage-counter-img" src={counterImg} alt="" aria-hidden="true" />
+      {#if session.status === 'joined' && displayedProblem}
+        <div class="counter-tray" class:depositing={transitioning} bind:this={counterTrayEl}>
+          <CoinScatter coins={displayedProblem.coins} trayHeightPx={counterHeightPx} />
+        </div>
+      {/if}
     </div>
 
-    {#if displayedProblem}
-      <div class="counter-tray" class:depositing={transitioning} bind:this={counterTrayEl}>
-        <CoinScatter coins={displayedProblem.coins} />
-      </div>
+    <!-- Sits on the counter's right side — see .coin-jar-wrap for how the
+         exact spot was picked. -->
+    <div class="coin-jar-wrap">
+      <CoinJar bind:this={coinJar} text={formatTotal(revealedTotalCents)} />
+    </div>
+    <CoinJarDeposit bind:this={coinJarDeposit} />
 
-      <div class="answer-bar">
-        <p class="prompt">How many cents are these coins worth?</p>
-
-        <form class="answer-form" onsubmit={handleSubmit}>
-          <input
-            type="number"
-            inputmode="numeric"
-            min="0"
-            placeholder="How many cents?"
-            aria-label="How many cents do the coins add up to?"
-            bind:this={answerInputEl}
-            bind:value={answer}
-            disabled={session.submitting || transitioning}
-          />
-          <button type="submit" disabled={session.submitting || transitioning}>Submit</button>
-        </form>
-
-        {#if session.lastResult === 'correct'}
-          <p class="feedback correct">Correct! Here's a new group to count.</p>
-        {:else if session.lastResult === 'incorrect'}
-          <p class="feedback incorrect">Not quite — count again and resubmit.</p>
-        {/if}
+    {#if session.status === 'joining'}
+      <p class="status-message">Joining game…</p>
+    {:else if session.status === 'error'}
+      <p class="status-message error">Couldn't join the game. Please check your connection and try again.</p>
+    {:else if session.status === 'joined'}
+      <div class="scoreboard">
+        <h3>Current Employees ({session.playerCount})</h3>
+        <ul>
+          {#each session.players as player (player.uid)}
+            <li class:self={player.isSelf}>
+              <span class="player-name">{player.name}{player.isSelf ? ' (You)' : ''}</span>
+              <span class="earn-message">{earnMessages[player.uid] ?? ''}</span>
+            </li>
+          {/each}
+        </ul>
       </div>
     {/if}
+  </div>
+
+  {#if session.status === 'joined' && displayedProblem}
+    <div class="answer-bar">
+      <p class="prompt">How many cents are these coins worth?</p>
+
+      <form class="answer-form" onsubmit={handleSubmit}>
+        <input
+          type="number"
+          inputmode="numeric"
+          min="0"
+          placeholder="How many cents?"
+          aria-label="How many cents do the coins add up to?"
+          bind:this={answerInputEl}
+          bind:value={answer}
+          disabled={session.submitting || transitioning}
+        />
+        <button type="submit" disabled={session.submitting || transitioning}>Submit</button>
+      </form>
+
+      {#if session.lastResult === 'correct'}
+        <p class="feedback correct">Correct! Here's a new group to count.</p>
+      {:else if session.lastResult === 'incorrect'}
+        <p class="feedback incorrect">Not quite — count again and resubmit.</p>
+      {/if}
+    </div>
   {/if}
 </div>
 
 <style>
-  /* Mirrors .stage-counter's own rendered height (width:200% of stage width
-     scaled by the source art's 1152/2048 aspect ratio, capped at 100% of
-     stage height) so .counter-tray can size itself off the counter's
-     actual footprint instead of a fixed guess. Keep in sync by hand if
-     .stage-counter's width or max-height ever change. */
-  .stage {
+  /* Stacks the stage above the docked answer-bar so the bar reserves its
+     own row instead of floating over the stage as a transparent overlay —
+     the stage (flex:1) shrinks to the space left over, so its content
+     shifts up rather than being covered. */
+  .multiplayer-screen {
     position: relative;
     width: 100%;
     height: 100%;
+    display: flex;
+    flex-direction: column;
     overflow: hidden;
-    --counter-height: min(112.5vw, 100%);
+  }
+
+  .stage {
+    position: relative;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
   }
 
   .stage-layer {
@@ -307,36 +334,41 @@
 
   /* Sits above the room (stage-bg) and the character line queued up in it,
      reading as the counter's wood surface standing in front of the game
-     content. Anchored to the stage's bottom edge (rather than stretched to
-     cover the full stage like the other layers). height:auto scales the
-     counter up with width normally (tracking the character's own growth),
-     but max-height caps it at the same point the character's own
-     height:44% (below) stops growing — past that width, the box can no
-     longer grow taller, so object-fit:fill (the <img> default) stretches
-     the art horizontally to keep covering the full width instead of
-     cropping it. The negative bottom offset tucks the image's own bottom
-     edge just out of view so no seam shows beneath it. */
+     content. Doesn't need to be absolutely positioned itself — it's the
+     only normal-flow child of .stage (stage-bg/CharacterQueue are both
+     absolute), so a plain block at width:200%/height:100% already fills
+     the stage exactly, top to bottom, on its own. position:relative
+     (rather than static) is still needed so .counter-tray's own
+     percentages, and .stage-counter-img's inset:0, resolve against this
+     box specifically. */
   .stage-counter {
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: -1%;
+    position: relative;
     width: 200%;
-    height: auto;
-    max-height: 100%;
-    object-fit: fill;
+    height: 100%;
     z-index: 2;
     pointer-events: none;
     user-select: none;
   }
 
+  /* Fills the box .stage-counter establishes above; object-fit:fill (the
+     <img> default) stretches the art to match whenever aspect-ratio's
+     natural sizing gets overridden by max-height. */
+  .stage-counter-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: fill;
+  }
+
   /* Anchored to the counter's right side, vertically centered on roughly
-     the middle of the counter's visible (wood-band) surface — bottom:30%
-     is an eyeballed placeholder rather than derived from --counter-height,
-     so nudge it (and right's margin) directly once the real spot is
-     picked. translateY(50%) turns the bottom:30% anchor point, which CSS
-     aligns to the box's bottom edge by default, into a center point
-     instead. */
+     the middle of the counter's visible surface — bottom:30% is an
+     eyeballed placeholder, so nudge it (and right's margin) directly once
+     the real spot is picked. translateY(50%) turns the bottom:30% anchor
+     point, which CSS aligns to the box's bottom edge by default, into a
+     center point instead. A child of .stage (not .stage-counter), since
+     .stage-counter's own box is 200% wide — .stage's plain 0-100%
+     coordinates line up with what's actually visible on screen. */
   .coin-jar-wrap {
     position: absolute;
     bottom: 30%;
@@ -411,16 +443,20 @@
   /* counter.webp's opaque wood band starts about 67% down the source
      image, so it occupies the bottom ~33% of .stage-counter's rendered
      height (object-fit:fill preserves each row's relative position when it
-     stretches the art). Sizing off --counter-height (rather than a fixed
-     percentage of stage height) keeps the tray sitting on that wood band
-     instead of floating above it once the counter's own height is capped
-     at a fraction of the stage's. */
+     stretches the art). This tray is a child of .stage-counter, so bottom
+     resolves directly against the counter's own actual box, and always
+     sits on that wood band however the counter itself ends up sized. left
+     is 25%, not 50%, because .stage-counter is itself 200% wide anchored
+     at the stage's left edge — the stage's own horizontal center falls at
+     the 25% mark of that wider box, not its 50% mark. The scale that used
+     to live here as a fixed factor is now CoinScatter's own job (see its
+     trayHeightPx prop), since it needs the counter's actual pixel height
+     to track it — a plain CSS scale() can't read that. */
   .counter-tray {
     position: absolute;
-    bottom: calc(var(--counter-height) * 0.1);
-    left: 50%;
-    transform: translateX(-50%) scale(0.66);
-    transform-origin: 50% 100%;
+    bottom: 10%;
+    left: 25%;
+    transform: translateX(-50%);
     z-index: 3;
   }
 
@@ -433,22 +469,20 @@
     opacity: 0;
   }
 
-  /* Docked to the very bottom of the screen, underneath the counter tray —
-     reads as the counter's front edge, where a player would be standing to
-     answer. */
+  /* A docked footer row (not an overlay floating over the stage), so its
+     height comes out of the flex layout above and the stage shrinks to
+     make room instead of the bar covering stage content. Solid background
+     (no alpha) since it's no longer sitting on top of anything to show
+     through. */
   .answer-bar {
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 3;
+    flex: 0 0 auto;
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     justify-content: center;
     gap: 0.75rem;
     padding: 0.75rem 1rem;
-    background: rgba(43, 29, 14, 0.75);
+    background: #2b1d0e;
     color: #fff8ec;
   }
 
