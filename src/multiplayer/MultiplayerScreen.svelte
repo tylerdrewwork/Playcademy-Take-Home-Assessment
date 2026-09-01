@@ -1,7 +1,8 @@
 <script lang="ts">
   import { onDestroy } from 'svelte'
-  import { GameSession } from './gameSession.svelte.js'
+  import { GameSession, type CoinProblem } from './gameSession.svelte.js'
   import CoinScatter from './CoinScatter.svelte'
+  import CharacterQueue from './CharacterQueue.svelte'
   import { adminSettings } from '../adminSettings.svelte.js'
   import backgroundBg from '../assets/multiplayer/background_bg.webp'
   import backgroundFg from '../assets/multiplayer/background_fg.webp'
@@ -14,6 +15,42 @@
   session.join()
 
   onDestroy(() => session.leave())
+
+  let characterQueue: CharacterQueue | undefined = $state()
+
+  // The server hands over a fresh problem the instant a correct answer
+  // lands, but the coins shown on screen should stay put until the
+  // character line has finished stepping up — otherwise the coins would
+  // change out from under the player before the new character "arrives".
+  // `pendingProblem` guards against re-triggering the step-up animation on
+  // every reactive re-run while one is already in flight for this problem.
+  let displayedProblem: CoinProblem | null = $state.raw(null)
+  let pendingProblem: CoinProblem | null = null
+  let transitioning = $state(false)
+
+  $effect(() => {
+    const problem = session.problem
+    const result = session.lastResult
+    if (!problem) return
+    if (displayedProblem === null) {
+      displayedProblem = problem // first problem on join — no animation
+      return
+    }
+    if (problem === displayedProblem || problem === pendingProblem) return
+    if (result !== 'correct') {
+      // Not a "customer served" transition (e.g. the Simple Multiplayer
+      // toggle regenerated the problem) — show it immediately.
+      displayedProblem = problem
+      return
+    }
+    pendingProblem = problem
+    transitioning = true
+    characterQueue?.advance().then(() => {
+      displayedProblem = problem
+      pendingProblem = null
+      transitioning = false
+    })
+  })
 
   const bgMusic = new Audio(bgMusicUrl)
   bgMusic.loop = true
@@ -60,8 +97,8 @@
   // and focuses it, so the student can just type "5" + Enter without
   // clicking the box first — same behavior as the lesson's problem screen.
   function handleGlobalDigit(event: KeyboardEvent): void {
-    if (session.status !== 'joined' || !session.problem || !answerInputEl) return
-    if (session.submitting) return // field is disabled; focus() would no-op
+    if (session.status !== 'joined' || !displayedProblem || !answerInputEl) return
+    if (session.submitting || transitioning) return // field is disabled; focus() would no-op
     if (event.ctrlKey || event.metaKey || event.altKey) return
     if (!/^\d$/.test(event.key)) return
     const target = event.target
@@ -93,6 +130,7 @@
 
 <div class="stage">
   <img class="stage-layer stage-bg" src={backgroundBg} alt="" aria-hidden="true" />
+  <CharacterQueue bind:this={characterQueue} />
   <img class="stage-layer stage-fg" src={backgroundFg} alt="" aria-hidden="true" />
 
   {#if session.status === 'joining'}
@@ -109,9 +147,9 @@
       </ul>
     </div>
 
-    {#if session.problem}
+    {#if displayedProblem}
       <div class="counter-tray">
-        <CoinScatter coins={session.problem.coins} />
+        <CoinScatter coins={displayedProblem.coins} />
       </div>
 
       <div class="answer-bar">
@@ -126,9 +164,9 @@
             aria-label="How many cents do the coins add up to?"
             bind:this={answerInputEl}
             bind:value={answer}
-            disabled={session.submitting}
+            disabled={session.submitting || transitioning}
           />
-          <button type="submit" disabled={session.submitting}>Submit</button>
+          <button type="submit" disabled={session.submitting || transitioning}>Submit</button>
         </form>
 
         {#if session.lastResult === 'correct'}
@@ -160,11 +198,12 @@
     user-select: none;
   }
 
-  /* Sits above the room (stage-bg); its transparent middle lets the room
-     show through while its opaque edges (espresso machine, pastry case)
-     read as furniture standing in front of the game content. */
+  /* Sits above the room (stage-bg) and the character line queued up in it;
+     its transparent middle lets both show through while its opaque edges
+     (espresso machine, pastry case) read as furniture standing in front of
+     the game content. */
   .stage-fg {
-    z-index: 1;
+    z-index: 2;
   }
 
   .status-message,
@@ -172,7 +211,7 @@
     position: absolute;
     top: 1rem;
     left: 1rem;
-    z-index: 2;
+    z-index: 3;
     max-width: 12rem;
     padding: 0.6rem 0.9rem;
     border-radius: 12px;
@@ -223,7 +262,7 @@
     left: 50%;
     transform: translateX(-50%) scale(0.66);
     transform-origin: 50% 100%;
-    z-index: 2;
+    z-index: 3;
   }
 
   /* Docked to the very bottom of the screen, underneath the counter tray —
@@ -234,7 +273,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    z-index: 2;
+    z-index: 3;
     display: flex;
     flex-wrap: wrap;
     align-items: center;
