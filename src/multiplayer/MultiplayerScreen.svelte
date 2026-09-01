@@ -224,8 +224,8 @@
   <CharacterQueue bind:this={characterQueue} />
   <img class="stage-counter" src={counterImg} alt="" aria-hidden="true" />
 
-  <!-- Placeholder placement — centered on the stage for now, until where the
-       jar actually belongs in the scene is decided. -->
+  <!-- Sits on the counter's right side — see .coin-jar-wrap for how the
+       exact spot was picked. -->
   <div class="coin-jar-wrap">
     <CoinJar bind:this={coinJar} text={formatTotal(revealedTotalCents)} />
   </div>
@@ -330,15 +330,18 @@
     user-select: none;
   }
 
-  /* Placeholder placement: dead center of the stage, sized as a % of stage
-     width so it scales with the viewport like the other stage layers. Both
-     the position and size here are expected to change once the jar's real
-     spot in the scene is decided. */
+  /* Anchored to the counter's right side, vertically centered on roughly
+     the middle of the counter's visible (wood-band) surface — bottom:30%
+     is an eyeballed placeholder rather than derived from --counter-height,
+     so nudge it (and right's margin) directly once the real spot is
+     picked. translateY(50%) turns the bottom:30% anchor point, which CSS
+     aligns to the box's bottom edge by default, into a center point
+     instead. */
   .coin-jar-wrap {
     position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+    bottom: 30%;
+    right: 8%;
+    transform: translateY(50%);
     z-index: 3;
     width: 20%;
   }
