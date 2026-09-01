@@ -193,7 +193,7 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
-    object-position: left center;
+    object-position: center center;
     pointer-events: none;
     user-select: none;
   }

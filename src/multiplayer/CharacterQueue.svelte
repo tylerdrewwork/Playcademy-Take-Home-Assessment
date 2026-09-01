@@ -116,10 +116,16 @@
      one of the five sprites ships as a landscape image instead of portrait
      like the rest, and would otherwise render far too large. object-fit
      and object-position keep each character's feet flush with the box's
-     bottom edge no matter how much it letterboxes. */
+     bottom edge no matter how much it letterboxes.
+
+     right: 50% + margin-right: -14.5% (half of the 29% width) centers
+     every rank on the same vertical line regardless of its scale — margin
+     is resolved at layout time, before the transform's scale() is
+     applied, so shrinking a rank never pulls its center off that line. */
   .character {
     position: absolute;
-    bottom: 30%;
+    right: 50%;
+    margin-right: -14.5%;
     width: 29%;
     height: 44%;
     object-fit: contain;
@@ -133,27 +139,31 @@
       opacity 0.5s ease;
   }
 
+  /* Front of the line stands feet-first at the very bottom of the stage,
+     behind the counter (character-line's z-index loses to stage-fg's in
+     MultiplayerScreen, so the counter drawn there covers everything below
+     its top edge). Each rank behind steps up enough that its head clears
+     the rank in front — bottom's gain has to outrun the height lost to
+     that rank's smaller scale, or it stays hidden behind the front of the
+     line instead of stacking above it. */
   .rank-0 {
-    right: 43%;
-    bottom: 27%;
-    transform: scale(1);
-    filter: brightness(1);
+    bottom: 0%;
+    transform: scale(2);
+    filter: contrast(1);
     z-index: 3;
   }
 
   .rank-1 {
-    right: 47%;
-    bottom: 33%;
+    bottom: 30%;
     transform: scale(0.82);
-    filter: brightness(0.95);
+    filter: contrast(0.7);
     z-index: 2;
   }
 
   .rank-2 {
-    right: 51%;
-    bottom: 38%;
+    bottom: 40%;
     transform: scale(0.68);
-    filter: brightness(0.9);
+    filter: contrast(0.4);
     z-index: 1;
   }
 
@@ -168,7 +178,7 @@
      departing front character keeps rank-0's size/brightness but slides
      off the right edge and fades as it goes. */
   .character.exiting {
-    right: -70%;
+    right: -100%;
     opacity: 0;
   }
 </style>
