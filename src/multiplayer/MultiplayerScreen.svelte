@@ -3,6 +3,8 @@
   import { GameSession, type CoinProblem } from './gameSession.svelte.js'
   import CoinScatter from './CoinScatter.svelte'
   import CharacterQueue from './CharacterQueue.svelte'
+  import CoinJar from './CoinJar.svelte'
+  import CoinJarDeposit from './CoinJarDeposit.svelte'
   import { adminSettings } from '../adminSettings.svelte.js'
   import backgroundBg from '../assets/multiplayer/background_bg.webp'
   import counterImg from '../assets/multiplayer/counter.webp'
@@ -17,6 +19,9 @@
   onDestroy(() => session.leave())
 
   let characterQueue: CharacterQueue | undefined = $state()
+  let counterTrayEl: HTMLDivElement | undefined = $state()
+  let coinJar: CoinJar | undefined = $state()
+  let coinJarDeposit: CoinJarDeposit | undefined = $state()
 
   // The coin tray scales itself off the counter's actual rendered height
   // (see CoinScatter's trayHeightPx prop) rather than a fixed CSS
@@ -58,13 +63,66 @@
       displayedProblem = problem
       return
     }
+    // displayedProblem is still the one that was just correctly answered —
+    // capture it now, before it's swapped out below, so the coin-jar deposit
+    // animation flies the coins the player actually just counted.
+    const depositDone = queueEarnAnimation(displayedProblem)
+
     pendingProblem = problem
     transitioning = true
-    characterQueue?.advance().then(() => {
+    // Waits for whichever finishes last — the character step-up or the
+    // (longer) coin deposit — so the next group of coins never appears on
+    // the counter while its predecessors are still flying to the jar.
+    Promise.all([characterQueue?.advance() ?? Promise.resolve(), depositDone]).then(() => {
       displayedProblem = problem
       pendingProblem = null
       transitioning = false
     })
+  })
+
+  // Coins fly from the counter into the jar and sparkle before the jar's
+  // LED total is allowed to update (see revealedTotalCents below). A count
+  // rather than a boolean keeps the hold in place across back-to-back earns
+  // instead of releasing early when just the first of several finishes.
+  let depositCount = $state(0)
+  let animatingDeposit = $derived(depositCount > 0)
+  let depositChain: Promise<void> = Promise.resolve()
+
+  function queueEarnAnimation(earnedProblem: CoinProblem): Promise<void> {
+    depositCount++
+    const task = depositChain.then(async () => {
+      try {
+        const mouthEl = coinJar?.getMouthElement()
+        if (counterTrayEl && mouthEl) {
+          await coinJarDeposit?.playEarnAnimation(earnedProblem.coins, counterTrayEl, mouthEl)
+        }
+      } finally {
+        depositCount--
+      }
+    })
+    depositChain = task
+    return task
+  }
+
+  // The jar's displayed total normally tracks the shared running total
+  // live, but while this player's own earn animation is flying coins into
+  // the jar, updates (this player's own bump included) are held back and
+  // only revealed once the sparkle fires — see queueEarnAnimation above.
+  // Re-running whenever animatingDeposit flips back to false (even if
+  // totalMoneyCents itself didn't just change) is what lets a bump that
+  // arrived mid-animation get revealed the instant the hold lifts.
+  let revealedTotalCents = $state(0)
+  let totalInitialized = false
+
+  $effect(() => {
+    const liveTotal = session.totalMoneyCents
+    const holding = animatingDeposit
+    if (!totalInitialized) {
+      revealedTotalCents = liveTotal
+      totalInitialized = true
+      return
+    }
+    if (!holding) revealedTotalCents = liveTotal
   })
 
   // Shows a transient "{name} earned {amount} cents!" note next to a
@@ -168,6 +226,10 @@
     session.submitAnswer(answer)
     answer = undefined
   }
+
+  function formatTotal(cents: number): string {
+    return `$${(cents / 100).toFixed(2)}`
+  }
 </script>
 
 <svelte:window onkeydown={handleGlobalDigit} />
@@ -179,11 +241,18 @@
     <div class="stage-counter" bind:this={counterEl}>
       <img class="stage-counter-img" src={counterImg} alt="" aria-hidden="true" />
       {#if session.status === 'joined' && displayedProblem}
-        <div class="counter-tray">
+        <div class="counter-tray" class:depositing={transitioning} bind:this={counterTrayEl}>
           <CoinScatter coins={displayedProblem.coins} trayHeightPx={counterHeightPx} />
         </div>
       {/if}
     </div>
+
+    <!-- Sits on the counter's right side — see .coin-jar-wrap for how the
+         exact spot was picked. -->
+    <div class="coin-jar-wrap">
+      <CoinJar bind:this={coinJar} text={formatTotal(revealedTotalCents)} />
+    </div>
+    <CoinJarDeposit bind:this={coinJarDeposit} />
 
     {#if session.status === 'joining'}
       <p class="status-message">Joining game…</p>
@@ -292,6 +361,23 @@
     object-fit: fill;
   }
 
+  /* Anchored to the counter's right side, vertically centered on roughly
+     the middle of the counter's visible surface — bottom:30% is an
+     eyeballed placeholder, so nudge it (and right's margin) directly once
+     the real spot is picked. translateY(50%) turns the bottom:30% anchor
+     point, which CSS aligns to the box's bottom edge by default, into a
+     center point instead. A child of .stage (not .stage-counter), since
+     .stage-counter's own box is 200% wide — .stage's plain 0-100%
+     coordinates line up with what's actually visible on screen. */
+  .coin-jar-wrap {
+    position: absolute;
+    bottom: 30%;
+    right: 8%;
+    transform: translateY(50%);
+    z-index: 3;
+    width: 20%;
+  }
+
   .status-message,
   .scoreboard {
     position: absolute;
@@ -372,6 +458,15 @@
     left: 25%;
     transform: translateX(-50%);
     z-index: 3;
+  }
+
+  /* Hidden the instant a correct answer's coins start their deposit flight
+     (see queueEarnAnimation): CoinJarDeposit spawns its own clones at this
+     same spot, so leaving the real coins visible here would show both at
+     once. Uses opacity (not display:none) so counterTrayEl keeps a real
+     layout box for the deposit animation's origin point to measure. */
+  .counter-tray.depositing {
+    opacity: 0;
   }
 
   /* A docked footer row (not an overlay floating over the stage), so its

@@ -59,8 +59,8 @@ const DEFAULT_MODEL = 'google/gemini-3.1-flash-tts'
 // (INPUT_DEFAULTS_NUMBERS) since the delivery style for a single spoken word
 // differs from a full lesson sentence.
 const INPUT_DEFAULTS: Record<string, unknown> = {
-  voice: "Despina",
-  prompt: "Say the following, patiently and with a hint of excitement, like a teacher."
+  voice: "Fenrir",
+  prompt: "AUDIO PROFILE: Becca James, teacher. THE SCENE: Speaking to a single child one-on-one, giving them direct instruction on the lesson. DIRECTOR'S NOTES: Style: Bright, sunny, direct. She never patronizes a child and makes them feel younger than they actually are. Tone: Becca is well-spoken and nobody has trouble understanding her. Pace: Patient and emphasizes important notes of the lesson."
 }
 
 const INPUT_DEFAULTS_NUMBERS: Record<string, unknown> = {
@@ -92,8 +92,9 @@ const REQUEST_PAUSE_SECONDS = 1
 // pause — the whole run aborts immediately rather than burning more of the
 // request budget on clips that would also be rejected.
 class RateLimitError extends Error {
-  constructor(url: string) {
-    super(`Replicate returned HTTP 429 (too many requests) for ${url}; aborting the run.`)
+  constructor(url: string, retryAfter: string | null) {
+    const retryMessage = retryAfter !== null ? ` Retry-After: ${retryAfter}` : ' (no Retry-After header)'
+    super(`Replicate returned HTTP 429 (too many requests) for ${url}; aborting the run.${retryMessage}`)
   }
 }
 
@@ -207,7 +208,7 @@ class VoiceClipGenerator {
     }
     this.lastApiRequestAt = Date.now()
     const res = await fetch(url, init)
-    if (res.status === 429) throw new RateLimitError(url)
+    if (res.status === 429) throw new RateLimitError(url, res.headers.get('Retry-After'))
     return res
   }
 
