@@ -131,7 +131,14 @@
 <div class="stage">
   <img class="stage-layer stage-bg" src={backgroundBg} alt="" aria-hidden="true" />
   <CharacterQueue bind:this={characterQueue} />
-  <img class="stage-counter" src={counterImg} alt="" aria-hidden="true" />
+  <div class="stage-counter">
+    <img class="stage-counter-img" src={counterImg} alt="" aria-hidden="true" />
+    {#if session.status === 'joined' && displayedProblem}
+      <div class="counter-tray">
+        <CoinScatter coins={displayedProblem.coins} />
+      </div>
+    {/if}
+  </div>
 
   {#if session.status === 'joining'}
     <p class="status-message">Joining game…</p>
@@ -148,10 +155,6 @@
     </div>
 
     {#if displayedProblem}
-      <div class="counter-tray">
-        <CoinScatter coins={displayedProblem.coins} />
-      </div>
-
       <div class="answer-bar">
         <p class="prompt">How many cents are these coins worth?</p>
 
@@ -180,17 +183,11 @@
 </div>
 
 <style>
-  /* Mirrors .stage-counter's own rendered height (width:200% of stage width
-     scaled by the source art's 1152/2048 aspect ratio, capped at 100% of
-     stage height) so .counter-tray can size itself off the counter's
-     actual footprint instead of a fixed guess. Keep in sync by hand if
-     .stage-counter's width or max-height ever change. */
   .stage {
     position: relative;
     width: 100%;
     height: 100%;
     overflow: hidden;
-    --counter-height: min(112.5vw, 100%);
   }
 
   .stage-layer {
@@ -207,14 +204,16 @@
   /* Sits above the room (stage-bg) and the character line queued up in it,
      reading as the counter's wood surface standing in front of the game
      content. Anchored to the stage's bottom edge (rather than stretched to
-     cover the full stage like the other layers). height:auto scales the
-     counter up with width normally (tracking the character's own growth),
-     but max-height caps it at the same point the character's own
+     cover the full stage like the other layers). height:auto + aspect-ratio
+     scales the counter up with width normally (tracking the character's own
+     growth), but max-height caps it at the same point the character's own
      height:44% (below) stops growing — past that width, the box can no
-     longer grow taller, so object-fit:fill (the <img> default) stretches
-     the art horizontally to keep covering the full width instead of
-     cropping it. The negative bottom offset tucks the image's own bottom
-     edge just out of view so no seam shows beneath it. */
+     longer grow taller. .counter-tray is a real child of this box (rather
+     than a sibling positioned off a hand-mirrored size formula) so its own
+     percentage-based position always matches the counter's actual footprint
+     exactly, with no separate value to keep in sync. The negative bottom
+     offset tucks the box's own bottom edge just out of view so no seam
+     shows beneath it. */
   .stage-counter {
     position: absolute;
     left: 0;
@@ -222,11 +221,22 @@
     bottom: -1%;
     width: 200%;
     height: auto;
+    aspect-ratio: 2048 / 1152;
     max-height: 100%;
-    object-fit: fill;
     z-index: 2;
     pointer-events: none;
     user-select: none;
+  }
+
+  /* Fills the box .stage-counter establishes above; object-fit:fill (the
+     <img> default) stretches the art to match whenever aspect-ratio's
+     natural sizing gets overridden by max-height. */
+  .stage-counter-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: fill;
   }
 
   .status-message,
@@ -276,14 +286,17 @@
   /* counter.webp's opaque wood band starts about 67% down the source
      image, so it occupies the bottom ~33% of .stage-counter's rendered
      height (object-fit:fill preserves each row's relative position when it
-     stretches the art). Sizing off --counter-height (rather than a fixed
-     percentage of stage height) keeps the tray sitting on that wood band
-     instead of floating above it once the counter's own height is capped
-     at a fraction of the stage's. */
+     stretches the art). Now that this tray is a child of .stage-counter
+     (rather than a sibling positioned off a hand-mirrored size formula),
+     bottom resolves directly against the counter's own actual box, so it
+     always sits on that wood band, however the counter itself ends up
+     sized. left is 25%, not 50%, because .stage-counter is itself 200%
+     wide anchored at the stage's left edge — the stage's own horizontal
+     center falls at the 25% mark of that wider box, not its 50% mark. */
   .counter-tray {
     position: absolute;
-    bottom: calc(var(--counter-height) * 0.1);
-    left: 50%;
+    bottom: 10%;
+    left: 25%;
     transform: translateX(-50%) scale(0.66);
     transform-origin: 50% 100%;
     z-index: 3;
