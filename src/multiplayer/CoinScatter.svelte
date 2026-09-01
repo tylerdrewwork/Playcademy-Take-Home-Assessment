@@ -5,7 +5,17 @@
   import pennyImg from '../assets/multiplayer/coins/penny.webp'
   import type { CoinValue } from './gameSession.svelte.js'
 
-  let { coins }: { coins: CoinValue[] } = $props()
+  let { coins, trayHeightPx }: { coins: CoinValue[]; trayHeightPx: number } = $props()
+
+  // The tray used to be scaled down by a fixed CSS factor tuned against
+  // one viewport size, so it didn't track the counter as it resized.
+  // Scaling directly off the counter's own measured pixel height keeps the
+  // coins sized proportionally at any viewport. REFERENCE_HEIGHT is the
+  // counter height (in px) at which the tray renders at its native,
+  // unscaled size (AREA_WIDTH x AREA_HEIGHT below) — tuned to land close
+  // to the old fixed 0.66 factor at a typical viewport.
+  const REFERENCE_HEIGHT = 1250
+  let scale = $derived(trayHeightPx > 0 ? trayHeightPx / REFERENCE_HEIGHT : 1)
 
   // Diameters keep the coins' real-world size order (quarter > nickel >
   // penny > dime). The transparent source images are square crops sized
@@ -116,6 +126,7 @@
   class="coin-scatter"
   style:width={`${AREA_WIDTH}px`}
   style:height={`${AREA_HEIGHT}px`}
+  style:transform={`scale(${scale})`}
   role="img"
   aria-label={`Coins to count: ${description}`}
 >
@@ -136,6 +147,7 @@
 <style>
   .coin-scatter {
     position: relative;
+    transform-origin: bottom center;
   }
 
   .coin {

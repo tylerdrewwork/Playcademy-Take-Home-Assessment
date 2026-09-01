@@ -18,6 +18,21 @@
 
   let characterQueue: CharacterQueue | undefined = $state()
 
+  // The coin tray scales itself off the counter's actual rendered height
+  // (see CoinScatter's trayHeightPx prop) rather than a fixed CSS
+  // transform, so it needs that height as a real pixel measurement.
+  let counterEl: HTMLDivElement | undefined = $state()
+  let counterHeightPx = $state(0)
+
+  $effect(() => {
+    if (!counterEl) return
+    const observer = new ResizeObserver(([entry]) => {
+      counterHeightPx = entry.contentRect.height
+    })
+    observer.observe(counterEl)
+    return () => observer.disconnect()
+  })
+
   // The server hands over a fresh problem the instant a correct answer
   // lands, but the coins shown on screen should stay put until the
   // character line has finished stepping up — otherwise the coins would
@@ -132,11 +147,11 @@
   <div class="stage">
     <img class="stage-layer stage-bg" src={backgroundBg} alt="" aria-hidden="true" />
     <CharacterQueue bind:this={characterQueue} />
-    <div class="stage-counter">
+    <div class="stage-counter" bind:this={counterEl}>
       <img class="stage-counter-img" src={counterImg} alt="" aria-hidden="true" />
       {#if session.status === 'joined' && displayedProblem}
         <div class="counter-tray">
-          <CoinScatter coins={displayedProblem.coins} />
+          <CoinScatter coins={displayedProblem.coins} trayHeightPx={counterHeightPx} />
         </div>
       {/if}
     </div>
@@ -218,17 +233,15 @@
 
   /* Sits above the room (stage-bg) and the character line queued up in it,
      reading as the counter's wood surface standing in front of the game
-     content. Anchored to the stage's bottom edge (rather than stretched to
-     cover the full stage like the other layers). Always exactly 100% of
-     stage height — no aspect-ratio/max-height clamp — so .counter-tray's
-     child percentages resolve against a fixed, predictable box. The
-     negative bottom offset tucks the box's own bottom edge just out of
-     view so no seam shows beneath it. */
+     content. Doesn't need to be absolutely positioned itself — it's the
+     only normal-flow child of .stage (stage-bg/CharacterQueue are both
+     absolute), so a plain block at width:200%/height:100% already fills
+     the stage exactly, top to bottom, on its own. position:relative
+     (rather than static) is still needed so .counter-tray's own
+     percentages, and .stage-counter-img's inset:0, resolve against this
+     box specifically. */
   .stage-counter {
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: -1%;
+    position: relative;
     width: 200%;
     height: 100%;
     z-index: 2;
@@ -294,19 +307,20 @@
   /* counter.webp's opaque wood band starts about 67% down the source
      image, so it occupies the bottom ~33% of .stage-counter's rendered
      height (object-fit:fill preserves each row's relative position when it
-     stretches the art). Now that this tray is a child of .stage-counter
-     (rather than a sibling positioned off a hand-mirrored size formula),
-     bottom resolves directly against the counter's own actual box, so it
-     always sits on that wood band, however the counter itself ends up
-     sized. left is 25%, not 50%, because .stage-counter is itself 200%
-     wide anchored at the stage's left edge — the stage's own horizontal
-     center falls at the 25% mark of that wider box, not its 50% mark. */
+     stretches the art). This tray is a child of .stage-counter, so bottom
+     resolves directly against the counter's own actual box, and always
+     sits on that wood band however the counter itself ends up sized. left
+     is 25%, not 50%, because .stage-counter is itself 200% wide anchored
+     at the stage's left edge — the stage's own horizontal center falls at
+     the 25% mark of that wider box, not its 50% mark. The scale that used
+     to live here as a fixed factor is now CoinScatter's own job (see its
+     trayHeightPx prop), since it needs the counter's actual pixel height
+     to track it — a plain CSS scale() can't read that. */
   .counter-tray {
     position: absolute;
     bottom: 10%;
     left: 25%;
-    transform: translateX(-50%) scale(0.66);
-    transform-origin: 50% 100%;
+    transform: translateX(-50%);
     z-index: 3;
   }
 
