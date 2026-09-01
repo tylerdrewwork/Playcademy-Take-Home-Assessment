@@ -134,24 +134,24 @@
   }
 
   .rank-0 {
-    right: 40%;
-    bottom: 29%;
+    right: 43%;
+    bottom: 27%;
     transform: scale(1);
     filter: brightness(1);
     z-index: 3;
   }
 
   .rank-1 {
-    right: 49%;
-    bottom: 32%;
+    right: 47%;
+    bottom: 33%;
     transform: scale(0.82);
     filter: brightness(0.95);
     z-index: 2;
   }
 
   .rank-2 {
-    right: 56%;
-    bottom: 34%;
+    right: 51%;
+    bottom: 38%;
     transform: scale(0.68);
     filter: brightness(0.9);
     z-index: 1;
