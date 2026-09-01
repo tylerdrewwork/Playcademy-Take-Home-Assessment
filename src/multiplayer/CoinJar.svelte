@@ -18,6 +18,15 @@
   let scale = $derived(
     textWidth && textHeight ? Math.min(1, boxWidth / textWidth, boxHeight / textHeight) : 1,
   )
+
+  let mouthEl: HTMLDivElement | undefined = $state()
+
+  /** Screen point coins should fly toward when depositing into this jar —
+   * the rim of the jar's opening, so a coin animation can target it without
+   * knowing anything about the sprite's internal layout. */
+  export function getMouthElement(): HTMLDivElement | undefined {
+    return mouthEl
+  }
 </script>
 
 <div class="jar">
@@ -38,6 +47,11 @@
       style:transform="scale({scale})">{text}</span
     >
   </div>
+
+  <!-- Zero-size anchor at the jar's rim (also a visual estimate, see above)
+       — exists only so callers can read its screen position via
+       getBoundingClientRect(). -->
+  <div class="jar-mouth" bind:this={mouthEl}></div>
 </div>
 
 <style>
@@ -69,6 +83,14 @@
     justify-content: center;
     overflow: hidden;
     container-type: size;
+  }
+
+  .jar-mouth {
+    position: absolute;
+    left: 50%;
+    top: 12%;
+    width: 1px;
+    height: 1px;
   }
 
   .led-text {

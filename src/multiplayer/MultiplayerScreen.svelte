@@ -4,6 +4,7 @@
   import CoinScatter from './CoinScatter.svelte'
   import CharacterQueue from './CharacterQueue.svelte'
   import CoinJar from './CoinJar.svelte'
+  import CoinJarDeposit from './CoinJarDeposit.svelte'
   import { adminSettings } from '../adminSettings.svelte.js'
   import backgroundBg from '../assets/multiplayer/background_bg.webp'
   import counterImg from '../assets/multiplayer/counter.webp'
@@ -18,6 +19,9 @@
   onDestroy(() => session.leave())
 
   let characterQueue: CharacterQueue | undefined = $state()
+  let counterTrayEl: HTMLDivElement | undefined = $state()
+  let coinJar: CoinJar | undefined = $state()
+  let coinJarDeposit: CoinJarDeposit | undefined = $state()
 
   // The server hands over a fresh problem the instant a correct answer
   // lands, but the coins shown on screen should stay put until the
@@ -44,6 +48,11 @@
       displayedProblem = problem
       return
     }
+    // displayedProblem is still the one that was just correctly answered —
+    // capture it now, before it's swapped out below, so the coin-jar deposit
+    // animation flies the coins the player actually just counted.
+    queueEarnAnimation(displayedProblem)
+
     pendingProblem = problem
     transitioning = true
     characterQueue?.advance().then(() => {
@@ -51,6 +60,49 @@
       pendingProblem = null
       transitioning = false
     })
+  })
+
+  // Coins fly from the counter into the jar and sparkle before the jar's
+  // LED total is allowed to update (see revealedTotalCents below). A count
+  // rather than a boolean keeps the hold in place across back-to-back earns
+  // instead of releasing early when just the first of several finishes.
+  let depositCount = $state(0)
+  let animatingDeposit = $derived(depositCount > 0)
+  let depositChain: Promise<void> = Promise.resolve()
+
+  function queueEarnAnimation(earnedProblem: CoinProblem): void {
+    depositCount++
+    depositChain = depositChain.then(async () => {
+      try {
+        const mouthEl = coinJar?.getMouthElement()
+        if (counterTrayEl && mouthEl) {
+          await coinJarDeposit?.playEarnAnimation(earnedProblem.coins, counterTrayEl, mouthEl)
+        }
+      } finally {
+        depositCount--
+      }
+    })
+  }
+
+  // The jar's displayed total normally tracks the shared running total
+  // live, but while this player's own earn animation is flying coins into
+  // the jar, updates (this player's own bump included) are held back and
+  // only revealed once the sparkle fires — see queueEarnAnimation above.
+  // Re-running whenever animatingDeposit flips back to false (even if
+  // totalMoneyCents itself didn't just change) is what lets a bump that
+  // arrived mid-animation get revealed the instant the hold lifts.
+  let revealedTotalCents = $state(0)
+  let totalInitialized = false
+
+  $effect(() => {
+    const liveTotal = session.totalMoneyCents
+    const holding = animatingDeposit
+    if (!totalInitialized) {
+      revealedTotalCents = liveTotal
+      totalInitialized = true
+      return
+    }
+    if (!holding) revealedTotalCents = liveTotal
   })
 
   // Shows a transient "{name} earned {amount} cents!" note next to a
@@ -170,8 +222,9 @@
   <!-- Placeholder placement — centered on the stage for now, until where the
        jar actually belongs in the scene is decided. -->
   <div class="coin-jar-wrap">
-    <CoinJar text={formatTotal(session.totalMoneyCents)} />
+    <CoinJar bind:this={coinJar} text={formatTotal(revealedTotalCents)} />
   </div>
+  <CoinJarDeposit bind:this={coinJarDeposit} />
 
   {#if session.status === 'joining'}
     <p class="status-message">Joining game…</p>
@@ -191,7 +244,7 @@
     </div>
 
     {#if displayedProblem}
-      <div class="counter-tray">
+      <div class="counter-tray" bind:this={counterTrayEl}>
         <CoinScatter coins={displayedProblem.coins} />
       </div>
 
