@@ -131,10 +131,13 @@
 
   function handleAnswerInput(event) {
     const value = event.currentTarget.value
-    addition1EvaluationRecorder.recordEvent({ type: 'input-change', value })
     if (!/^\d*$/.test(value)) {
       addition1EvaluationRecorder.recordEvent({ type: 'nonnumeric-input', value })
+      // Strip anything non-digit rather than rejecting the whole keystroke,
+      // so e.g. pasting "5a2" still leaves the digits behind.
+      inputValue = value.replace(/\D/g, '').slice(0, 2)
     }
+    addition1EvaluationRecorder.recordEvent({ type: 'input-change', value: inputValue })
   }
 
   function pushTogether() {
