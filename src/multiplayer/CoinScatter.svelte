@@ -16,7 +16,7 @@
     names: [singular: string, plural: string]
     diameter: number
   }> = {
-    25: { src: quarterImg, names: ['quarter', 'quarters'], diameter: 58 },
+    25: { src: quarterImg, names: ['quarter', 'quarters'], diameter: 67 },
     10: { src: dimeImg, names: ['dime', 'dimes'], diameter: 43 },
     5: { src: nickelImg, names: ['nickel', 'nickels'], diameter: 51 },
     1: { src: pennyImg, names: ['penny', 'pennies'], diameter: 46 },
