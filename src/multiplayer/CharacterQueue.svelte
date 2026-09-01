@@ -148,22 +148,22 @@
      line instead of stacking above it. */
   .rank-0 {
     bottom: 0%;
-    transform: scale(1);
-    filter: brightness(1);
+    transform: scale(2);
+    filter: contrast(1);
     z-index: 3;
   }
 
   .rank-1 {
-    bottom: 17%;
+    bottom: 30%;
     transform: scale(0.82);
-    filter: brightness(0.95);
+    filter: contrast(0.7);
     z-index: 2;
   }
 
   .rank-2 {
-    bottom: 31%;
+    bottom: 40%;
     transform: scale(0.68);
-    filter: brightness(0.9);
+    filter: contrast(0.4);
     z-index: 1;
   }
 
