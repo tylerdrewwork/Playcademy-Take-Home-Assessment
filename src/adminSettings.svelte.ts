@@ -9,6 +9,12 @@ class AdminSettings {
    * mid-session flip applies from the next generated problem onward.
    */
   simpleMultiplayer = $state(false)
+
+  /**
+   * When on, a debug overlay in the top-right corner shows the current
+   * lesson phase/screen/step while on the lesson screens.
+   */
+  showDebugOverlay = $state(false)
 }
 
 export const adminSettings = new AdminSettings()

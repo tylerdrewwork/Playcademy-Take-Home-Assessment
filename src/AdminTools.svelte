@@ -105,6 +105,14 @@
       </span>
     </label>
 
+    <label class="setting-row">
+      <input type="checkbox" bind:checked={adminSettings.showDebugOverlay} />
+      <span>
+        Debug Overlay
+        <span class="setting-hint">— shows current lesson screen/step in the top right</span>
+      </span>
+    </label>
+
     <div class="actions">
       <button onclick={requestReset}>Reset Progress</button>
       <button onclick={close}>Close</button>

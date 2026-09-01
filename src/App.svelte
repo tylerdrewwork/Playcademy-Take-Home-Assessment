@@ -3,6 +3,8 @@
   import MultiplayerScreen from './multiplayer/MultiplayerScreen.svelte'
   import MusicMuteButton from './multiplayer/MusicMuteButton.svelte'
   import AdminTools from './AdminTools.svelte'
+  import DebugOverlay from './DebugOverlay.svelte'
+  import { adminSettings } from './adminSettings.svelte.js'
 
   let view = $state('lesson')
 </script>
@@ -14,6 +16,9 @@
     {/if}
     <AdminTools onShowSection={(section) => (view = section)} />
   </div>
+  {#if view !== 'multiplayer' && adminSettings.showDebugOverlay}
+    <DebugOverlay />
+  {/if}
   {#if view === 'multiplayer'}
     <MultiplayerScreen onExit={() => (view = 'lesson')} />
   {:else}
