@@ -204,25 +204,18 @@
   /* Sits above the room (stage-bg) and the character line queued up in it,
      reading as the counter's wood surface standing in front of the game
      content. Anchored to the stage's bottom edge (rather than stretched to
-     cover the full stage like the other layers). height:auto + aspect-ratio
-     scales the counter up with width normally (tracking the character's own
-     growth), but max-height caps it at the same point the character's own
-     height:44% (below) stops growing — past that width, the box can no
-     longer grow taller. .counter-tray is a real child of this box (rather
-     than a sibling positioned off a hand-mirrored size formula) so its own
-     percentage-based position always matches the counter's actual footprint
-     exactly, with no separate value to keep in sync. The negative bottom
-     offset tucks the box's own bottom edge just out of view so no seam
-     shows beneath it. */
+     cover the full stage like the other layers). Always exactly 100% of
+     stage height — no aspect-ratio/max-height clamp — so .counter-tray's
+     child percentages resolve against a fixed, predictable box. The
+     negative bottom offset tucks the box's own bottom edge just out of
+     view so no seam shows beneath it. */
   .stage-counter {
     position: absolute;
     left: 0;
     right: 0;
     bottom: -1%;
     width: 200%;
-    height: auto;
-    aspect-ratio: 2048 / 1152;
-    max-height: 100%;
+    height: 100%;
     z-index: 2;
     pointer-events: none;
     user-select: none;
