@@ -52,6 +52,35 @@
     })
   })
 
+  // Shows a transient "{name} earned {amount} cents!" note next to a
+  // player's name on the scoreboard when their award changes. Keyed by uid
+  // so simultaneous awards from different players don't clobber each other.
+  // `undefined` means "not yet seen" — an award that predates this screen
+  // mounting (e.g. it happened before we joined) must not replay as fresh.
+  let earnMessages: Record<string, string> = $state({})
+  const seenAwardAt: Record<string, number | null | undefined> = {}
+  const earnMessageTimers: Record<string, ReturnType<typeof setTimeout>> = {}
+
+  $effect(() => {
+    for (const player of session.players) {
+      const award = player.lastAward
+      const previous = seenAwardAt[player.uid]
+      seenAwardAt[player.uid] = award?.at ?? null
+      if (previous === undefined || !award || award.at === previous) continue
+
+      earnMessages[player.uid] =
+        `${player.name} earned ${award.cents} ${award.cents === 1 ? 'cent' : 'cents'}!`
+      clearTimeout(earnMessageTimers[player.uid])
+      earnMessageTimers[player.uid] = setTimeout(() => {
+        delete earnMessages[player.uid]
+      }, 3000)
+    }
+  })
+
+  onDestroy(() => {
+    for (const timer of Object.values(earnMessageTimers)) clearTimeout(timer)
+  })
+
   const bgMusic = new Audio(bgMusicUrl)
   bgMusic.loop = true
   bgMusic.volume = 0.25
@@ -139,10 +168,13 @@
     <p class="status-message error">Couldn't join the game. Please check your connection and try again.</p>
   {:else if session.status === 'joined'}
     <div class="scoreboard">
-      <h3>Players ({session.playerCount})</h3>
+      <h3>Current Employees ({session.playerCount})</h3>
       <ul>
         {#each session.players as player (player.uid)}
-          <li class:self={player.isSelf}>{player.name}{player.isSelf ? ' (You)' : ''}</li>
+          <li class:self={player.isSelf}>
+            <span class="player-name">{player.name}{player.isSelf ? ' (You)' : ''}</span>
+            <span class="earn-message">{earnMessages[player.uid] ?? ''}</span>
+          </li>
         {/each}
       </ul>
     </div>
@@ -210,9 +242,9 @@
   .scoreboard {
     position: absolute;
     top: 1rem;
-    left: 1rem;
+    right: 1rem;
     z-index: 3;
-    max-width: 12rem;
+    max-width: 18rem;
     padding: 0.6rem 0.9rem;
     border-radius: 12px;
     color: #2b1d0e;
@@ -243,11 +275,29 @@
   }
 
   .scoreboard li {
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
     padding: 0.15rem 0;
   }
 
   .scoreboard li.self {
     font-weight: bold;
+  }
+
+  .scoreboard .player-name {
+    flex-shrink: 0;
+  }
+
+  /* Reserves room next to the name for a transient "earned N cents!" note,
+     so the row doesn't jump width when one appears. */
+  .scoreboard .earn-message {
+    flex-grow: 1;
+    min-width: 6rem;
+    font-weight: normal;
+    font-size: 0.8em;
+    color: #1a7f37;
+    text-align: right;
   }
 
   /* The counter's wood surface in background_fg.webp starts at 72.2% of

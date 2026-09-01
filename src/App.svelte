@@ -8,7 +8,7 @@
 </script>
 
 <main>
-  <div class="top-right-controls">
+  <div class="top-left-controls">
     {#if view === 'multiplayer'}
       <MusicMuteButton />
     {/if}
@@ -30,10 +30,10 @@
     justify-content: center;
   }
 
-  .top-right-controls {
+  .top-left-controls {
     position: fixed;
     top: 1rem;
-    right: 1rem;
+    left: 1rem;
     z-index: 10;
     display: flex;
     align-items: center;
