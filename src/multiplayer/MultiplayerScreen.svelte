@@ -128,65 +128,80 @@
 
 <svelte:window onkeydown={handleGlobalDigit} />
 
-<div class="stage">
-  <img class="stage-layer stage-bg" src={backgroundBg} alt="" aria-hidden="true" />
-  <CharacterQueue bind:this={characterQueue} />
-  <div class="stage-counter">
-    <img class="stage-counter-img" src={counterImg} alt="" aria-hidden="true" />
-    {#if session.status === 'joined' && displayedProblem}
-      <div class="counter-tray">
-        <CoinScatter coins={displayedProblem.coins} />
+<div class="multiplayer-screen">
+  <div class="stage">
+    <img class="stage-layer stage-bg" src={backgroundBg} alt="" aria-hidden="true" />
+    <CharacterQueue bind:this={characterQueue} />
+    <div class="stage-counter">
+      <img class="stage-counter-img" src={counterImg} alt="" aria-hidden="true" />
+      {#if session.status === 'joined' && displayedProblem}
+        <div class="counter-tray">
+          <CoinScatter coins={displayedProblem.coins} />
+        </div>
+      {/if}
+    </div>
+
+    {#if session.status === 'joining'}
+      <p class="status-message">Joining game…</p>
+    {:else if session.status === 'error'}
+      <p class="status-message error">Couldn't join the game. Please check your connection and try again.</p>
+    {:else if session.status === 'joined'}
+      <div class="scoreboard">
+        <h3>Players ({session.playerCount})</h3>
+        <ul>
+          {#each session.players as player (player.uid)}
+            <li class:self={player.isSelf}>{player.name}{player.isSelf ? ' (You)' : ''}</li>
+          {/each}
+        </ul>
       </div>
     {/if}
   </div>
 
-  {#if session.status === 'joining'}
-    <p class="status-message">Joining game…</p>
-  {:else if session.status === 'error'}
-    <p class="status-message error">Couldn't join the game. Please check your connection and try again.</p>
-  {:else if session.status === 'joined'}
-    <div class="scoreboard">
-      <h3>Players ({session.playerCount})</h3>
-      <ul>
-        {#each session.players as player (player.uid)}
-          <li class:self={player.isSelf}>{player.name}{player.isSelf ? ' (You)' : ''}</li>
-        {/each}
-      </ul>
+  {#if session.status === 'joined' && displayedProblem}
+    <div class="answer-bar">
+      <p class="prompt">How many cents are these coins worth?</p>
+
+      <form class="answer-form" onsubmit={handleSubmit}>
+        <input
+          type="number"
+          inputmode="numeric"
+          min="0"
+          placeholder="How many cents?"
+          aria-label="How many cents do the coins add up to?"
+          bind:this={answerInputEl}
+          bind:value={answer}
+          disabled={session.submitting || transitioning}
+        />
+        <button type="submit" disabled={session.submitting || transitioning}>Submit</button>
+      </form>
+
+      {#if session.lastResult === 'correct'}
+        <p class="feedback correct">Correct! Here's a new group to count.</p>
+      {:else if session.lastResult === 'incorrect'}
+        <p class="feedback incorrect">Not quite — count again and resubmit.</p>
+      {/if}
     </div>
-
-    {#if displayedProblem}
-      <div class="answer-bar">
-        <p class="prompt">How many cents are these coins worth?</p>
-
-        <form class="answer-form" onsubmit={handleSubmit}>
-          <input
-            type="number"
-            inputmode="numeric"
-            min="0"
-            placeholder="How many cents?"
-            aria-label="How many cents do the coins add up to?"
-            bind:this={answerInputEl}
-            bind:value={answer}
-            disabled={session.submitting || transitioning}
-          />
-          <button type="submit" disabled={session.submitting || transitioning}>Submit</button>
-        </form>
-
-        {#if session.lastResult === 'correct'}
-          <p class="feedback correct">Correct! Here's a new group to count.</p>
-        {:else if session.lastResult === 'incorrect'}
-          <p class="feedback incorrect">Not quite — count again and resubmit.</p>
-        {/if}
-      </div>
-    {/if}
   {/if}
 </div>
 
 <style>
-  .stage {
+  /* Stacks the stage above the docked answer-bar so the bar reserves its
+     own row instead of floating over the stage as a transparent overlay —
+     the stage (flex:1) shrinks to the space left over, so its content
+     shifts up rather than being covered. */
+  .multiplayer-screen {
     position: relative;
     width: 100%;
     height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .stage {
+    position: relative;
+    flex: 1 1 auto;
+    min-height: 0;
     overflow: hidden;
   }
 
@@ -295,22 +310,20 @@
     z-index: 3;
   }
 
-  /* Docked to the very bottom of the screen, underneath the counter tray —
-     reads as the counter's front edge, where a player would be standing to
-     answer. */
+  /* A docked footer row (not an overlay floating over the stage), so its
+     height comes out of the flex layout above and the stage shrinks to
+     make room instead of the bar covering stage content. Solid background
+     (no alpha) since it's no longer sitting on top of anything to show
+     through. */
   .answer-bar {
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 3;
+    flex: 0 0 auto;
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     justify-content: center;
     gap: 0.75rem;
     padding: 0.75rem 1rem;
-    background: rgba(43, 29, 14, 0.75);
+    background: #2b1d0e;
     color: #fff8ec;
   }
 
