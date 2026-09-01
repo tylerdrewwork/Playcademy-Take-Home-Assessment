@@ -196,7 +196,7 @@
   .eval-panel {
     position: fixed;
     top: 3.75rem;
-    right: 1rem;
+    left: 1rem;
     z-index: 10;
     width: min(24rem, calc(100vw - 2rem));
     padding: 0.75rem 1rem;
@@ -256,7 +256,7 @@
   .toast {
     position: fixed;
     top: 4rem;
-    right: 1rem;
+    left: 1rem;
     background-color: #1a1a1a;
     padding: 0.5rem 1rem;
     border-radius: 8px;
