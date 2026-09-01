@@ -51,11 +51,14 @@
     // displayedProblem is still the one that was just correctly answered —
     // capture it now, before it's swapped out below, so the coin-jar deposit
     // animation flies the coins the player actually just counted.
-    queueEarnAnimation(displayedProblem)
+    const depositDone = queueEarnAnimation(displayedProblem)
 
     pendingProblem = problem
     transitioning = true
-    characterQueue?.advance().then(() => {
+    // Waits for whichever finishes last — the character step-up or the
+    // (longer) coin deposit — so the next group of coins never appears on
+    // the counter while its predecessors are still flying to the jar.
+    Promise.all([characterQueue?.advance() ?? Promise.resolve(), depositDone]).then(() => {
       displayedProblem = problem
       pendingProblem = null
       transitioning = false
@@ -70,9 +73,9 @@
   let animatingDeposit = $derived(depositCount > 0)
   let depositChain: Promise<void> = Promise.resolve()
 
-  function queueEarnAnimation(earnedProblem: CoinProblem): void {
+  function queueEarnAnimation(earnedProblem: CoinProblem): Promise<void> {
     depositCount++
-    depositChain = depositChain.then(async () => {
+    const task = depositChain.then(async () => {
       try {
         const mouthEl = coinJar?.getMouthElement()
         if (counterTrayEl && mouthEl) {
@@ -82,6 +85,8 @@
         depositCount--
       }
     })
+    depositChain = task
+    return task
   }
 
   // The jar's displayed total normally tracks the shared running total
@@ -244,7 +249,7 @@
     </div>
 
     {#if displayedProblem}
-      <div class="counter-tray" bind:this={counterTrayEl}>
+      <div class="counter-tray" class:depositing={transitioning} bind:this={counterTrayEl}>
         <CoinScatter coins={displayedProblem.coins} />
       </div>
 
@@ -403,6 +408,15 @@
     transform: translateX(-50%) scale(0.66);
     transform-origin: 50% 100%;
     z-index: 3;
+  }
+
+  /* Hidden the instant a correct answer's coins start their deposit flight
+     (see queueEarnAnimation): CoinJarDeposit spawns its own clones at this
+     same spot, so leaving the real coins visible here would show both at
+     once. Uses opacity (not display:none) so counterTrayEl keeps a real
+     layout box for the deposit animation's origin point to measure. */
+  .counter-tray.depositing {
+    opacity: 0;
   }
 
   /* Docked to the very bottom of the screen, underneath the counter tray —
