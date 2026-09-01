@@ -23,7 +23,7 @@ export const countingCombiningSteps: ScreenStep[] = [
   {
     label: 'combine',
     title: 'How to Combine Groups',
-    transcript: "Now let's put both groups together and count all the balloons. There are 5 balloons in all.",
+    transcript: "Now let's put both groups together and count all the balloons.",
   },
   {
     label: 'we-do-start',
@@ -33,17 +33,17 @@ export const countingCombiningSteps: ScreenStep[] = [
   {
     label: 'we-do-group-1',
     title: '',
-    transcript: "Let's count the blue balloons together. There are 4 blue balloons.",
+    transcript: "Let's count the blue balloons together.",
   },
   {
     label: 'we-do-group-2',
     title: '',
-    transcript: "Now let's count the yellow balloons together. There are 5 yellow balloons.",
+    transcript: "Now let's count the yellow balloons together.",
   },
   {
     label: 'we-do-group-combined',
     title: '',
-    transcript: "Now let's put both groups together and count all the balloons. There are 9 balloons!",
+    transcript: "Now let's put both groups together and count all the balloons.",
   },
   {
     label: 'problems-pre-transition',
