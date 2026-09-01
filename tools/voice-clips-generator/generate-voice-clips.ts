@@ -92,8 +92,9 @@ const REQUEST_PAUSE_SECONDS = 1
 // pause — the whole run aborts immediately rather than burning more of the
 // request budget on clips that would also be rejected.
 class RateLimitError extends Error {
-  constructor(url: string) {
-    super(`Replicate returned HTTP 429 (too many requests) for ${url}; aborting the run.`)
+  constructor(url: string, retryAfter: string | null) {
+    const retryMessage = retryAfter !== null ? ` Retry-After: ${retryAfter}` : ' (no Retry-After header)'
+    super(`Replicate returned HTTP 429 (too many requests) for ${url}; aborting the run.${retryMessage}`)
   }
 }
 
@@ -207,7 +208,7 @@ class VoiceClipGenerator {
     }
     this.lastApiRequestAt = Date.now()
     const res = await fetch(url, init)
-    if (res.status === 429) throw new RateLimitError(url)
+    if (res.status === 429) throw new RateLimitError(url, res.headers.get('Retry-After'))
     return res
   }
 
