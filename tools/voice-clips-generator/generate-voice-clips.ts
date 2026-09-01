@@ -60,7 +60,7 @@ const DEFAULT_MODEL = 'google/gemini-3.1-flash-tts'
 // differs from a full lesson sentence.
 const INPUT_DEFAULTS: Record<string, unknown> = {
   voice: "Fenrir",
-  prompt: "Say the following, patiently and clearly, with a hint of joy."
+  prompt: "AUDIO PROFILE: Becca James, teacher. THE SCENE: Speaking to a single child one-on-one, giving them direct instruction on the lesson. DIRECTOR'S NOTES: Style: Bright, sunny, direct. She never patronizes a child and makes them feel younger than they actually are. Tone: Becca is well-spoken and nobody has trouble understanding her. Pace: Patient and emphasizes important notes of the lesson."
 }
 
 const INPUT_DEFAULTS_NUMBERS: Record<string, unknown> = {
