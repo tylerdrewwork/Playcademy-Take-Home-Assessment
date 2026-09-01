@@ -68,6 +68,12 @@ const INPUT_DEFAULTS_NUMBERS: Record<string, unknown> = {
   prompt: "Say the following, quickly, as a teacher, without extreme fluctuation."
 }
 
+// Optional text glued directly onto the transcript before it's sent as the
+// model's text input — e.g. a spoken style cue. Applies to every job (lesson
+// steps and number takes alike). Empty by default.
+const TRANSCRIPT_PREFIX = ''
+const TRANSCRIPT_SUFFIX = ''
+
 // Parameter names differ per model ('text' vs 'prompt', 'voice' vs
 // 'voice_id'...). On a real run the model's input schema is fetched and the
 // names resolved from it; these are the fallbacks if that fetch fails.
@@ -259,7 +265,8 @@ class VoiceClipGenerator {
 
   private buildInput(job: Job): Record<string, unknown> {
     const defaults = this.opts.numbers ? INPUT_DEFAULTS_NUMBERS : INPUT_DEFAULTS
-    const input: Record<string, unknown> = { ...defaults, [this.textParam]: job.transcript }
+    const text = `${TRANSCRIPT_PREFIX}${job.transcript}${TRANSCRIPT_SUFFIX}`
+    const input: Record<string, unknown> = { ...defaults, [this.textParam]: text }
     if (this.opts.voiceId !== undefined) input[this.voiceParam] = this.opts.voiceId
     return input
   }
@@ -343,7 +350,7 @@ class VoiceClipGenerator {
 
     if (this.opts.dryRun) {
       for (const job of jobs) {
-        console.log(`would generate     ${job.label}: "${job.transcript}"`)
+        console.log(`would generate     ${job.label}: "${TRANSCRIPT_PREFIX}${job.transcript}${TRANSCRIPT_SUFFIX}"`)
       }
       return 0
     }
@@ -358,7 +365,7 @@ class VoiceClipGenerator {
     // already exists — use --only to limit a run to a single label.
     for (const job of jobs) {
       try {
-        console.log(`generating            ${job.label}: "${job.transcript}"`)
+        console.log(`generating            ${job.label}: "${TRANSCRIPT_PREFIX}${job.transcript}${TRANSCRIPT_SUFFIX}"`)
         const outputUrl = await this.generateClip(job)
         const dest = path.join(this.outputDir, `${job.label}.${this.extensionFor(outputUrl)}`)
         await this.downloadTo(outputUrl, dest)
