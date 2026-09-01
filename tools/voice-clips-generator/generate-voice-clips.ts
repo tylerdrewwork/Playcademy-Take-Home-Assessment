@@ -59,8 +59,8 @@ const DEFAULT_MODEL = 'google/gemini-3.1-flash-tts'
 // (INPUT_DEFAULTS_NUMBERS) since the delivery style for a single spoken word
 // differs from a full lesson sentence.
 const INPUT_DEFAULTS: Record<string, unknown> = {
-  voice: "Despina",
-  prompt: "Say the following, patiently and with a hint of excitement, like a teacher."
+  voice: "Fenrir",
+  prompt: "Say the following, patiently and clearly, with a hint of joy."
 }
 
 const INPUT_DEFAULTS_NUMBERS: Record<string, unknown> = {
