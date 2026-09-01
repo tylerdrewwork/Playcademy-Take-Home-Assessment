@@ -3,6 +3,7 @@
   import { GameSession, type CoinProblem } from './gameSession.svelte.js'
   import CoinScatter from './CoinScatter.svelte'
   import CharacterQueue from './CharacterQueue.svelte'
+  import CoinJar from './CoinJar.svelte'
   import { adminSettings } from '../adminSettings.svelte.js'
   import backgroundBg from '../assets/multiplayer/background_bg.webp'
   import counterImg from '../assets/multiplayer/counter.webp'
@@ -153,6 +154,10 @@
     session.submitAnswer(answer)
     answer = undefined
   }
+
+  function formatTotal(cents: number): string {
+    return `$${(cents / 100).toFixed(2)}`
+  }
 </script>
 
 <svelte:window onkeydown={handleGlobalDigit} />
@@ -161,6 +166,12 @@
   <img class="stage-layer stage-bg" src={backgroundBg} alt="" aria-hidden="true" />
   <CharacterQueue bind:this={characterQueue} />
   <img class="stage-counter" src={counterImg} alt="" aria-hidden="true" />
+
+  <!-- Placeholder placement — centered on the stage for now, until where the
+       jar actually belongs in the scene is decided. -->
+  <div class="coin-jar-wrap">
+    <CoinJar text={formatTotal(session.totalMoneyCents)} />
+  </div>
 
   {#if session.status === 'joining'}
     <p class="status-message">Joining game…</p>
@@ -249,6 +260,19 @@
     z-index: 2;
     pointer-events: none;
     user-select: none;
+  }
+
+  /* Placeholder placement: dead center of the stage, sized as a % of stage
+     width so it scales with the viewport like the other stage layers. Both
+     the position and size here are expected to change once the jar's real
+     spot in the scene is decided. */
+  .coin-jar-wrap {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 3;
+    width: 20%;
   }
 
   .status-message,
