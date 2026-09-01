@@ -281,11 +281,17 @@
 </div>
 
 <style>
+  /* Mirrors .stage-counter's own rendered height (width:200% of stage width
+     scaled by the source art's 1152/2048 aspect ratio, capped at 100% of
+     stage height) so .counter-tray can size itself off the counter's
+     actual footprint instead of a fixed guess. Keep in sync by hand if
+     .stage-counter's width or max-height ever change. */
   .stage {
     position: relative;
     width: 100%;
     height: 100%;
     overflow: hidden;
+    --counter-height: min(112.5vw, 100%);
   }
 
   .stage-layer {
@@ -302,19 +308,23 @@
   /* Sits above the room (stage-bg) and the character line queued up in it,
      reading as the counter's wood surface standing in front of the game
      content. Anchored to the stage's bottom edge (rather than stretched to
-     cover the full stage like the other layers) and scaled up vertically so
-     the wood band fills the answer-bar area without warping horizontally;
-     the negative bottom offset tucks the image's own bottom edge just out
-     of view so no seam shows beneath it. */
+     cover the full stage like the other layers). height:auto scales the
+     counter up with width normally (tracking the character's own growth),
+     but max-height caps it at the same point the character's own
+     height:44% (below) stops growing — past that width, the box can no
+     longer grow taller, so object-fit:fill (the <img> default) stretches
+     the art horizontally to keep covering the full width instead of
+     cropping it. The negative bottom offset tucks the image's own bottom
+     edge just out of view so no seam shows beneath it. */
   .stage-counter {
     position: absolute;
     left: 0;
     right: 0;
     bottom: -1%;
-    width: 100%;
+    width: 200%;
     height: auto;
-    transform: scaleY(1.5);
-    transform-origin: 50% 100%;
+    max-height: 100%;
+    object-fit: fill;
     z-index: 2;
     pointer-events: none;
     user-select: none;
@@ -395,15 +405,16 @@
     text-align: right;
   }
 
-  /* The counter's wood surface in background_fg.webp starts at 72.2% of
-     that image's height and runs to the bottom edge. Anchoring bottom as a
-     percentage of stage height (rather than a fixed rem distance from the
-     answer bar) keeps the tray's footprint tracking the wood band as the
-     stage is resized, landing it in the counter's bottom fifth — where the
-     wood is actually drawn, clear of the transparent middle above it. */
+  /* counter.webp's opaque wood band starts about 67% down the source
+     image, so it occupies the bottom ~33% of .stage-counter's rendered
+     height (object-fit:fill preserves each row's relative position when it
+     stretches the art). Sizing off --counter-height (rather than a fixed
+     percentage of stage height) keeps the tray sitting on that wood band
+     instead of floating above it once the counter's own height is capped
+     at a fraction of the stage's. */
   .counter-tray {
     position: absolute;
-    bottom: 7%;
+    bottom: calc(var(--counter-height) * 0.1);
     left: 50%;
     transform: translateX(-50%) scale(0.66);
     transform-origin: 50% 100%;
