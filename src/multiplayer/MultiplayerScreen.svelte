@@ -251,14 +251,14 @@
   }
 
   /* The counter's wood surface in background_fg.webp starts at 72.2% of
-     that image's height and runs to the bottom edge — a band only ~28% of
-     the frame tall. Anchoring from a fixed distance above the answer bar
-     (rather than a percentage of stage height) keeps the tray's footprint
-     on the wood regardless of viewport height, with room reserved below
-     it for the bar itself. */
+     that image's height and runs to the bottom edge. Anchoring bottom as a
+     percentage of stage height (rather than a fixed rem distance from the
+     answer bar) keeps the tray's footprint tracking the wood band as the
+     stage is resized, landing it in the counter's bottom fifth — where the
+     wood is actually drawn, clear of the transparent middle above it. */
   .counter-tray {
     position: absolute;
-    bottom: 3.5rem;
+    bottom: 7%;
     left: 50%;
     transform: translateX(-50%) scale(0.66);
     transform-origin: 50% 100%;
