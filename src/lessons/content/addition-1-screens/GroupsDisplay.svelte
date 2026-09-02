@@ -59,6 +59,10 @@
     border-radius: 0.75rem;
     padding: 1rem 1.25rem;
     background: light-dark(#eaf3fc, #16233a);
+    /* Pinned to match this box's own light/dark background rather than
+       inheriting the lesson card's fixed light color, which is tuned for
+       the card's dark wood background, not this box's pale one. */
+    color: light-dark(#213547, rgba(255, 255, 255, 0.87));
     min-width: 0;
   }
 
