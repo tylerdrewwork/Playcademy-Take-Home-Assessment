@@ -49,25 +49,8 @@
   })
 </script>
 
-<h2>{current.title}</h2>
-<p>{current.transcript}</p>
-
 {#if phase === 'begin'}
-  <button class="primary" onclick={begin}>Begin</button>
+  <button class="btn-primary" onclick={begin}>Begin</button>
+{:else}
+  <p class="lesson-transcript">{current.transcript}</p>
 {/if}
-
-<style>
-  h2 {
-    margin-top: 0;
-  }
-
-  button.primary {
-    background-color: #1f9d4d;
-    color: #ffffff;
-  }
-
-  button.primary:hover {
-    border-color: transparent;
-    background-color: #178a41;
-  }
-</style>
