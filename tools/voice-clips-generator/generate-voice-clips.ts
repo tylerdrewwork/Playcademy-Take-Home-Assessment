@@ -72,7 +72,7 @@ const INPUT_DEFAULTS_NUMBERS: Record<string, unknown> = {
 // model's text input — e.g. a spoken style cue. Applies to every job (lesson
 // steps and number takes alike). Empty by default.
 const TRANSCRIPT_PREFIX = ''
-const TRANSCRIPT_SUFFIX = ''
+const TRANSCRIPT_SUFFIX = ' [end]'
 
 // Parameter names differ per model ('text' vs 'prompt', 'voice' vs
 // 'voice_id'...). On a real run the model's input schema is fetched and the
@@ -92,7 +92,7 @@ const POLL_INTERVAL_MS = 2_000
 // Minimum gap between any two Replicate API requests (schema fetch,
 // prediction creation, polling). The account allows at most 6 requests per
 // minute; 10.1s instead of a flat 10s leaves slack for race conditions.
-const REQUEST_PAUSE_SECONDS = 1
+const REQUEST_PAUSE_SECONDS = 10.5
 
 // A 429 (too many requests) means the rate limit was exceeded despite the
 // pause — the whole run aborts immediately rather than burning more of the
