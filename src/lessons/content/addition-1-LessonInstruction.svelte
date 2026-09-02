@@ -50,10 +50,10 @@
     overflow: hidden;
     padding: clamp(1rem, 3vh, 2rem) clamp(1.5rem, 3vw, 3rem);
     border-radius: 1rem;
-    background: url('../../assets/general/wood-background.webp') center / cover no-repeat;
-    /* The wood photo is dark in both themes, so the card's text color is
-       pinned here too instead of following light-dark(). */
-    color: #f5e6d3;
+    background: linear-gradient(180deg, #ffffff 0%, #f3f4f6 100%);
+    /* The gradient is a fixed light look in both themes, so the card's
+       text color is pinned here too instead of following light-dark(). */
+    color: #213547;
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
     text-align: center;
   }

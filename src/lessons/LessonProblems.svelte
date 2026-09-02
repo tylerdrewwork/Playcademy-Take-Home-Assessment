@@ -389,7 +389,10 @@
     margin: 0 auto 2rem;
     padding: 2rem;
     border-radius: 1rem;
-    background: light-dark(#ffffff, #1a1a1a);
+    background: linear-gradient(180deg, #ffffff 0%, #f3f4f6 100%);
+    /* The gradient is a fixed light look in both themes, so the card's
+       text color is pinned here too instead of following light-dark(). */
+    color: #213547;
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
     text-align: center;
   }
@@ -434,7 +437,9 @@
     border: 1px solid light-dark(#d1d5db, #4b5563);
     border-radius: 8px;
     background: light-dark(#ffffff, #2a2a2a);
-    color: inherit;
+    /* Pinned to match this input's own light/dark background rather than
+       inheriting the problem card's fixed light color. */
+    color: light-dark(#213547, rgba(255, 255, 255, 0.87));
   }
 
   .submit {
