@@ -338,23 +338,18 @@
 </script>
 
 <div bind:this={containerEl}>
-  <h2>{current.title}</h2>
   <p>{current.transcript}</p>
 
   <GroupsDisplay {groups} {revealedCounts} {continuousNumbering} instant={hideNumbersInstantly} />
 
   {#if phase === 'done' && stepIndex === steps.length - 1}
-    <button onclick={next}>
+    <button class="btn-primary" onclick={next}>
       {isLastScreen ? "Got it! Let's Practice!" : 'Next'}
     </button>
   {/if}
 </div>
 
 <style>
-  h2 {
-    margin: 0;
-  }
-
   p {
     /* 4rem on a typically-tall screen, but scaled down on a short viewport
        so a long, wrapped transcript can't push the card past 100dvh — the

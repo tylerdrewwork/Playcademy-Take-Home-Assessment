@@ -64,3 +64,16 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+
+/* Shared "begin" styling: the lesson's "Begin" button and the button that
+   launches the problems phase must look identical. */
+.btn-primary {
+  background-color: #1f9d4d;
+  color: #ffffff;
+  font-size: 2.5rem;
+}
+
+.btn-primary:hover {
+  border-color: transparent;
+  background-color: #178a41;
+}

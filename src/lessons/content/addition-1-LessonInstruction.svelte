@@ -49,6 +49,7 @@
     min-width: 20rem;
     overflow: hidden;
     padding: clamp(1rem, 3vh, 2rem) clamp(1.5rem, 3vw, 3rem);
+    border: 2px solid light-dark(#d1d5db, #4b5563);
     border-radius: 1rem;
     background: light-dark(#ffffff, #1a1a1a);
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
