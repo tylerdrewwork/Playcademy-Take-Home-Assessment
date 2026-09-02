@@ -68,6 +68,9 @@ button:focus-visible {
 /* Shared "begin" styling: the lesson's "Begin" button and the button that
    launches the problems phase must look identical. */
 .btn-primary {
+  display: block;
+  max-width: 60%;
+  margin: 0 auto;
   background-color: #1f9d4d;
   color: #ffffff;
   font-size: 2.5rem;
@@ -76,4 +79,14 @@ button:focus-visible {
 .btn-primary:hover {
   border-color: transparent;
   background-color: #178a41;
+}
+
+/* Shared transcript text sizing: the intro screen's narration caption reads
+   at the same size as the counting/combining screen's step text. */
+.lesson-transcript {
+  /* 4rem on a typically-tall screen, but scaled down on a short viewport
+     so a long, wrapped transcript can't push the card past 100dvh — the
+     page has no scrollbar to fall back on. */
+  font-size: clamp(1.5rem, 8vh, 4rem);
+  margin: 0;
 }

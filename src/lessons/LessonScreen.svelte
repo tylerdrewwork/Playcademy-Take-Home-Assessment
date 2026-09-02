@@ -51,9 +51,13 @@
 
   .gradient-bg {
     background: linear-gradient(
-      135deg,
-      light-dark(#eaf3fc, #16233a) 0%,
-      light-dark(#fdf6e3, #2a2410) 100%
+      180deg,
+      #5db4f4,
+      #82c8f8 20%,
+      #86d165 45%,
+      #74c254 60%,
+      #86d165 78%,
+      #5db4f4
     );
   }
 </style>

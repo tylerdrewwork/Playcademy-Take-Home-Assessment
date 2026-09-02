@@ -47,8 +47,8 @@
   })
 </script>
 
-<p>{current.transcript}</p>
-
 {#if phase === 'begin'}
   <button class="btn-primary" onclick={begin}>Begin</button>
+{:else}
+  <p class="lesson-transcript">{current.transcript}</p>
 {/if}
