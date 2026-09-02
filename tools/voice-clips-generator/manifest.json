@@ -2,42 +2,42 @@
   "i-do-start": {
     "file": "src/assets/lesson/addition-1/transcripts/i-do-start.wav",
     "hash": "0d43bc7e9c948ca35a909cb8bafe4ce4af7a8a84133886a6fb6b1e964f9afbe6",
-    "generatedAt": "2026-08-31T18:17:00.359Z"
+    "generatedAt": "2026-09-01T23:31:26.333Z"
   },
   "group-1": {
     "file": "src/assets/lesson/addition-1/transcripts/group-1.wav",
-    "hash": "3c1c60b1078bac22d17990b2281ce4d229e78c5259020d3e2ff504291491bfde",
-    "generatedAt": "2026-08-31T18:27:15.408Z"
+    "hash": "1ee79149bafc86ea56a0491976d6f3bdf3cd3b3147c2f0178dd139cae3def72f",
+    "generatedAt": "2026-09-01T23:31:36.766Z"
   },
   "both-groups": {
     "file": "src/assets/lesson/addition-1/transcripts/both-groups.wav",
-    "hash": "a3e668fb77caf2dee722c47019203517085f72c3a06532a06a8a3f57a8e15815",
-    "generatedAt": "2026-08-31T18:27:25.497Z"
+    "hash": "8fb4baa97ffcc21f4e50e7f41c08ec6eae06779586282d68430c46d9bf5702ee",
+    "generatedAt": "2026-09-01T23:31:47.764Z"
   },
   "combine": {
     "file": "src/assets/lesson/addition-1/transcripts/combine.wav",
     "hash": "4e75edca0e5e622c7945ff797e351475dc4489fed4e434ab2eb2b0915c9de731",
-    "generatedAt": "2026-09-01T21:51:07.649Z"
+    "generatedAt": "2026-09-01T23:31:58.699Z"
   },
   "we-do-start": {
     "file": "src/assets/lesson/addition-1/transcripts/we-do-start.wav",
     "hash": "b384d30aefb9ac27ac33996d241f8995f09c23e222c63e87e8d39e4b5541b12b",
-    "generatedAt": "2026-08-31T18:27:43.675Z"
+    "generatedAt": "2026-09-01T23:32:10.414Z"
   },
   "we-do-group-1": {
     "file": "src/assets/lesson/addition-1/transcripts/we-do-group-1.wav",
     "hash": "676d39c3a22b5949703348aa548bfaea3fa668f553c9a0c18a48e3b898a45757",
-    "generatedAt": "2026-09-01T21:51:17.334Z"
+    "generatedAt": "2026-09-01T23:32:18.763Z"
   },
   "we-do-group-2": {
     "file": "src/assets/lesson/addition-1/transcripts/we-do-group-2.wav",
     "hash": "7d445fc2bc5f80f87adf84a45ca03838d74b533960b1b27d0ff5a4a8680bd30f",
-    "generatedAt": "2026-09-01T21:51:41.811Z"
+    "generatedAt": "2026-09-01T23:32:29.393Z"
   },
   "we-do-group-combined": {
     "file": "src/assets/lesson/addition-1/transcripts/we-do-group-combined.wav",
     "hash": "4e75edca0e5e622c7945ff797e351475dc4489fed4e434ab2eb2b0915c9de731",
-    "generatedAt": "2026-09-01T21:53:09.782Z"
+    "generatedAt": "2026-09-01T23:32:41.509Z"
   },
   "problems-pre-transition": {
     "file": "src/assets/lesson/addition-1/transcripts/problems-pre-transition.wav",
@@ -343,5 +343,10 @@
     "file": "src/assets/general/numbers/20c.wav",
     "hash": "5070ac4cb72f5ebe536999a06dadc92bd3046eb41090ff22447c88b09b4139fc",
     "generatedAt": "2026-08-31T19:55:25.050Z"
+  },
+  "begin": {
+    "file": "src/assets/lesson/addition-1/transcripts/begin.wav",
+    "hash": "ccfe174fd33ebbebbf913f2528b099f453c334986d9c7f08356fc32e113fa35f",
+    "generatedAt": "2026-09-01T23:31:18.274Z"
   }
 }
