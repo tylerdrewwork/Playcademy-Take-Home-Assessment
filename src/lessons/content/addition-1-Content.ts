@@ -28,16 +28,16 @@ class Addition1Content extends LessonContent<InstructionScreen, Addition1Problem
     ] satisfies InstructionScreen[],
   }
   readonly problems: Addition1Problem[] = [
-    { id: 'p1', prompt: 'How many balloons in total?', groups: [{ count: 2, object: 'ball' }, { count: 3, object: 'ball' }], answer: 5 },
-    { id: 'p2', prompt: 'How many balloons in total?', groups: [{ count: 4, object: 'ball' }, { count: 1, object: 'ball' }], answer: 5 },
-    { id: 'p3', prompt: 'How many balloons in total?', groups: [{ count: 3, object: 'ball' }, { count: 3, object: 'ball' }], answer: 6 },
-    { id: 'p4', prompt: 'How many balloons in total?', groups: [{ count: 5, object: 'ball' }, { count: 2, object: 'ball' }], answer: 7 },
-    { id: 'p5', prompt: 'How many balloons in total?', groups: [{ count: 1, object: 'ball' }, { count: 6, object: 'ball' }], answer: 7 },
-    { id: 'p6', prompt: 'How many balloons in total?', groups: [{ count: 4, object: 'ball' }, { count: 4, object: 'ball' }], answer: 8 },
+    { id: 'p1', prompt: 'How many balloons in total?', groups: [{ count: 1, object: 'ball' }, { count: 1, object: 'ball' }], answer: 2 },
+    { id: 'p2', prompt: 'How many balloons in total?', groups: [{ count: 2, object: 'ball' }, { count: 2, object: 'ball' }], answer: 4 },
+    { id: 'p3', prompt: 'How many balloons in total?', groups: [{ count: 1, object: 'ball' }, { count: 2, object: 'ball' }], answer: 3 },
+    { id: 'p4', prompt: 'How many balloons in total?', groups: [{ count: 5, object: 'ball' }, { count: 1, object: 'ball' }], answer: 6 },
+    { id: 'p5', prompt: 'How many balloons in total?', groups: [{ count: 3, object: 'ball' }, { count: 2, object: 'ball' }], answer: 5 },
+    { id: 'p6', prompt: 'How many balloons in total?', groups: [{ count: 4, object: 'ball' }, { count: 3, object: 'ball' }], answer: 7 },
     { id: 'p7', prompt: 'How many balloons in total?', groups: [{ count: 2, object: 'ball' }, { count: 7, object: 'ball' }], answer: 9 },
-    { id: 'p8', prompt: 'How many balloons in total?', groups: [{ count: 6, object: 'ball' }, { count: 1, object: 'ball' }], answer: 7 },
-    { id: 'p9', prompt: 'How many balloons in total?', groups: [{ count: 3, object: 'ball' }, { count: 5, object: 'ball' }], answer: 8 },
-    { id: 'p10', prompt: 'How many balloons in total?', groups: [{ count: 4, object: 'ball' }, { count: 3, object: 'ball' }], answer: 7 },
+    { id: 'p8', prompt: 'How many balloons in total?', groups: [{ count: 0, object: 'ball' }, { count: 0, object: 'ball' }], answer: 0 },
+    { id: 'p9', prompt: 'How many balloons in total?', groups: [{ count: 5, object: 'ball' }, { count: 5, object: 'ball' }], answer: 10 },
+    { id: 'p10', prompt: 'How many balloons in total?', groups: [{ count: 4, object: 'ball' }, { count: 4, object: 'ball' }], answer: 8 },
   ]
 }
 
