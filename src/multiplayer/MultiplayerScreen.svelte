@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onDestroy } from 'svelte'
+  import { fade } from 'svelte/transition'
   import { GameSession, type CoinProblem } from './gameSession.svelte.js'
   import CoinScatter from './CoinScatter.svelte'
   import CharacterQueue from './CharacterQueue.svelte'
@@ -236,6 +237,12 @@
 
 <div class="multiplayer-screen">
   <div class="stage">
+    {#if session.warmingUp}
+      <p class="warmup-toast" transition:fade={{ duration: 200 }}>
+        <span class="warmup-toast-icon" aria-hidden="true">☕</span>
+        Warming up cloud functions, wait one sec!
+      </p>
+    {/if}
     <img class="stage-layer stage-bg" src={backgroundBg} alt="" aria-hidden="true" />
     <CharacterQueue bind:this={characterQueue} />
     <div class="stage-counter" bind:this={counterEl}>
@@ -376,6 +383,45 @@
     transform: translateY(50%);
     z-index: 3;
     width: 20%;
+  }
+
+  /* Floats top-center over the stage so it doesn't compete with the
+     top-right status/scoreboard box, and disappears the instant the
+     warmup call resolves (see GameSession#warmingUp) rather than on a
+     fixed timer. */
+  .warmup-toast {
+    position: absolute;
+    top: 1rem;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 4;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1.1rem;
+    border-radius: 999px;
+    background: #2b1d0e;
+    color: #fff8ec;
+    font-size: 0.9rem;
+    font-weight: 500;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+    white-space: nowrap;
+  }
+
+  .warmup-toast-icon {
+    font-size: 1.1rem;
+    animation: warmup-toast-steam 1.4s ease-in-out infinite;
+  }
+
+  @keyframes warmup-toast-steam {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-2px);
+    }
   }
 
   .status-message,
