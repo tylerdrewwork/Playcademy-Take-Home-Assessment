@@ -1,5 +1,6 @@
 <script>
   import { addition1LessonProgress } from './lessons/content/addition-1-LessonProgress.js'
+  import { currentInstructionStep } from './lessons/currentInstructionStep.svelte.js'
 
   const progress = $derived(addition1LessonProgress.progress)
 </script>
@@ -9,6 +10,9 @@
     <p>phase: {progress.phase}</p>
     {#if progress.phase === 'instruction'}
       <p>screen: {progress.instruction.currentScreenIndex + 1}</p>
+      {#if currentInstructionStep.step}
+        <p>step: {currentInstructionStep.step.label}</p>
+      {/if}
     {:else if progress.phase === 'problems'}
       <p>step: {progress.problems.currentIndex + 1} / {progress.problems.sequence.length}</p>
     {/if}

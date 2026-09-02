@@ -3,11 +3,19 @@
   import introVoUrl from '../../../assets/lesson/addition-1/intro-1-vo.wav'
   import { playTranscriptAudio } from '../../../assets/lesson/addition-1/transcripts/transcriptAudio.js'
   import { introSteps as steps } from './introSteps.js'
+  import { currentInstructionStep } from '../../currentInstructionStep.svelte.js'
 
   let { onComplete }: { onComplete: () => void } = $props()
 
   let stepIndex = $state(0)
   let current = $derived(steps[stepIndex])
+
+  $effect(() => {
+    currentInstructionStep.step = current
+    return () => {
+      currentInstructionStep.step = null
+    }
+  })
 
   // 'begin' -> 'playing' (voice-over), then straight through to onComplete —
   // no Next button in between, the narration itself gates progression.

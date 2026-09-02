@@ -5,6 +5,7 @@
   import { playNumberAudio } from '../../../assets/general/numbers/numberAudio.js'
   import { playTranscriptAudio } from '../../../assets/lesson/addition-1/transcripts/transcriptAudio.js'
   import { countingCombiningSteps as steps } from './countingCombiningSteps.js'
+  import { currentInstructionStep } from '../../currentInstructionStep.svelte.js'
 
   let {
     onComplete,
@@ -33,6 +34,13 @@
   // tweenTo() in next() — the timeline is never the source of truth.
   let stepIndex = $state(0)
   let current = $derived(steps[stepIndex])
+
+  $effect(() => {
+    currentInstructionStep.step = current
+    return () => {
+      currentInstructionStep.step = null
+    }
+  })
 
   // Must match Balloon.svelte's out:fade duration so the merge animation
   // doesn't start until the faded numbers have actually finished fading.
