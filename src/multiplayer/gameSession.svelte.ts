@@ -61,6 +61,7 @@ export class GameSession {
   #lastResult: 'correct' | 'incorrect' | null = $state.raw(null)
   #uid: string | null = $state.raw(null)
   #gameId: string | null = null
+  #warmingUp: boolean = $state(false)
   #unsubscribeRoster: Unsubscribe | null = null
   #unsubscribeTotal: Unsubscribe | null = null
 
@@ -109,6 +110,10 @@ export class GameSession {
     return this.#lastResult
   }
 
+  get warmingUp(): boolean {
+    return this.#warmingUp
+  }
+
   async join(): Promise<void> {
     if (this.#status === 'joining' || this.#status === 'joined') return
     this.#status = 'joining'
@@ -142,9 +147,14 @@ export class GameSession {
         // The room was empty, so submitAnswer's instance has likely scaled
         // to zero. Warm it now, fire-and-forget, so this player's first
         // answer doesn't sit behind a multi-second cold start.
+        this.#warmingUp = true
         httpsCallable<{ warmup: true }, { warmed: true }>(functions, 'submitAnswer')({
           warmup: true,
-        }).catch(() => {})
+        })
+          .catch(() => {})
+          .then(() => {
+            this.#warmingUp = false
+          })
       }
     } catch (err) {
       this.#error = err
@@ -221,5 +231,6 @@ export class GameSession {
     this.#totalMoneyCents = 0
     this.#lastResult = null
     this.#submitting = false
+    this.#warmingUp = false
   }
 }

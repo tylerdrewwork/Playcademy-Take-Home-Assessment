@@ -48,15 +48,14 @@
     height: min(94vh, 62rem);
     min-width: 20rem;
     overflow: hidden;
-    padding: clamp(1rem, 3vh, 2rem) clamp(1.5rem, 3vw, 3rem);
-    /* The border-image is a mitred wood-plank frame with square corners,
-       so a rounded box corner would just clip into the artwork. */
+    padding: 9px 11px 10px 11px;
+    /* The border-image frame has square corners, so a rounded box corner
+       would just clip into the artwork. */
     border-radius: 0;
     border-style: solid;
-    border-width: clamp(0.9rem, 2vw, 1.75rem);
-    border-image-source: url('../../assets/general/wood-border-9slice.webp');
-    border-image-slice: 13%;
-    border-image-repeat: round;
+    border-width: 9px 11px 10px 11px;
+    border-image: url('../../assets/general/wood-border-9slice.png') 9 11 10 11 fill / 9px 11px 10px
+      11px;
     background: url('../../assets/general/wood-background.webp') center / cover no-repeat;
     /* The wood photo is dark in both themes, so the card's text color is
        pinned here too instead of following light-dark(). */

@@ -5,6 +5,7 @@
 // simply aren't offered — callers fall back to their own pacing.
 
 import type { NumberAudioHandle } from '../../../general/numbers/numberAudio.js'
+import { voiceVolume } from '../../../../voiceVolumeSingleton.js'
 
 const clipUrls = import.meta.glob('./*.wav', { eager: true, query: '?url', import: 'default' }) as Record<
   string,
@@ -29,6 +30,7 @@ export function playTranscriptAudio(label: string): NumberAudioHandle | undefine
   if (!url) return undefined
 
   const audio = new Audio(url)
+  audio.volume = voiceVolume.volume
   const played = new Promise<void>((resolve) => {
     const finish = () => resolve()
     audio.addEventListener('ended', finish)

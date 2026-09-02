@@ -2,6 +2,7 @@
   import { onDestroy } from 'svelte'
   import introVoUrl from '../../../assets/lesson/addition-1/intro-1-vo.wav'
   import { playTranscriptAudio } from '../../../assets/lesson/addition-1/transcripts/transcriptAudio.js'
+  import { voiceVolume } from '../../../voiceVolumeSingleton.js'
   import { introSteps as steps } from './introSteps.js'
   import { currentInstructionStep } from '../../currentInstructionStep.svelte.js'
 
@@ -36,6 +37,7 @@
       return
     }
     audio = new Audio(introVoUrl)
+    audio.volume = voiceVolume.volume
     audio.addEventListener('ended', onComplete)
     audio.addEventListener('error', onComplete)
     audio.play().catch(onComplete)
@@ -47,25 +49,8 @@
   })
 </script>
 
-<h2>{current.title}</h2>
-<p>{current.transcript}</p>
-
 {#if phase === 'begin'}
-  <button class="primary" onclick={begin}>Begin</button>
+  <button class="btn-primary" onclick={begin}>Begin</button>
+{:else}
+  <p class="lesson-transcript">{current.transcript}</p>
 {/if}
-
-<style>
-  h2 {
-    margin-top: 0;
-  }
-
-  button.primary {
-    background-color: #1f9d4d;
-    color: #ffffff;
-  }
-
-  button.primary:hover {
-    border-color: transparent;
-    background-color: #178a41;
-  }
-</style>
