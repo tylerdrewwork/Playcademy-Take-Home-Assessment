@@ -3,6 +3,7 @@
   import MultiplayerScreen from './multiplayer/MultiplayerScreen.svelte'
   import MusicMuteButton from './multiplayer/MusicMuteButton.svelte'
   import AdminTools from './AdminTools.svelte'
+  import VoiceVolumeSlider from './VoiceVolumeSlider.svelte'
   import DebugOverlay from './DebugOverlay.svelte'
   import { adminSettings } from './adminSettings.svelte.js'
 
@@ -14,7 +15,12 @@
     {#if view === 'multiplayer'}
       <MusicMuteButton />
     {/if}
-    <AdminTools onShowSection={(section) => (view = section)} />
+    <div class="admin-column">
+      <AdminTools onShowSection={(section) => (view = section)} />
+      {#if view !== 'multiplayer'}
+        <VoiceVolumeSlider />
+      {/if}
+    </div>
   </div>
   {#if view !== 'multiplayer' && adminSettings.showDebugOverlay}
     <DebugOverlay />
@@ -41,7 +47,14 @@
     left: 1rem;
     z-index: 10;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .admin-column {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
     gap: 0.5rem;
   }
 </style>

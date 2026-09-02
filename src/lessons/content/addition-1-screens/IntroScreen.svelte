@@ -2,6 +2,7 @@
   import { onDestroy } from 'svelte'
   import introVoUrl from '../../../assets/lesson/addition-1/intro-1-vo.wav'
   import { playTranscriptAudio } from '../../../assets/lesson/addition-1/transcripts/transcriptAudio.js'
+  import { voiceVolume } from '../../../voiceVolumeSingleton.js'
   import { introSteps as steps } from './introSteps.js'
   import { currentInstructionStep } from '../../currentInstructionStep.svelte.js'
 
@@ -36,6 +37,7 @@
       return
     }
     audio = new Audio(introVoUrl)
+    audio.volume = voiceVolume.volume
     audio.addEventListener('ended', onComplete)
     audio.addEventListener('error', onComplete)
     audio.play().catch(onComplete)

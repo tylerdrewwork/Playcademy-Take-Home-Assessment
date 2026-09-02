@@ -4,6 +4,8 @@
 // 7c.wav — and playback picks one at random so repeated counting doesn't
 // sound robotic. A take-less filename (7.wav) also works, as a single take.
 
+import { voiceVolume } from '../../../voiceVolumeSingleton.js'
+
 const clipUrls = import.meta.glob('./*.wav', { eager: true, query: '?url', import: 'default' }) as Record<
   string,
   string
@@ -41,6 +43,7 @@ export function playNumberAudio(n: number): NumberAudioHandle {
   const url = takes[Math.floor(Math.random() * takes.length)]
 
   const audio = new Audio(url)
+  audio.volume = voiceVolume.volume
   const played = new Promise<void>((resolve) => {
     const finish = () => resolve()
     audio.addEventListener('ended', finish)
