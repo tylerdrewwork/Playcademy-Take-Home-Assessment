@@ -1,6 +1,6 @@
 # Playcademy-Take-Home-Assessment
 
-A Svelte 5 + Vite teaching application built around CCSS 2.MD.C.8 (combining two groups of objects and counting the total). Once the lesson is complete, the student can join a Firebase-backed multiplayer coin-counting game.
+A Svelte 5 + Vite teaching application built with the goal of reaching CCSS 2.MD.C.8. Once the lesson is complete, the student can join a Firebase-backed multiplayer coin-counting game.
 
 ## Getting started
 
