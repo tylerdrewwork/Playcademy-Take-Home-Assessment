@@ -9,16 +9,38 @@
       body {
         margin: 0;
         padding: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
       }
 
-      img {
-        display: block;
-        width: 100%;
+      #viewport {
+        width: 100vw;
+        height: 100vh;
+        overflow: hidden;
+        position: relative;
+        cursor: grab;
+      }
+
+      #viewport.dragging {
+        cursor: grabbing;
+      }
+
+      #knowledge-graph {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        transform-origin: 0 0;
+        user-select: none;
+        -webkit-user-drag: none;
       }
     </style>
   </head>
   <body>
-    <img id="knowledge-graph" alt="CCSS 2.MD.C.8 Knowledge Graph" />
+    <div id="viewport">
+      <img id="knowledge-graph" alt="CCSS 2.MD.C.8 Knowledge Graph" draggable="false" />
+    </div>
     <script type="module" src="/src/knowledge-graph.js"></script>
   </body>
 </html>
