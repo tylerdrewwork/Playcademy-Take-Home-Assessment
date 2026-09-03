@@ -1,5 +1,6 @@
 export interface MusicSettingsRecord {
   muted: boolean
+  volume: number
 }
 
 export abstract class MusicSettingsStorage {

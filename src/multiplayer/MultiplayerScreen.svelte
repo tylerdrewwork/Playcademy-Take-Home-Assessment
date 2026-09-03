@@ -157,16 +157,16 @@
 
   const bgMusic = new Audio(bgMusicUrl)
   bgMusic.loop = true
-  bgMusic.volume = 0.25
 
-  // Wait for the persisted mute preference to load before touching playback,
-  // so a player who muted last visit doesn't hear a flash of audio before
-  // their preference is read back from IndexedDB.
+  // Wait for the persisted mute/volume preferences to load before touching
+  // playback, so a player who muted last visit doesn't hear a flash of audio
+  // before their preference is read back from IndexedDB.
   let musicSettingsReady = $state(false)
   musicSettings.ready.then(() => (musicSettingsReady = true))
 
   $effect(() => {
     if (!musicSettingsReady) return
+    bgMusic.volume = musicSettings.volume
     if (musicSettings.muted) {
       bgMusic.pause()
     } else {

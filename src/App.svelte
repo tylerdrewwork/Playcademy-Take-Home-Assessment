@@ -2,6 +2,7 @@
   import LessonScreen from './lessons/LessonScreen.svelte'
   import MultiplayerScreen from './multiplayer/MultiplayerScreen.svelte'
   import MusicMuteButton from './multiplayer/MusicMuteButton.svelte'
+  import MusicVolumeSlider from './multiplayer/MusicVolumeSlider.svelte'
   import AdminTools from './AdminTools.svelte'
   import VoiceVolumeSlider from './VoiceVolumeSlider.svelte'
   import DebugOverlay from './DebugOverlay.svelte'
@@ -13,7 +14,10 @@
 <main>
   <div class="top-left-controls">
     {#if view === 'multiplayer'}
-      <MusicMuteButton />
+      <div class="music-column">
+        <MusicMuteButton />
+        <MusicVolumeSlider />
+      </div>
     {/if}
     <div class="admin-column">
       <AdminTools onShowSection={(section) => (view = section)} />
@@ -51,6 +55,7 @@
     gap: 0.5rem;
   }
 
+  .music-column,
   .admin-column {
     display: flex;
     flex-direction: column;
