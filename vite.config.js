@@ -1,3 +1,4 @@
+import { fileURLToPath, URL } from 'node:url'
 import { defineConfig } from 'vite'
 import { svelte } from '@sveltejs/vite-plugin-svelte'
 
@@ -10,6 +11,12 @@ export default defineConfig({
     // directory"), so the build output lives under firebase/ instead.
     outDir: 'firebase/dist',
     emptyOutDir: true,
+    rollupOptions: {
+      input: {
+        main: fileURLToPath(new URL('./index.html', import.meta.url)),
+        knowledgeGraph: fileURLToPath(new URL('./knowledge-graph.html', import.meta.url)),
+      },
+    },
   },
   test: {
     include: ['src/**/*.test.js', 'src/**/*.test.ts'],

@@ -117,6 +117,12 @@
       <button onclick={requestReset}>Reset Progress</button>
       <button onclick={close}>Close</button>
     </div>
+
+    <div class="separated-actions">
+      <button onclick={() => (window.location.href = '/knowledge-graph.html')}>
+        View Knowledge Graph
+      </button>
+    </div>
   {/if}
 </dialog>
 
@@ -167,6 +173,14 @@
   .actions {
     display: flex;
     gap: 0.5rem;
+  }
+
+  .separated-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(128, 128, 128, 0.25);
   }
 
   .jump-group {
