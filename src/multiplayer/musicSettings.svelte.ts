@@ -7,6 +7,7 @@ import type { MusicSettingsStorage } from './musicSettingsStorage.js'
  */
 export class MusicSettings {
   muted = $state(false)
+  volume = $state(0.25)
   #storage: MusicSettingsStorage
   readonly ready: Promise<void>
 
@@ -15,11 +16,17 @@ export class MusicSettings {
     this.ready = (async () => {
       const stored = await storage.load()
       this.muted = stored?.muted ?? false
+      this.volume = stored?.volume ?? 0.25
     })()
   }
 
   async setMuted(muted: boolean): Promise<void> {
     this.muted = muted
-    await this.#storage.save({ muted })
+    await this.#storage.save({ muted, volume: this.volume })
+  }
+
+  async setVolume(volume: number): Promise<void> {
+    this.volume = Math.min(1, Math.max(0, volume))
+    await this.#storage.save({ muted: this.muted, volume: this.volume })
   }
 }

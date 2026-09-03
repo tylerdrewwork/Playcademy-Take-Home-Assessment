@@ -15,14 +15,14 @@ describe('IndexedDbMusicSettingsStorage', () => {
 
   it('saves and loads a music settings record', async () => {
     const storage = new IndexedDbMusicSettingsStorage()
-    await storage.save({ muted: true })
-    expect(await storage.load()).toEqual({ muted: true })
+    await storage.save({ muted: true, volume: 0.25 })
+    expect(await storage.load()).toEqual({ muted: true, volume: 0.25 })
   })
 
   it('overwrites the previous record on a second save', async () => {
     const storage = new IndexedDbMusicSettingsStorage()
-    await storage.save({ muted: true })
-    await storage.save({ muted: false })
-    expect(await storage.load()).toEqual({ muted: false })
+    await storage.save({ muted: true, volume: 0.25 })
+    await storage.save({ muted: false, volume: 0.6 })
+    expect(await storage.load()).toEqual({ muted: false, volume: 0.6 })
   })
 })
