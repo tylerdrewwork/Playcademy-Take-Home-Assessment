@@ -19,7 +19,7 @@ npm install
 | `npm run check` | Type-check the project with `svelte-check` |
 | `npm run generate:voice-clips` | Generate lesson/game voice clips via the voice-clips-generator tool |
 | `npm run generate:voice-clips:numbers` | Generate voice clips for spoken numbers only |
-| `npm run clean:voice-clips` | Remove generated voice clips |
+| `npm run clean:voice-clips` | Enhance generated voice clips |
 | `npm run deploy` | Deploy hosting (excluding functions) from `firebase/` via `npx firebase deploy` |
 
 `firebase-tools` is a devDependency, so Firebase CLI commands should be run with `npx firebase <command>` rather than a globally installed `firebase`.
