@@ -43,7 +43,7 @@ export function playNumberAudio(n: number): NumberAudioHandle {
   const url = takes[Math.floor(Math.random() * takes.length)]
 
   const audio = new Audio(url)
-  audio.volume = voiceVolume.volume
+  voiceVolume.registerAudio(audio)
   const played = new Promise<void>((resolve) => {
     const finish = () => resolve()
     audio.addEventListener('ended', finish)

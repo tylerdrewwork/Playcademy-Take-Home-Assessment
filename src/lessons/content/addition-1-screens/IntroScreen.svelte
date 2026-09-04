@@ -37,7 +37,7 @@
       return
     }
     audio = new Audio(introVoUrl)
-    audio.volume = voiceVolume.volume
+    voiceVolume.registerAudio(audio)
     audio.addEventListener('ended', onComplete)
     audio.addEventListener('error', onComplete)
     audio.play().catch(onComplete)

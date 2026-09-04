@@ -30,7 +30,7 @@ export function playTranscriptAudio(label: string): NumberAudioHandle | undefine
   if (!url) return undefined
 
   const audio = new Audio(url)
-  audio.volume = voiceVolume.volume
+  voiceVolume.registerAudio(audio)
   const played = new Promise<void>((resolve) => {
     const finish = () => resolve()
     audio.addEventListener('ended', finish)
