@@ -235,14 +235,11 @@
     pointer-events: none;
   }
 
-  /* Anchored at the character's own x:50% (object-position: bottom center
-     within the same full-width box) but shifted left by 75% of its own
-     width via the transform, so the bubble body reads beside the
-     character's head rather than sitting directly on top of it. The tail
-     below (::after) is offset the opposite way — left:75% of the bubble's
-     own box — so it still lands exactly back on that 50% anchor point
-     regardless of the bubble's rendered width, keeping it visually
-     "pointing" at the character it belongs to. Sized in em/rem rather than
+  /* Anchored left of the character's own x:50% (object-position: bottom
+     center within the same full-width box), so the bubble body reads
+     beside the character's head rather than sitting directly on top of
+     it. The tail below (::after) sits on the bubble's right edge instead,
+     pointing back toward the character. Sized in em/rem rather than
      viewport units — the ambient percentage-based layout plus
      .speech-anchor's own scale(0.68) already make its rendered size
      responsive without any extra media queries, and read as appropriately
@@ -250,8 +247,8 @@
   .speech-bubble {
     position: absolute;
     bottom: 100%;
-    left: 50%;
-    transform: translateX(-75%);
+    left: 29%;
+    transform: translateX(-50%);
     margin: 0 0 0.5em;
     max-width: 9em;
     padding: 0.45em 0.7em;
@@ -266,14 +263,13 @@
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.28);
   }
 
-  /* Little tail pointing down toward the character's head — see the
-     comment above for why this sits at left:75% rather than 50%. */
+  /* Tail pointing down toward the character's head, on the bubble's right
+     side since the bubble itself sits left of the character. */
   .speech-bubble::after {
     content: '';
     position: absolute;
     top: 100%;
-    left: 75%;
-    transform: translateX(-50%);
+    right: 0.6em;
     border: 0.4em solid transparent;
     border-top-color: #fff8ec;
   }
