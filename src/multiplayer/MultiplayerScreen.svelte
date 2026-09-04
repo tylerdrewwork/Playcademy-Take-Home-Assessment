@@ -438,32 +438,32 @@
     width: 20%;
   }
 
-  /* Floats top-center over the stage so it doesn't compete with the
-     top-right status/scoreboard box, and disappears the instant the
-     warmup call resolves (see GameSession#warmingUp) rather than on a
-     fixed timer. */
+  /* Centered over the stage — the room is unusable until the warmup call
+     resolves (see GameSession#warmingUp), so it should read as a blocking
+     notice rather than a corner toast — and disappears the instant it
+     resolves rather than on a fixed timer. */
   .warmup-toast {
     position: absolute;
-    top: 1rem;
+    top: 50%;
     left: 50%;
-    transform: translateX(-50%);
+    transform: translate(-50%, -50%);
     z-index: 4;
     margin: 0;
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    padding: 0.6rem 1.1rem;
+    gap: 0.75rem;
+    padding: 0.9rem 1.65rem;
     border-radius: 999px;
     background: #2b1d0e;
     color: #fff8ec;
-    font-size: 0.9rem;
+    font-size: 1.35rem;
     font-weight: 500;
     box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
     white-space: nowrap;
   }
 
   .warmup-toast-icon {
-    font-size: 1.1rem;
+    font-size: 1.65rem;
     animation: warmup-toast-steam 1.4s ease-in-out infinite;
   }
 
