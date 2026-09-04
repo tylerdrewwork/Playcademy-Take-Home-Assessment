@@ -28,11 +28,6 @@
   // JS and CSS must agree on how long the step-up takes.
   const STEP_DURATION_MS = 700
 
-  // How long a fresh arrival's speech bubble stays up before fading on its
-  // own. Comfortably shorter than the time it'd take another correct answer
-  // to advance the queue and change who's standing in the back slot.
-  const SPEECH_DURATION_MS = 3800
-
   let queueState: QueueState = $state(createInitialQueueState())
 
   interface ExitingEntry extends QueueEntry {
@@ -44,17 +39,14 @@
   // The freshest arrival's speech bubble text. Always tied to whoever just
   // joined the back of the line (rank 2) — .speech-anchor below mirrors
   // rank-2's own position/scale, so there's no need to track which entry
-  // it belongs to beyond gating re-greets in greet() below.
+  // it belongs to beyond gating re-greets in greet() below. Stays up for as
+  // long as the current front-of-line problem is unsolved — only advance()
+  // (called once a correct answer lands) replaces it with the next arrival's
+  // greeting, rather than any timer.
   let speechText: string | null = $state(null)
-  let speechTimeout: ReturnType<typeof setTimeout> | null = null
 
   function greet(): void {
-    if (speechTimeout) clearTimeout(speechTimeout)
     speechText = SPEECH_PHRASES[Math.floor(Math.random() * SPEECH_PHRASES.length)]
-    speechTimeout = setTimeout(() => {
-      speechTimeout = null
-      speechText = null
-    }, SPEECH_DURATION_MS)
   }
 
   // Greet the back-of-line arrival everyone sees on first render too — they
@@ -104,7 +96,6 @@
   onDestroy(() => {
     for (const timeout of pendingTimeouts) clearTimeout(timeout)
     pendingTimeouts.clear()
-    if (speechTimeout) clearTimeout(speechTimeout)
   })
 </script>
 
@@ -132,9 +123,11 @@
          own element would trap it in that rank's stacking context, which
          loses to rank-0/rank-1 regardless of any z-index set here. -->
     <div class="speech-anchor">
-      <p class="speech-bubble" transition:scale={{ duration: 220, start: 0.6 }}>
-        {speechText}
-      </p>
+      {#key speechText}
+        <p class="speech-bubble" transition:scale={{ duration: 220, start: 0.6 }}>
+          {speechText}
+        </p>
+      {/key}
     </div>
   {/if}
 </div>
@@ -242,9 +235,14 @@
     pointer-events: none;
   }
 
-  /* Centered on the same x:50% the character art itself resolves to
-     (object-position: bottom center within the same full-width box), so it
-     never drifts to one side of its character. Sized in em/rem rather than
+  /* Anchored at the character's own x:50% (object-position: bottom center
+     within the same full-width box) but shifted left by 75% of its own
+     width via the transform, so the bubble body reads beside the
+     character's head rather than sitting directly on top of it. The tail
+     below (::after) is offset the opposite way — left:75% of the bubble's
+     own box — so it still lands exactly back on that 50% anchor point
+     regardless of the bubble's rendered width, keeping it visually
+     "pointing" at the character it belongs to. Sized in em/rem rather than
      viewport units — the ambient percentage-based layout plus
      .speech-anchor's own scale(0.68) already make its rendered size
      responsive without any extra media queries, and read as appropriately
@@ -253,7 +251,7 @@
     position: absolute;
     bottom: 100%;
     left: 50%;
-    transform: translateX(-50%);
+    transform: translateX(-75%);
     margin: 0 0 0.5em;
     max-width: 9em;
     padding: 0.45em 0.7em;
@@ -268,12 +266,13 @@
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.28);
   }
 
-  /* Little tail pointing down toward the character's head. */
+  /* Little tail pointing down toward the character's head — see the
+     comment above for why this sits at left:75% rather than 50%. */
   .speech-bubble::after {
     content: '';
     position: absolute;
     top: 100%;
-    left: 50%;
+    left: 75%;
     transform: translateX(-50%);
     border: 0.4em solid transparent;
     border-top-color: #fff8ec;
