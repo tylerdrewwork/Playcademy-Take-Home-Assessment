@@ -20,7 +20,8 @@ class Addition1Content extends LessonContent<InstructionScreen, Addition1Problem
   // are stamped with this so they stay traceable to the set the student saw.
   // v2: prompts no longer state the group counts — the student counts the
   // balloons instead of reading the numbers.
-  readonly problemSetVersion = 2
+  // v3: p1-p6 group counts/answers revised.
+  readonly problemSetVersion = 3
   readonly instruction = {
     screens: [
       { id: 'intro', component: IntroScreen },

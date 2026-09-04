@@ -40,38 +40,39 @@ function makeCtx(
 }
 
 describe('partialCountingEvaluator', () => {
-  // p1: 2 balls + 3 balls = 5
+  // p4: 5 balls + 1 ball = 6
   it('fires when the answer equals the first group count', () => {
-    const findings = partialCountingEvaluator.evaluate(makeCtx('p1', '2'))
+    const findings = partialCountingEvaluator.evaluate(makeCtx('p4', '5'))
     expect(findings).toHaveLength(1)
     expect(findings[0]).toMatchObject({
       signal: 'partial-counting',
       polarity: 'concern',
-      detail: { value: 2, matchedGroupIndexes: [0], groupCounts: [2, 3] },
+      detail: { value: 5, matchedGroupIndexes: [0], groupCounts: [5, 1] },
     })
   })
 
   it('fires when the answer equals the second group count', () => {
-    const findings = partialCountingEvaluator.evaluate(makeCtx('p1', '3'))
+    const findings = partialCountingEvaluator.evaluate(makeCtx('p4', '1'))
     expect(findings[0].detail).toMatchObject({ matchedGroupIndexes: [1] })
   })
 
   it('matches both groups when they have the same count', () => {
-    // p3: 3 balls + 3 balls = 6
-    const findings = partialCountingEvaluator.evaluate(makeCtx('p3', '3'))
-    expect(findings[0].detail).toMatchObject({ matchedGroupIndexes: [0, 1], groupCounts: [3, 3] })
+    // p2: 2 balls + 2 balls = 4
+    const findings = partialCountingEvaluator.evaluate(makeCtx('p2', '2'))
+    expect(findings[0].detail).toMatchObject({ matchedGroupIndexes: [0, 1], groupCounts: [2, 2] })
   })
 
   it('does not fire on a wrong answer that matches no group', () => {
-    expect(partialCountingEvaluator.evaluate(makeCtx('p1', '4'))).toHaveLength(0)
+    expect(partialCountingEvaluator.evaluate(makeCtx('p4', '9'))).toHaveLength(0)
   })
 
   it('does not fire on a correct answer, even if a group happened to match', () => {
-    expect(partialCountingEvaluator.evaluate(makeCtx('p1', '5'))).toHaveLength(0)
+    // p8: 0 balls + 0 balls = 0 — the correct answer equals both groups' counts.
+    expect(partialCountingEvaluator.evaluate(makeCtx('p8', '0'))).toHaveLength(0)
   })
 
   it('does not fire on non-numeric input', () => {
-    expect(partialCountingEvaluator.evaluate(makeCtx('p1', 'two'))).toHaveLength(0)
+    expect(partialCountingEvaluator.evaluate(makeCtx('p4', 'two'))).toHaveLength(0)
   })
 })
 
@@ -79,23 +80,23 @@ describe('solvedWithoutMergeEvaluator', () => {
   const pushEvent: InteractionEvent = { type: 'action', t: 2000, name: 'push-together' }
 
   it('fires on a correct answer with no push-together action in the episode', () => {
-    const findings = solvedWithoutMergeEvaluator.evaluate(makeCtx('p1', '5'))
+    const findings = solvedWithoutMergeEvaluator.evaluate(makeCtx('p4', '6'))
     expect(findings).toHaveLength(1)
     expect(findings[0]).toMatchObject({ signal: 'solved-without-merge', polarity: 'positive' })
   })
 
   it('does not fire when the student pushed the groups together first', () => {
-    const findings = solvedWithoutMergeEvaluator.evaluate(makeCtx('p1', '5', { events: [pushEvent] }))
+    const findings = solvedWithoutMergeEvaluator.evaluate(makeCtx('p4', '6', { events: [pushEvent] }))
     expect(findings).toHaveLength(0)
   })
 
   it('does not fire on a wrong answer', () => {
-    expect(solvedWithoutMergeEvaluator.evaluate(makeCtx('p1', '4'))).toHaveLength(0)
+    expect(solvedWithoutMergeEvaluator.evaluate(makeCtx('p4', '5'))).toHaveLength(0)
   })
 
   it('is not fooled by other action names', () => {
     const otherAction: InteractionEvent = { type: 'action', t: 2000, name: 'something-else' }
-    const findings = solvedWithoutMergeEvaluator.evaluate(makeCtx('p1', '5', { events: [otherAction] }))
+    const findings = solvedWithoutMergeEvaluator.evaluate(makeCtx('p4', '6', { events: [otherAction] }))
     expect(findings).toHaveLength(1)
   })
 })
@@ -124,11 +125,11 @@ describe('createAddition1EvaluationRecorder tag priority', () => {
   }
 
   it('prefers partial-counting over off-by-one when both fire', async () => {
-    // p2: 4 + 1 = 5; answering '4' is both a single group's count and one
-    // off from the correct answer.
+    // p1: 1 + 1 = 2; answering '1' is both group's count and one off from
+    // the correct answer.
     const { recorder } = await makeRecorder()
-    recorder.beginProblem(findProblem('p2'))
-    const result = recorder.recordSubmit('4')
+    recorder.beginProblem(findProblem('p1'))
+    const result = recorder.recordSubmit('1')
     expect(result.findings.map((f) => f.signal)).toEqual(
       expect.arrayContaining(['partial-counting', 'off-by-one'])
     )
@@ -148,20 +149,20 @@ describe('createAddition1EvaluationRecorder tag priority', () => {
   })
 
   it('tags far-off when a wrong answer matches no more specific concern', async () => {
-    // p1: 2 + 3 = 5; '9' matches neither group count and is not adjacent.
+    // p1: 1 + 1 = 2; '9' matches neither group count and is not adjacent.
     const { recorder } = await makeRecorder()
     recorder.beginProblem(findProblem('p1'))
     const result = recorder.recordSubmit('9')
     expect(result.primaryEvaluationTag).toBe('far-off')
     const farOff = result.findings.find((f) => f.signal === 'far-off')
-    expect(farOff?.detail).toMatchObject({ value: 9, answer: 5, offBy: 4 })
+    expect(farOff?.detail).toMatchObject({ value: 9, answer: 2, offBy: 7 })
   })
 
   it('tags a fast unassisted solve as fast-correct (beats solved-without-merge)', async () => {
     const { recorder, clock } = await makeRecorder()
     recorder.beginProblem(findProblem('p1'))
     clock.now = 5000
-    const result = recorder.recordSubmit('5')
+    const result = recorder.recordSubmit('2')
     expect(result.findings.map((f) => f.signal)).toEqual(
       expect.arrayContaining(['fast-correct', 'solved-without-merge'])
     )
@@ -172,7 +173,7 @@ describe('createAddition1EvaluationRecorder tag priority', () => {
     const { recorder, clock } = await makeRecorder()
     recorder.beginProblem(findProblem('p1'))
     clock.now = 15_000 // past the 10s fast-answer window
-    const result = recorder.recordSubmit('5')
+    const result = recorder.recordSubmit('2')
     expect(result.findings.map((f) => f.signal)).toEqual(['solved-without-merge'])
     expect(result.primaryEvaluationTag).toBe('solved-without-merge')
   })
@@ -183,7 +184,7 @@ describe('createAddition1EvaluationRecorder tag priority', () => {
     clock.now = 2000
     recorder.recordEvent({ type: 'action', name: 'push-together' })
     clock.now = 15_000
-    const result = recorder.recordSubmit('5')
+    const result = recorder.recordSubmit('2')
     expect(result.primaryEvaluationTag).toBeNull()
   })
 
