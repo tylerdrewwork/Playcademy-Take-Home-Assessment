@@ -2,6 +2,8 @@
 
 A Svelte 5 + Vite teaching application built with the goal of reaching CCSS 2.MD.C.8. Once the lesson is complete, the student can join a Firebase-backed multiplayer coin-counting game.
 
+### **[View the CCSS 2.MD.C.8 knowledge graph](<src/assets/general/CCSS 2.MD.C.8 Knowledge Graph.png>)**
+
 ## Getting started
 
 ```bash
