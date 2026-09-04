@@ -238,39 +238,27 @@
   /* Anchored left of the character's own x:50% (object-position: bottom
      center within the same full-width box), so the bubble body reads
      beside the character's head rather than sitting directly on top of
-     it. The tail below (::after) sits on the bubble's right edge instead,
-     pointing back toward the character. Sized in em/rem rather than
-     viewport units — the ambient percentage-based layout plus
-     .speech-anchor's own scale(0.68) already make its rendered size
-     responsive without any extra media queries, and read as appropriately
-     "small" for a back-of-line arrival. */
+     it. Sized in em/rem rather than viewport units — the ambient
+     percentage-based layout plus .speech-anchor's own scale(0.68) already
+     make its rendered size responsive without any extra media queries.
+     Sizing (font-size/padding/max-width/border-radius) is ~15% larger
+     than a plain 0.85rem/0.45em·0.7em/9em/0.9em baseline. */
   .speech-bubble {
     position: absolute;
     bottom: 100%;
     left: 29%;
     transform: translateX(-50%);
     margin: 0 0 0.5em;
-    max-width: 9em;
-    padding: 0.45em 0.7em;
-    border-radius: 0.9em;
+    max-width: 10.35em;
+    padding: 0.52em 0.8em;
+    border-radius: 1.03em;
     background: #fff8ec;
     color: #2b1d0e;
-    font-size: 0.85rem;
+    font-size: 0.98rem;
     font-weight: 600;
     line-height: 1.2;
     text-align: center;
     white-space: normal;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.28);
-  }
-
-  /* Tail pointing down toward the character's head, on the bubble's right
-     side since the bubble itself sits left of the character. */
-  .speech-bubble::after {
-    content: '';
-    position: absolute;
-    top: 100%;
-    right: 0.6em;
-    border: 0.4em solid transparent;
-    border-top-color: #fff8ec;
   }
 </style>
