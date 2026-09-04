@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onDestroy } from 'svelte'
+  import { scale } from 'svelte/transition'
   import {
     advanceQueue,
     createInitialQueueState,
@@ -7,6 +8,7 @@
     type QueueEntry,
     type QueueState,
   } from './characterQueue.js'
+  import { SPEECH_PHRASES } from './speechPhrases.js'
   import charBusinessman from '../assets/multiplayer/characters/char-businessman.webp'
   import charDog from '../assets/multiplayer/characters/char-dog.webp'
   import charDoglady from '../assets/multiplayer/characters/char-doglady.webp'
@@ -34,6 +36,23 @@
   let exiting: ExitingEntry[] = $state([])
   let enteringId: number | null = $state(null)
 
+  // The freshest arrival's speech bubble text. Always tied to whoever just
+  // joined the back of the line (rank 2) — .speech-anchor below mirrors
+  // rank-2's own position/scale, so there's no need to track which entry
+  // it belongs to beyond gating re-greets in greet() below. Stays up for as
+  // long as the current front-of-line problem is unsolved — only advance()
+  // (called once a correct answer lands) replaces it with the next arrival's
+  // greeting, rather than any timer.
+  let speechText: string | null = $state(null)
+
+  function greet(): void {
+    speechText = SPEECH_PHRASES[Math.floor(Math.random() * SPEECH_PHRASES.length)]
+  }
+
+  // Greet the back-of-line arrival everyone sees on first render too — they
+  // are just as "new" to the screen as anyone who joins later via advance().
+  greet()
+
   let pendingTimeouts = new Set<ReturnType<typeof setTimeout>>()
 
   function afterPaint(fn: () => void): void {
@@ -55,6 +74,7 @@
     exiting = [...exiting, { ...exited, leaving: false }]
     queueState = nextState
     enteringId = entered.id
+    greet()
 
     afterPaint(() => {
       exiting = exiting.map((entry) =>
@@ -96,6 +116,20 @@
       alt=""
     />
   {/each}
+  {#if speechText}
+    <!-- A standalone overlay (not nested inside a ranked .character element)
+         so its own z-index always wins against every rank, including the
+         much larger front-of-line character — nesting it inside rank-2's
+         own element would trap it in that rank's stacking context, which
+         loses to rank-0/rank-1 regardless of any z-index set here. -->
+    <div class="speech-anchor">
+      {#key speechText}
+        <p class="speech-bubble" transition:scale={{ duration: 220, start: 0.6 }}>
+          {speechText}
+        </p>
+      {/key}
+    </div>
+  {/if}
 </div>
 
 <style>
@@ -182,5 +216,49 @@
   .character.exiting {
     transform: translateX(100%) scale(2);
     opacity: 0;
+  }
+
+  /* Mirrors .rank-2's own box exactly (same bottom/height/scale/origin) so
+     the bubble always floats directly above whoever just joined the back
+     of the line, without being nested inside that rank's element (see the
+     comment in the markup above for why). z-index is set far above every
+     rank so it's never covered by the larger, closer characters in front. */
+  .speech-anchor {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 44%;
+    bottom: 40%;
+    transform: scale(0.68);
+    transform-origin: bottom center;
+    z-index: 10;
+    pointer-events: none;
+  }
+
+  /* Anchored left of the character's own x:50% (object-position: bottom
+     center within the same full-width box), so the bubble body reads
+     beside the character's head rather than sitting directly on top of
+     it. Sized in em/rem rather than viewport units — the ambient
+     percentage-based layout plus .speech-anchor's own scale(0.68) already
+     make its rendered size responsive without any extra media queries.
+     Sizing (font-size/padding/max-width/border-radius) is ~15% larger
+     than a plain 0.85rem/0.45em·0.7em/9em/0.9em baseline. */
+  .speech-bubble {
+    position: absolute;
+    bottom: 100%;
+    left: 29%;
+    transform: translateX(-50%);
+    margin: 0 0 0.5em;
+    max-width: 10.35em;
+    padding: 0.52em 0.8em;
+    border-radius: 1.03em;
+    background: #fff8ec;
+    color: #2b1d0e;
+    font-size: 0.98rem;
+    font-weight: 600;
+    line-height: 1.2;
+    text-align: center;
+    white-space: normal;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.28);
   }
 </style>
