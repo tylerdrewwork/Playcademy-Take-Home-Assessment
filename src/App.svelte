@@ -47,12 +47,12 @@
 
   .top-left-controls {
     position: fixed;
-    top: 1rem;
-    left: 1rem;
+    top: var(--space-4);
+    left: var(--space-4);
     z-index: 10;
     display: flex;
     align-items: flex-start;
-    gap: 0.5rem;
+    gap: var(--space-2);
   }
 
   .music-column,
@@ -60,6 +60,6 @@
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    gap: 0.5rem;
+    gap: var(--space-2);
   }
 </style>

@@ -10,6 +10,7 @@
   import { celebration } from './celebration.svelte.js'
   import { normalizeAnswer } from './progression.js'
   import GroupsDisplay from './content/addition-1-screens/GroupsDisplay.svelte'
+  import SuccessCheck from '../ui/SuccessCheck.svelte'
 
   let inputValue = $state('')
 
@@ -367,7 +368,7 @@
       </div>
 
       {#if !pushed && !celebration.active}
-        <button type="button" class="push-together" data-eval-id="push-together" onclick={pushTogether}>Push them together</button>
+        <button type="button" class="btn-primary" data-eval-id="push-together" onclick={pushTogether}>Push them together</button>
       {/if}
     {/key}
 
@@ -389,7 +390,7 @@
         bind:value={inputValue}
         oninput={handleAnswerInput}
       />
-      <button type="submit" class="submit" data-eval-id="submit" disabled={celebration.active}>Submit</button>
+      <button type="submit" class="btn-secondary submit" data-eval-id="submit" disabled={celebration.active}>Submit</button>
     </form>
   </div>
 </section>
@@ -398,30 +399,29 @@
   <div class="spark-layer" bind:this={sparkLayerEl} aria-hidden="true"></div>
   <!-- Fixed overlay: floats above the problem area without shifting layout. -->
   <div class="success-overlay" bind:this={successOverlayEl} style="opacity: 0" role="status">
-    <svg class="check" viewBox="0 0 64 64" aria-hidden="true">
-      <circle cx="32" cy="32" r="30" fill="#3f9d46" />
-      <path
-        d="M18 33 L28 43 L45 24"
-        stroke="#ffffff"
-        stroke-width="7"
-        fill="none"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-      />
-    </svg>
+    <SuccessCheck />
     <p>You got it!</p>
   </div>
 {/if}
 
 <style>
   .problems {
-    padding: 0 1rem;
+    padding: 0 var(--space-4);
   }
 
+  /* A small pill rather than bare text, so it stays legible over the
+     saturated sky gradient behind the card. */
   .problem-counter {
-    text-align: center;
-    color: light-dark(#6b7280, #9ca3af);
-    margin: 2rem 0 1rem;
+    width: fit-content;
+    margin: var(--space-6) auto var(--space-4);
+    padding: var(--space-1) var(--space-3);
+    border-radius: var(--radius-pill);
+    background: rgba(255, 255, 255, 0.78);
+    color: var(--color-ink-muted);
+    font-size: var(--text-sm);
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    box-shadow: var(--shadow-sm);
   }
 
   /* Same card treatment as the lesson's .lesson-card, minus the fixed
@@ -430,72 +430,48 @@
   .problem-card {
     box-sizing: border-box;
     max-width: 40rem;
-    margin: 0 auto 2rem;
-    padding: 2rem;
-    border-radius: 1rem;
-    background: linear-gradient(180deg, #ffffff 0%, #f3f4f6 100%);
-    /* The gradient is a fixed light look in both themes, so the card's
-       text color is pinned here too instead of following light-dark(). */
-    color: #213547;
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    margin: 0 auto var(--space-6);
+    padding: var(--space-6);
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    border-radius: var(--radius-lg);
+    background: linear-gradient(180deg, var(--color-surface) 0%, var(--color-surface-2) 100%);
+    color: var(--color-ink);
+    box-shadow: var(--shadow-lg);
     text-align: center;
   }
 
   .prompt {
-    font-size: clamp(1.2rem, 4vw, 1.5rem);
+    font-size: clamp(var(--text-lg), 4vw, var(--text-xl));
     font-weight: 700;
     line-height: 1.4;
-    margin: 0 0 0.5rem;
-  }
-
-  .push-together {
-    background-color: #3f9d46;
-    color: #ffffff;
-    font-weight: 600;
-  }
-
-  .push-together:hover {
-    border-color: #2e7d33;
+    margin: 0 0 var(--space-2);
   }
 
   .feedback {
-    color: light-dark(#c0392b, #ff8a80);
-    margin: 1rem 0 0;
+    color: var(--color-danger);
+    font-weight: 600;
+    margin: var(--space-4) 0 0;
   }
 
   .answer-row {
     display: flex;
     justify-content: center;
     align-items: stretch;
-    gap: 0.75rem;
-    margin-top: 2rem;
+    gap: var(--space-3);
+    margin-top: var(--space-6);
   }
 
   .answer-row input {
     box-sizing: border-box;
     width: 4.5rem;
     text-align: center;
-    font-size: 1.25rem;
+    font-size: var(--text-lg);
     font-weight: 700;
-    font-family: inherit;
-    border: 1px solid light-dark(#d1d5db, #4b5563);
-    border-radius: 8px;
-    background: light-dark(#ffffff, #2a2a2a);
-    /* Pinned to match this input's own light/dark background rather than
-       inheriting the problem card's fixed light color. */
-    color: light-dark(#213547, rgba(255, 255, 255, 0.87));
   }
 
   .submit {
-    background-color: #4a90d9;
-    color: #ffffff;
-    font-weight: 600;
-    font-size: 1.1em;
-    padding: 0.6em 1.6em;
-  }
-
-  .submit:hover {
-    border-color: #2f6cb0;
+    font-size: var(--text-md);
+    padding: 0.55em 1.5em;
   }
 
   .spark-layer {
@@ -524,24 +500,19 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 0.5rem;
+    gap: var(--space-2);
     pointer-events: none;
     z-index: 20;
-  }
-
-  .success-overlay .check {
-    width: clamp(5rem, 18vw, 8rem);
-    height: auto;
-    filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.25));
+    --check-size: clamp(5rem, 18vw, 8rem);
   }
 
   .success-overlay p {
     margin: 0;
     font-size: clamp(1.8rem, 6vw, 2.6rem);
     font-weight: 800;
-    color: #3f9d46;
+    color: var(--color-success);
     text-shadow:
-      0 0 2px light-dark(#ffffff, #000000),
+      0 0 2px #ffffff,
       0 2px 8px rgba(0, 0, 0, 0.2);
   }
 </style>

@@ -52,12 +52,12 @@
   .gradient-bg {
     background: linear-gradient(
       180deg,
-      #5db4f4,
-      #82c8f8 20%,
-      #86d165 45%,
-      #74c254 60%,
-      #86d165 78%,
-      #5db4f4
+      var(--color-sky),
+      var(--color-sky-light) 20%,
+      var(--color-grass) 45%,
+      var(--color-grass-dark) 60%,
+      var(--color-grass) 78%,
+      var(--color-sky)
     );
   }
 </style>

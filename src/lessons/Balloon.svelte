@@ -60,11 +60,16 @@
     display: block;
   }
 
+  /* White digit with a soft rounded halo behind it (paint-order draws the
+     stroke underneath the fill) so it stays readable on either balloon color
+     without the hard "outlined clip-art" look of a stroke on top. */
   .number {
     font-size: 1.1rem;
-    font-weight: bold;
+    font-weight: 700;
     fill: #ffffff;
-    stroke: #00000055;
-    stroke-width: 0.5px;
+    paint-order: stroke fill;
+    stroke: rgba(0, 0, 0, 0.35);
+    stroke-width: 1.6px;
+    stroke-linejoin: round;
   }
 </style>

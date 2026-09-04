@@ -43,32 +43,38 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    /* Literal, not a token: CountingCombiningScreen's GSAP timeline tweens
+       this gap to/from exactly '1rem'. */
     gap: 1rem;
-    margin: 1.5rem 0;
+    margin: var(--space-5) 0;
     flex-wrap: nowrap;
   }
 
   .operator {
-    font-size: 1.5rem;
-    font-weight: bold;
+    font-size: var(--text-xl);
+    font-weight: 700;
+    color: var(--color-ink-muted);
     flex-shrink: 0;
   }
 
   .group-box {
-    border: 2px dashed #a9c9e8;
-    border-radius: 0.75rem;
+    border: 2px dashed var(--color-primary-soft);
+    border-radius: var(--radius-md);
+    /* Literal, not tokens: the GSAP merge/reveal timelines tween this
+       padding to/from exactly '1.25rem' and '0.25rem'. */
     padding: 1rem 1.25rem;
-    background: light-dark(#eaf3fc, #16233a);
-    /* Pinned to match this box's own light/dark background rather than
-       inheriting the lesson card's fixed light color, which is tuned for
-       the card's dark wood background, not this box's pale one. */
-    color: light-dark(#213547, rgba(255, 255, 255, 0.87));
+    background: var(--color-primary-tint);
+    color: var(--color-ink);
     min-width: 0;
   }
 
   .group-box h3 {
-    margin: 0 0 0.75rem;
-    font-size: 1rem;
+    margin: 0 0 var(--space-3);
+    font-size: var(--text-xs);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-ink-muted);
   }
 
   .balloon-row {

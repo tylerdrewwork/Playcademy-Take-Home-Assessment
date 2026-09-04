@@ -8,6 +8,7 @@
 <script>
   import gsap from 'gsap'
   import { addition1LessonProgress } from './content/addition-1-LessonProgress.js'
+  import SuccessCheck from '../ui/SuccessCheck.svelte'
 
   let { onPlayMultiplayer } = $props()
 
@@ -45,20 +46,10 @@
 
 <section class="lesson-complete" role="status">
   <div class="card" bind:this={cardEl} style="opacity: 0">
-    <svg class="check" viewBox="0 0 64 64" aria-hidden="true">
-      <circle cx="32" cy="32" r="30" fill="#3f9d46" />
-      <path
-        d="M18 33 L28 43 L45 24"
-        stroke="#ffffff"
-        stroke-width="7"
-        fill="none"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-      />
-    </svg>
+    <SuccessCheck />
     <p class="headline">Great job!</p>
     {#if !autoForward}
-      <button class="play" onclick={() => onPlayMultiplayer?.()}>Play the coin game</button>
+      <button class="btn-primary play" onclick={() => onPlayMultiplayer?.()}>Play the coin game</button>
     {/if}
   </div>
 </section>
@@ -69,34 +60,29 @@
     align-items: center;
     justify-content: center;
     min-height: 60vh;
-    padding: 1rem;
+    padding: var(--space-4);
   }
 
   .card {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0.75rem;
-  }
-
-  .check {
-    width: clamp(6rem, 24vw, 10rem);
-    height: auto;
-    filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.25));
+    gap: var(--space-3);
+    --check-size: clamp(6rem, 24vw, 10rem);
   }
 
   .headline {
     margin: 0;
-    font-size: clamp(2rem, 7vw, 3rem);
+    font-size: clamp(var(--text-2xl), 7vw, var(--text-4xl));
     font-weight: 800;
-    color: #3f9d46;
+    color: var(--color-success);
     text-shadow:
-      0 0 2px light-dark(#ffffff, #000000),
-      0 2px 8px rgba(0, 0, 0, 0.2);
+      0 0 2px #ffffff,
+      0 2px 8px rgba(0, 0, 0, 0.15);
   }
 
   .play {
-    margin-top: 0.5rem;
-    font-size: 1.1rem;
+    margin-top: var(--space-2);
+    font-size: var(--text-md);
   }
 </style>

@@ -48,13 +48,13 @@
     height: min(94vh, 62rem);
     min-width: 20rem;
     overflow: hidden;
-    padding: clamp(1rem, 3vh, 2rem) clamp(1.5rem, 3vw, 3rem);
-    border-radius: 1rem;
-    background: linear-gradient(180deg, #ffffff 0%, #f3f4f6 100%);
-    /* The gradient is a fixed light look in both themes, so the card's
-       text color is pinned here too instead of following light-dark(). */
-    color: #213547;
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    padding: clamp(var(--space-4), 3vh, var(--space-6)) clamp(var(--space-5), 3vw, var(--space-8));
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    border-radius: var(--radius-lg);
+    background: linear-gradient(180deg, var(--color-surface) 0%, var(--color-surface-2) 100%);
+    color: var(--color-ink);
+    /* Sits on the saturated sky/grass gradient, so it needs a real lift. */
+    box-shadow: var(--shadow-lg);
     text-align: center;
   }
 </style>

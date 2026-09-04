@@ -50,7 +50,7 @@
 </script>
 
 {#if phase === 'begin'}
-  <button class="btn-primary" onclick={begin}>Begin</button>
+  <button class="btn-primary btn-hero" onclick={begin}>Begin</button>
 {:else}
   <p class="lesson-transcript">{current.transcript}</p>
 {/if}

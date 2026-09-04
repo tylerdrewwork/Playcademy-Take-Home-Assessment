@@ -7,7 +7,23 @@
   }
 </script>
 
-<div class="music-volume">
+<div class="music-volume chrome-panel">
+  <svg
+    class="icon"
+    viewBox="0 0 24 24"
+    width="1.1em"
+    height="1.1em"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    aria-hidden="true"
+  >
+    <path d="M9 18V5l11-2v13" />
+    <circle cx="6" cy="18" r="3" fill="currentColor" stroke="none" />
+    <circle cx="17" cy="16" r="3" fill="currentColor" stroke="none" />
+  </svg>
   <input
     type="range"
     min="0"
@@ -19,21 +35,13 @@
 </div>
 
 <style>
-  .music-volume {
-    display: flex;
-    align-items: center;
-    background-color: #1a1a1a;
-    padding: 0.4rem 0.75rem;
-    border-radius: 8px;
+  .icon {
+    display: block;
+    flex-shrink: 0;
+    color: var(--color-ink-muted);
   }
 
   input[type='range'] {
     width: 6rem;
-  }
-
-  @media (prefers-color-scheme: light) {
-    .music-volume {
-      background-color: #f9f9f9;
-    }
   }
 </style>

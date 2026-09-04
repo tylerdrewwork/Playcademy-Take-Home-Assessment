@@ -61,16 +61,17 @@
     justify-content: flex-end;
     min-width: 7rem;
     min-height: 8rem;
-    padding: 2.5rem 1rem 0.75rem;
-    border: 1px solid light-dark(#d1d5db, #4b5563);
-    border-radius: 0.75rem;
-    background: light-dark(#ffffff, #1a1a1a);
+    padding: 2.5rem var(--space-4) var(--space-3);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+    box-shadow: var(--shadow-sm);
   }
 
   .player-name {
     margin: 0;
-    font-weight: bold;
-    color: light-dark(#6b7280, #9ca3af);
+    font-weight: 700;
+    color: var(--color-ink-muted);
   }
 
   .bubble-layer {
@@ -88,8 +89,8 @@
     bottom: 0;
     left: 50%;
     white-space: nowrap;
-    font-size: 0.9rem;
-    font-weight: bold;
-    color: light-dark(#1a7f37, #6fdb7e);
+    font-size: var(--text-sm);
+    font-weight: 700;
+    color: var(--color-success-strong);
   }
 </style>

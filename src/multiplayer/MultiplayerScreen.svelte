@@ -292,7 +292,25 @@
   <div class="stage">
     {#if session.warmingUp}
       <p class="warmup-toast" transition:fade={{ duration: 200 }}>
-        <span class="warmup-toast-icon" aria-hidden="true">☕</span>
+        <svg
+          class="warmup-toast-icon"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M4 9h11v6a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4V9z" />
+          <path d="M15 11h2a2 2 0 0 1 0 4h-2" />
+          <path d="M3 22h14" />
+          <g class="warmup-toast-steam">
+            <path d="M7 2.5v3" />
+            <path d="M10 2v3.5" />
+            <path d="M13 2.5v3" />
+          </g>
+        </svg>
         Warming up cloud functions, wait one sec!
       </p>
     {/if}
@@ -320,7 +338,7 @@
       <p class="status-message error">Couldn't join the game. Please check your connection and try again.</p>
     {:else if session.status === 'joined'}
       <div class="scoreboard">
-        <h3>Current Employees ({session.playerCount})</h3>
+        <h3 class="eyebrow">Current Employees ({session.playerCount})</h3>
         <ul>
           {#each session.players as player (player.uid)}
             <li class:self={player.isSelf}>
@@ -451,77 +469,90 @@
     margin: 0;
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: var(--space-3);
     padding: 0.9rem 1.65rem;
-    border-radius: 999px;
-    background: #2b1d0e;
-    color: #fff8ec;
-    font-size: 1.35rem;
-    font-weight: 500;
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 248, 236, 0.15);
+    border-radius: var(--radius-pill);
+    background: var(--color-wood-900);
+    color: var(--color-cream);
+    font-size: var(--text-lg);
+    font-weight: 600;
+    box-shadow: var(--shadow-lg);
     white-space: nowrap;
   }
 
   .warmup-toast-icon {
-    font-size: 1.65rem;
+    width: 1.65em;
+    height: 1.65em;
+    flex-shrink: 0;
+    color: var(--color-accent-soft);
+  }
+
+  /* The steam lines drift upward and fade in a loop while the cup sits
+     still. */
+  .warmup-toast-steam {
     animation: warmup-toast-steam 1.4s ease-in-out infinite;
   }
 
   @keyframes warmup-toast-steam {
     0%,
     100% {
+      opacity: 0.5;
       transform: translateY(0);
     }
     50% {
-      transform: translateY(-2px);
+      opacity: 1;
+      transform: translateY(-1.5px);
     }
   }
 
   .status-message,
   .scoreboard {
     position: absolute;
-    top: 1rem;
-    right: 1rem;
+    top: var(--space-4);
+    right: var(--space-4);
     z-index: 3;
     max-width: 18rem;
-    padding: 0.6rem 0.9rem;
-    border-radius: 12px;
-    color: #2b1d0e;
-    background: rgba(255, 248, 235, 0.9);
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid rgba(43, 29, 14, 0.12);
+    border-radius: var(--radius-md);
+    color: var(--color-wood-900);
+    background: rgba(255, 248, 236, 0.92);
+    box-shadow: var(--shadow-md);
     text-align: left;
   }
 
   .status-message {
     margin: 0;
-    font-size: 0.9rem;
+    font-size: var(--text-sm);
+    font-weight: 600;
   }
 
   .status-message.error {
-    color: #b3261e;
+    color: var(--color-danger);
   }
 
   .scoreboard h3 {
-    margin: 0 0 0.4rem;
-    font-size: 0.9rem;
+    margin-bottom: var(--space-2);
+    color: var(--color-wood-600);
   }
 
   .scoreboard ul {
     list-style: none;
     margin: 0;
     padding: 0;
-    font-size: 0.85rem;
+    font-size: var(--text-sm);
   }
 
   .scoreboard li {
     display: flex;
     align-items: baseline;
-    gap: 0.6rem;
+    gap: var(--space-3);
     padding: 0.15rem 0;
   }
 
   .scoreboard li.self {
-    font-weight: bold;
+    font-weight: 700;
   }
 
   .scoreboard .player-name {
@@ -533,9 +564,9 @@
   .scoreboard .earn-message {
     flex-grow: 1;
     min-width: 6rem;
-    font-weight: normal;
-    font-size: 0.8em;
-    color: #1a7f37;
+    font-weight: 600;
+    font-size: 0.85em;
+    color: var(--color-success-strong);
     text-align: right;
   }
 
@@ -574,49 +605,77 @@
      (no alpha) since it's no longer sitting on top of anything to show
      through. */
   .answer-bar {
+    position: relative;
+    z-index: 4;
     flex: 0 0 auto;
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     justify-content: center;
-    gap: 0.75rem;
-    padding: 0.75rem 1rem;
-    background: #2b1d0e;
-    color: #fff8ec;
+    gap: var(--space-3) var(--space-4);
+    padding: var(--space-3) var(--space-4);
+    background: var(--color-wood-900);
+    color: var(--color-cream);
+    /* Lifts the bar off the stage above it. */
+    box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.3);
   }
 
   .answer-bar .prompt {
     margin: 0;
-    font-weight: bold;
+    font-weight: 700;
   }
 
   .answer-form {
     display: flex;
-    gap: 0.5rem;
+    gap: var(--space-2);
   }
 
+  /* Cream-paper field on the dark wood, with an amber focus ring in place
+     of the app-wide blue one (blue reads as out of place on this scene). */
   .answer-form input {
-    width: 8rem;
-    padding: 0.4rem 0.6rem;
-    font-size: 1rem;
+    width: 9rem;
+    padding: 0.5rem 0.75rem;
+    font-size: var(--text-base);
+    font-weight: 600;
+    color: var(--color-wood-900);
+    background-color: var(--color-cream);
+    border-color: var(--color-wood-500);
+  }
+
+  .answer-form input::placeholder {
+    color: var(--color-wood-500);
+    font-weight: 500;
+  }
+
+  .answer-form input:focus-visible {
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 3px rgba(240, 180, 41, 0.4);
   }
 
   .answer-form button {
-    padding: 0.4rem 0.8rem;
-    background-color: #6b4423;
-    color: #fff8ec;
+    border-color: transparent;
+    background-color: var(--color-wood-600);
+    color: var(--color-cream);
+  }
+
+  .answer-form button:hover {
+    background-color: var(--color-wood-500);
+  }
+
+  .answer-form button:focus-visible {
+    outline-color: var(--color-accent);
   }
 
   .feedback {
     margin: 0;
-    font-weight: bold;
+    font-weight: 700;
   }
 
   .feedback.correct {
-    color: #7fd88f;
+    color: var(--color-success-on-dark);
   }
 
   .feedback.incorrect {
-    color: #ff9d90;
+    color: var(--color-danger-on-dark);
   }
 </style>

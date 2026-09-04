@@ -343,7 +343,7 @@
   <GroupsDisplay {groups} {revealedCounts} {continuousNumbering} instant={hideNumbersInstantly} />
 
   {#if phase === 'done' && stepIndex === steps.length - 1}
-    <button class="btn-primary" onclick={next}>
+    <button class="btn-primary btn-hero" onclick={next}>
       {isLastScreen ? "Got it! Let's Practice!" : 'Next'}
     </button>
   {/if}

@@ -1,7 +1,10 @@
 <script lang="ts">
   import { voiceVolume } from './voiceVolumeSingleton.js'
+  import SpeakerIcon from './ui/SpeakerIcon.svelte'
 
-  let icon = $derived(voiceVolume.volume === 0 ? '🔇' : voiceVolume.volume < 0.5 ? '🔉' : '🔊')
+  let level = $derived<'muted' | 'low' | 'high'>(
+    voiceVolume.volume === 0 ? 'muted' : voiceVolume.volume < 0.5 ? 'low' : 'high'
+  )
 
   function handleInput(event: Event) {
     const percent = Number((event.currentTarget as HTMLInputElement).value)
@@ -9,8 +12,8 @@
   }
 </script>
 
-<div class="voice-volume">
-  <span aria-hidden="true">{icon}</span>
+<div class="voice-volume chrome-panel">
+  <span class="icon"><SpeakerIcon {level} /></span>
   <input
     type="range"
     min="0"
@@ -22,22 +25,12 @@
 </div>
 
 <style>
-  .voice-volume {
+  .icon {
     display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    background-color: #1a1a1a;
-    padding: 0.4rem 0.75rem;
-    border-radius: 8px;
+    color: var(--color-ink-muted);
   }
 
   input[type='range'] {
     width: 6rem;
-  }
-
-  @media (prefers-color-scheme: light) {
-    .voice-volume {
-      background-color: #f9f9f9;
-    }
   }
 </style>

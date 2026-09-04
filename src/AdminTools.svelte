@@ -1,4 +1,5 @@
 <script>
+  import { fade } from 'svelte/transition'
   import { addition1LessonProgress } from './lessons/content/addition-1-LessonProgress.js'
   import { addition1EvaluationRecorder } from './lessons/content/addition-1-EvaluationRecorder.js'
   import { adminSettings } from './adminSettings.svelte.js'
@@ -154,141 +155,246 @@
 {/if}
 
 {#if justReset}
-  <p class="toast">Progress reset</p>
+  <p class="toast" transition:fade={{ duration: 200 }}>Progress reset</p>
 {/if}
 
 <style>
+  /* Everything in this file is dev tooling, so it uses the --color-dev-*
+     slate palette and a monospace label style: deliberately distinct from
+     the student-facing lesson chrome. */
+
+  /* Low-key trigger: it's always on screen next to the lesson, so it should
+     read as a utility, not a call to action. */
+  .admin-tools-trigger {
+    padding: 0.5em 0.95em;
+    border-color: transparent;
+    border-radius: var(--radius-pill);
+    background-color: rgba(31, 41, 55, 0.82);
+    color: var(--color-dev-fg);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+
+  .admin-tools-trigger:hover {
+    background-color: var(--color-dev-bg);
+  }
+
   dialog {
-    border-radius: 8px;
-    border: none;
-    padding: 1.5rem;
-    color: inherit;
-    background-color: #1a1a1a;
+    min-width: min(26rem, calc(100vw - 2rem));
+    padding: var(--space-5);
+    border: 1px solid var(--color-dev-border);
+    border-radius: var(--radius-md);
+    background-color: var(--color-dev-bg);
+    color: var(--color-dev-fg);
+    font-size: var(--text-sm);
+    box-shadow: var(--shadow-lg);
+  }
+
+  dialog[open] {
+    animation: dialog-in var(--duration-base) var(--ease-out);
   }
 
   dialog::backdrop {
-    background: rgba(0, 0, 0, 0.5);
+    background: rgba(15, 23, 42, 0.55);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+  }
+
+  dialog[open]::backdrop {
+    animation: backdrop-in var(--duration-base) var(--ease-out);
+  }
+
+  @keyframes dialog-in {
+    from {
+      opacity: 0;
+      transform: translateY(8px) scale(0.97);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @keyframes backdrop-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  dialog h2 {
+    margin: 0 0 var(--space-4);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-dev-fg-muted);
+  }
+
+  dialog p {
+    margin: 0 0 var(--space-4);
+  }
+
+  /* Buttons inside the dialog take the slate treatment too, instead of the
+     default white lesson button. */
+  dialog button {
+    padding: 0.5em 0.9em;
+    border-color: var(--color-dev-border);
+    background-color: var(--color-dev-bg-soft);
+    color: var(--color-dev-fg);
+    font-size: var(--text-sm);
+    box-shadow: none;
+  }
+
+  dialog button:hover {
+    background-color: var(--color-dev-bg-raised);
+    box-shadow: none;
   }
 
   .actions {
     display: flex;
-    gap: 0.5rem;
+    flex-wrap: wrap;
+    gap: var(--space-2);
   }
 
   .separated-actions {
     display: flex;
-    gap: 0.5rem;
-    margin-top: 1rem;
-    padding-top: 1rem;
-    border-top: 1px solid rgba(128, 128, 128, 0.25);
+    gap: var(--space-2);
+    margin-top: var(--space-4);
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--color-dev-border);
   }
 
   .jump-group {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    margin-bottom: 1rem;
+    gap: var(--space-3);
+    margin-bottom: var(--space-4);
+  }
+
+  .jump-label {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--color-dev-fg-muted);
   }
 
   .eval-log {
-    margin-bottom: 1rem;
+    margin-bottom: var(--space-4);
   }
 
   .setting-row {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    margin-bottom: 1rem;
+    gap: var(--space-2);
+    margin-bottom: var(--space-4);
     cursor: pointer;
     text-align: left;
   }
 
   .setting-hint {
-    opacity: 0.7;
-    font-size: 0.85em;
+    color: var(--color-dev-fg-muted);
+    font-size: 0.9em;
   }
 
   .eval-log-header {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    justify-content: space-between;
+    gap: var(--space-2);
   }
 
   /* Rolling on-screen log, pinned directly under the Admin Tools trigger. */
   .eval-panel {
     position: fixed;
     top: 3.75rem;
-    left: 1rem;
+    left: var(--space-4);
     z-index: 10;
     width: min(24rem, calc(100vw - 2rem));
-    padding: 0.75rem 1rem;
-    border-radius: 8px;
-    background-color: #1a1a1a;
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--color-dev-border);
+    border-radius: var(--radius-md);
+    background-color: var(--color-dev-bg);
+    color: var(--color-dev-fg);
+    box-shadow: var(--shadow-lg);
     text-align: left;
   }
 
   .eval-panel-title {
     margin: 0;
-    font-size: 0.85rem;
-    font-weight: 600;
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--color-dev-fg-muted);
   }
 
   .eval-findings {
     list-style: none;
-    margin: 0.5rem 0 0;
+    margin: var(--space-2) 0 0;
     padding: 0;
     max-height: min(50vh, 18rem);
     overflow-y: auto;
-    font-size: 0.8rem;
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    line-height: 1.45;
     text-align: left;
   }
 
   .eval-findings li {
-    padding: 0.25rem 0;
-    border-bottom: 1px solid rgba(128, 128, 128, 0.25);
+    padding: var(--space-1) 0;
+    border-bottom: 1px solid var(--color-dev-border);
   }
 
   .eval-findings .polarity {
-    color: #3f9d46;
+    color: var(--color-success-on-dark);
   }
 
   .eval-findings .polarity.concern {
-    color: #e0a030;
+    color: var(--color-warning);
   }
 
   .eval-findings .signal {
-    font-weight: 600;
+    font-weight: 700;
   }
 
   .eval-findings .meta {
-    opacity: 0.75;
+    color: var(--color-dev-fg-muted);
   }
 
   .eval-findings .detail {
     display: block;
-    opacity: 0.6;
+    color: var(--color-dev-fg-muted);
     word-break: break-all;
   }
 
   .eval-findings .empty {
-    opacity: 0.6;
+    color: var(--color-dev-fg-muted);
   }
 
   .toast {
     position: fixed;
-    top: 4rem;
-    left: 1rem;
-    background-color: #1a1a1a;
-    padding: 0.5rem 1rem;
-    border-radius: 8px;
-  }
-
-  @media (prefers-color-scheme: light) {
-    dialog,
-    .toast,
-    .eval-panel {
-      background-color: #f9f9f9;
-    }
+    top: 3.75rem;
+    left: var(--space-4);
+    z-index: 10;
+    margin: 0;
+    padding: var(--space-2) var(--space-4);
+    border: 1px solid var(--color-dev-border);
+    border-radius: var(--radius-pill);
+    background-color: var(--color-dev-bg);
+    color: var(--color-dev-fg);
+    font-size: var(--text-sm);
+    box-shadow: var(--shadow-md);
   }
 </style>
