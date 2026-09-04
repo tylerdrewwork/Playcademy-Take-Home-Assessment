@@ -2,6 +2,7 @@ import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getDatabase } from "firebase/database";
 import { getFunctions } from "firebase/functions";
+import { getPerformance } from "firebase/performance";
 
 // Paste the config object from the Firebase console:
 // Project settings -> General -> Your apps -> SDK setup and configuration
@@ -25,3 +26,7 @@ export const rtdb = getDatabase(app);
 
 // Cloud Functions, the authoritative source of truth for multiplayer game state.
 export const functions = getFunctions(app);
+
+// Performance Monitoring: automatic page load/network traces, plus custom
+// traces for lesson/multiplayer milestones (see CLAUDE.md: Crash/error monitoring).
+export const perf = getPerformance(app);

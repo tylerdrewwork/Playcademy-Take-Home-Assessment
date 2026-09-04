@@ -1,6 +1,8 @@
 <script lang="ts">
   import { onDestroy } from 'svelte'
   import { fade } from 'svelte/transition'
+  import { trace } from 'firebase/performance'
+  import { perf } from '../lib/firebase.js'
   import { GameSession, type CoinProblem } from './gameSession.svelte.js'
   import CoinScatter from './CoinScatter.svelte'
   import CharacterQueue from './CharacterQueue.svelte'
@@ -18,6 +20,43 @@
   session.join()
 
   onDestroy(() => session.leave())
+
+  // ----- Performance Monitoring telemetry -----
+
+  // Times each answer attempt: from the moment a set of coins becomes the
+  // one the player is counting to the moment they hit submit — thinking
+  // time, not round-trip time, matching how the lesson side times answers.
+  // A wrong answer keeps the same coins on screen (see gameSession.svelte.ts)
+  // so the retry gets its own timer too, started once the server confirms
+  // it was wrong (handleSubmit below) rather than off session.lastResult
+  // reactively — two wrong answers in a row leave that value unchanged, so
+  // an effect watching it wouldn't re-fire the second time.
+  // Plain variable, not $state — nothing renders off of it.
+  let answerTrace: ReturnType<typeof trace> | null = null
+  let timedProblem: CoinProblem | null = null
+
+  function startAnswerTimer(): void {
+    answerTrace = trace(perf, 'multiplayer_answer_time')
+    answerTrace.start()
+  }
+
+  // Reports the room's current player count whenever it actually changes —
+  // no point re-sending an unchanged number on a timer.
+  let lastReportedPlayerCount: number | null = null
+  $effect(() => {
+    const count = session.playerCount
+    if (session.status !== 'joined' || count === lastReportedPlayerCount) return
+    lastReportedPlayerCount = count
+    const sample = trace(perf, 'multiplayer_player_count')
+    sample.start()
+    sample.putMetric('count', count)
+    sample.stop()
+  })
+
+  onDestroy(() => {
+    answerTrace?.stop()
+    answerTrace = null
+  })
 
   let characterQueue: CharacterQueue | undefined = $state()
   let counterTrayEl: HTMLDivElement | undefined = $state()
@@ -79,6 +118,15 @@
       pendingProblem = null
       transitioning = false
     })
+  })
+
+  // A fresh set of coins just became the one on screen — time how long it
+  // takes to answer it.
+  $effect(() => {
+    if (displayedProblem && displayedProblem !== timedProblem) {
+      timedProblem = displayedProblem
+      startAnswerTimer()
+    }
   })
 
   // Coins fly from the counter into the jar and sparkle before the jar's
@@ -224,7 +272,12 @@
     event.preventDefault()
     if (answer === undefined || !Number.isFinite(answer)) return
 
-    session.submitAnswer(answer)
+    answerTrace?.stop()
+    answerTrace = null
+
+    session.submitAnswer(answer).then(() => {
+      if (session.lastResult === 'incorrect') startAnswerTimer()
+    })
     answer = undefined
   }
 

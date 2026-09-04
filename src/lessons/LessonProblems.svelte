@@ -1,8 +1,12 @@
 <script>
   import { onDestroy } from 'svelte'
   import gsap from 'gsap'
+  import { trace } from 'firebase/performance'
+  import { perf } from '../lib/firebase.js'
   import { addition1LessonProgress } from './content/addition-1-LessonProgress.js'
   import { addition1EvaluationRecorder } from './content/addition-1-EvaluationRecorder.js'
+  import { addition1Content } from './content/addition-1-Content.js'
+  import { startEvaluationTelemetryPush } from './evaluation/evaluationTelemetry.js'
   import { celebration } from './celebration.svelte.js'
   import { normalizeAnswer } from './progression.js'
   import GroupsDisplay from './content/addition-1-screens/GroupsDisplay.svelte'
@@ -48,6 +52,34 @@
   // actually sees it.
   $effect(() => {
     if (problem && !celebration.active) addition1EvaluationRecorder.beginProblem(problem)
+  })
+
+  // ----- Performance Monitoring telemetry -----
+
+  // Batches newly-recorded findings up to Performance Monitoring every 10s
+  // (see evaluationTelemetry.js) for as long as the problems screen is
+  // mounted — findings only ever get recorded while it is.
+  $effect(() => {
+    return startEvaluationTelemetryPush(addition1EvaluationRecorder, addition1Content.lessonId)
+  })
+
+  // Times each individual answer attempt: started the moment a problem (or
+  // a retry of the same problem) becomes the one the student is answering,
+  // stopped the instant they submit. Plain variable, not $state — nothing
+  // renders off of it.
+  let answerTrace = null
+  let timedProblemId = null
+
+  function startAnswerTimer() {
+    answerTrace = trace(perf, 'lesson_answer_time')
+    answerTrace.start()
+  }
+
+  $effect(() => {
+    if (problem && !celebration.active && timedProblemId !== problem.id) {
+      timedProblemId = problem.id
+      startAnswerTimer()
+    }
   })
 
   // Window-level capture (the "distracted" signal is about wandering
@@ -186,6 +218,9 @@
   onDestroy(() => {
     ctx?.revert()
     addition1EvaluationRecorder.endProblem()
+    // Don't leave a stopwatch running past the screen it was timing.
+    answerTrace?.stop()
+    answerTrace = null
     // If the screen is torn down mid-celebration (e.g. an admin phase jump),
     // don't leave the shared flag stuck on.
     celebration.end()
@@ -197,6 +232,15 @@
     const submitted = problem
     const { primaryEvaluationTag } = addition1EvaluationRecorder.recordSubmit(inputValue)
     const correct = normalizeAnswer(inputValue) === normalizeAnswer(submitted.answer)
+
+    answerTrace?.putAttribute('correct', String(correct))
+    answerTrace?.stop()
+    answerTrace = null
+    // Wrong answer: the student retries the same problem, so time that
+    // attempt too. A correct answer's next timer starts via the beginProblem
+    // effect once the next problem actually appears.
+    if (!correct) startAnswerTimer()
+
     // Progression advances right away — progress stays the source of truth
     // (a reload mid-celebration lands on the next problem). The celebration
     // only masks it visually until the send-off finishes.
