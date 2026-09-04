@@ -1,6 +1,8 @@
 # Playcademy-Take-Home-Assessment
 
-A Svelte 5 + Vite teaching application built around CCSS 2.MD.C.8 (combining two groups of objects and counting the total). Once the lesson is complete, the student can join a Firebase-backed multiplayer coin-counting game.
+A Svelte 5 + Vite teaching application built with the goal of reaching CCSS 2.MD.C.8. Once the lesson is complete, the student can join a Firebase-backed multiplayer coin-counting game.
+
+### **[View the CCSS 2.MD.C.8 knowledge graph](<src/assets/general/CCSS 2.MD.C.8 Knowledge Graph.png>)**
 
 ## Getting started
 
@@ -19,7 +21,7 @@ npm install
 | `npm run check` | Type-check the project with `svelte-check` |
 | `npm run generate:voice-clips` | Generate lesson/game voice clips via the voice-clips-generator tool |
 | `npm run generate:voice-clips:numbers` | Generate voice clips for spoken numbers only |
-| `npm run clean:voice-clips` | Remove generated voice clips |
+| `npm run clean:voice-clips` | Enhance generated voice clips |
 | `npm run deploy` | Deploy hosting (excluding functions) from `firebase/` via `npx firebase deploy` |
 
 `firebase-tools` is a devDependency, so Firebase CLI commands should be run with `npx firebase <command>` rather than a globally installed `firebase`.
