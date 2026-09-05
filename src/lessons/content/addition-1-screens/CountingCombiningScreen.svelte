@@ -58,17 +58,60 @@
   // group, not fade on their own on top of it.
   let hideNumbersInstantly = $state(false)
 
-  // 'counting' plays a clip-and-reveal sequence (started automatically,
-  // with no "Count them!" gate — the student watches, they don't trigger
-  // it); 'transitioning' (fade + merge) shows no button while GSAP
-  // animates; 'narrating' plays the step's voice-over clip before any
-  // counting starts; 'done' is the pause after a count finishes. The whole
-  // demo plays itself — narration ending (or its fallback timer) and the
-  // 'done' timer advance the flow, except on the last step, which waits
-  // for the student to click through into practice.
+  // 'counting' is the count itself: on the "I do" steps a clip-and-reveal
+  // sequence that plays automatically (the student watches), on the "we
+  // do" steps a wait for the student to touch each balloon in order (each
+  // touch reveals and speaks that balloon's number); 'transitioning' (fade
+  // + merge) shows no button while GSAP animates; 'narrating' plays the
+  // step's voice-over clip before any counting starts; 'done' is the pause
+  // after a count finishes. Narration ending (or its fallback timer) and
+  // the 'done' timer advance the flow, except on the last step, which
+  // waits for the student to click through into practice.
   let phase = $state<'counting' | 'done' | 'transitioning' | 'narrating'>('narrating')
   let countAudio: HTMLAudioElement | undefined
   let narrationAudio: HTMLAudioElement | undefined
+
+  // ----- "We do": the student touches the balloons in order -----
+
+  type BalloonRef = { groupIndex: number; localIndex: number }
+  type CountTarget = BalloonRef & { number: number }
+
+  // The balloons still to be touched for the current "we do" count, in
+  // order; the head is the one the student must touch next. Empty (and
+  // `expected` null) whenever no touch is expected — including throughout
+  // the "I do" pass, whose balloons aren't tappable at all.
+  let clickQueue: CountTarget[] = []
+  let expected = $state<CountTarget | null>(null)
+
+  // The expected balloon bounces from the moment it becomes the next one
+  // to touch. This stronger cue (a pointing hand + "Touch this balloon"
+  // under it) is held back so the student gets a first try at picking the
+  // next balloon on their own; it appears if they stall or touch the wrong
+  // balloon, and clears on the next correct touch.
+  let hintVisible = $state(false)
+  const HINT_IDLE_MS = 5000
+  const HINT_TEXT = 'Touch this balloon to count it!'
+
+  // The balloon most recently touched out of order, with a key that bumps
+  // on every wrong touch so repeated taps on the same balloon each wiggle.
+  let shakeBalloon = $state<(BalloonRef & { key: number }) | null>(null)
+
+  let isWeDoCount = $derived(
+    phase === 'counting' &&
+      (current.label === 'we-do-group-1' || current.label === 'we-do-group-2' || current.label === 'we-do-group-combined')
+  )
+
+  $effect(() => {
+    if (!expected) {
+      hintVisible = false
+      return
+    }
+    hintVisible = false
+    const timer = setTimeout(() => {
+      hintVisible = true
+    }, HINT_IDLE_MS)
+    return () => clearTimeout(timer)
+  })
 
   // Fallback pacing for steps whose voice-over clip hasn't been generated
   // yet: approximate a comfortable reading pace so the lesson still works
@@ -88,18 +131,93 @@
   // in, so the two never visually overlap.
   const TRANSITION_PAUSE_MS = 300
 
-  // What a step does once its narration finishes: counting steps start
-  // their count, the combined steps recount everything, pure-narration
-  // steps just move on.
+  // What a step does once its narration finishes: "I do" counting steps
+  // play their count, "we do" counting steps hand the count to the
+  // student, the combined steps do the same across both groups, and
+  // pure-narration steps just move on.
   function afterNarration() {
     const label = current.label
-    if (label === 'group-1' || label === 'both-groups' || label === 'we-do-group-1' || label === 'we-do-group-2') {
+    if (label === 'group-1' || label === 'both-groups') {
       countGroup()
-    } else if (label === 'combine' || label === 'we-do-group-combined') {
+    } else if (label === 'combine') {
       recountCombined()
+    } else if (label === 'we-do-group-1' || label === 'we-do-group-2') {
+      const groupIndex = groupIndexForStep(label)
+      startStudentCount(groupTargets(groupIndex, 0))
+    } else if (label === 'we-do-group-combined') {
+      continuousNumbering = true
+      revealedCounts = [0, 0]
+      let offset = 0
+      const targets: CountTarget[] = []
+      for (let gi = 0; gi < groups.length; gi++) {
+        targets.push(...groupTargets(gi, offset))
+        offset += groups[gi].count
+      }
+      startStudentCount(targets)
     } else {
       next()
     }
+  }
+
+  // One touch target per balloon in a group, numbered from offset + 1.
+  function groupTargets(groupIndex: number, offset: number): CountTarget[] {
+    return Array.from({ length: groups[groupIndex].count }, (_, j) => ({
+      groupIndex,
+      localIndex: j,
+      number: offset + j + 1,
+    }))
+  }
+
+  function startStudentCount(targets: CountTarget[]) {
+    shakeBalloon = null
+    clickQueue = targets
+    expected = targets[0] ?? null
+    phase = 'counting'
+  }
+
+  // The number a balloon currently shows, or undefined if it's unnumbered.
+  function shownNumber(groupIndex: number, localIndex: number): number | undefined {
+    if (localIndex >= revealedCounts[groupIndex]) return undefined
+    let offset = 0
+    if (continuousNumbering) {
+      for (let k = 0; k < groupIndex; k++) offset += groups[k].count
+    }
+    return offset + localIndex + 1
+  }
+
+  // Student touched a balloon during a "we do" count. The expected balloon
+  // gets its number and clip, exactly as the automatic count would have
+  // given it. Any other balloon is a miss: an already-numbered one
+  // re-speaks its number (a harmless way to hear it again), an unnumbered
+  // one wiggles "no", and either way the cue points out the balloon they
+  // should touch — the point of the exercise is touching them in order.
+  async function onBalloonClick(groupIndex: number, localIndex: number) {
+    if (!isWeDoCount || !expected) return
+
+    if (groupIndex === expected.groupIndex && localIndex === expected.localIndex) {
+      const target = expected
+      clickQueue = clickQueue.slice(1)
+      expected = clickQueue[0] ?? null
+      revealedCounts[groupIndex] = localIndex + 1
+      countAudio?.pause()
+      const { audio, played } = playNumberAudio(target.number)
+      countAudio = audio
+      if (expected) return
+      // Last balloon: let its number finish before moving on.
+      await played
+      if (phase === 'counting') phase = 'done'
+      return
+    }
+
+    hintVisible = true
+    const already = shownNumber(groupIndex, localIndex)
+    if (already !== undefined) {
+      countAudio?.pause()
+      countAudio = playNumberAudio(already).audio
+      return
+    }
+
+    shakeBalloon = { groupIndex, localIndex, key: (shakeBalloon?.key ?? 0) + 1 }
   }
 
   $effect(() => {
@@ -224,6 +342,13 @@
           },
           '<'
         )
+        // The box needed overflow: hidden while collapsed so its balloons
+        // didn't spill out of a zero-width box; once it's open that would
+        // clip the "touch this balloon" callout hanging below the balloons,
+        // so lift it just before the reveal lands. Being inside the
+        // timeline, it's undone again when the "we do" handoff seeks back
+        // to 'group-1' and re-collapses the box.
+        .set(boxes[1], { overflow: 'visible' }, '-=0.05')
         .addLabel('both-groups')
         // Merge the two groups into one combined box.
         .to(operator, { width: 0, opacity: 0, duration: 0.4, ease: 'power1.in' })
@@ -340,7 +465,16 @@
 <div bind:this={containerEl}>
   <p class="lesson-transcript">{current.transcript}</p>
 
-  <GroupsDisplay {groups} {revealedCounts} {continuousNumbering} instant={hideNumbersInstantly} />
+  <GroupsDisplay
+    {groups}
+    {revealedCounts}
+    {continuousNumbering}
+    instant={hideNumbersInstantly}
+    onBalloonClick={isWeDoCount ? onBalloonClick : undefined}
+    bounceBalloon={expected}
+    hintBalloon={hintVisible && expected ? { ...expected, text: HINT_TEXT } : null}
+    {shakeBalloon}
+  />
 
   {#if phase === 'done' && stepIndex === steps.length - 1}
     <button class="btn-primary" onclick={next}>
