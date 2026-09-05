@@ -82,10 +82,13 @@
   }
 
   .group-box {
-    border: 2px dashed #a9c9e8;
+    border: 1px solid light-dark(rgba(169, 201, 232, 0.4), rgba(0, 0, 0, 0.3));
     border-radius: 0.75rem;
     padding: 1rem 1.25rem;
     background: light-dark(#eaf3fc, #16233a);
+    box-shadow:
+      -6px -6px 12px light-dark(rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.04)),
+      6px 6px 12px light-dark(rgba(163, 190, 216, 0.55), rgba(0, 0, 0, 0.45));
     /* Pinned to match this box's own light/dark background rather than
        inheriting the lesson card's fixed light color, which is tuned for
        the card's dark wood background, not this box's pale one. */

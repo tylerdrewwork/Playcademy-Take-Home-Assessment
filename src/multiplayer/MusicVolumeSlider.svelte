@@ -22,18 +22,9 @@
   .music-volume {
     display: flex;
     align-items: center;
-    background-color: #1a1a1a;
-    padding: 0.4rem 0.75rem;
-    border-radius: 8px;
   }
 
   input[type='range'] {
     width: 6rem;
-  }
-
-  @media (prefers-color-scheme: light) {
-    .music-volume {
-      background-color: #f9f9f9;
-    }
   }
 </style>

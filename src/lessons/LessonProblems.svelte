@@ -34,6 +34,7 @@
       color: GROUP_COLORS[i % GROUP_COLORS.length],
     }))
   )
+  let totalProblems = $derived(addition1LessonProgress.progress?.problems.sequence.length ?? 0)
 
   // Which problem's groups have been pushed together. Comparing against the
   // displayed problem id (rather than a plain boolean) means the button
@@ -163,10 +164,17 @@
 
   function handleAnswerInput(event) {
     const value = event.currentTarget.value
+    // Clears any custom validity message set by handleAnswerInvalid so the
+    // browser re-checks the (now non-empty) field normally on next submit.
+    event.currentTarget.setCustomValidity('')
     addition1EvaluationRecorder.recordEvent({ type: 'input-change', value })
     if (!/^\d*$/.test(value)) {
       addition1EvaluationRecorder.recordEvent({ type: 'nonnumeric-input', value })
     }
+  }
+
+  function handleAnswerInvalid(event) {
+    event.currentTarget.setCustomValidity('Type the number of balloons here!')
   }
 
   function pushTogether() {
@@ -354,8 +362,22 @@
 <svelte:window onkeydown={handleGlobalDigit} />
 
 <section class="problems" data-eval-id="problem-area">
+  <div
+    class="progress-track"
+    role="progressbar"
+    aria-label="Problem progress"
+    aria-valuenow={displayIndex + 1}
+    aria-valuemin="1"
+    aria-valuemax={totalProblems}
+    aria-valuetext={`Problem ${displayIndex + 1} of ${totalProblems}`}
+  >
+    {#each Array.from({ length: totalProblems }) as _, i}
+      <span class="progress-segment" class:filled={i <= displayIndex}></span>
+    {/each}
+  </div>
+
   <p class="problem-counter">
-    Problem {displayIndex + 1} of {addition1LessonProgress.progress.problems.sequence.length}
+    Problem {displayIndex + 1} of {totalProblems}
   </p>
 
   <div class="problem-card">
@@ -388,6 +410,7 @@
         bind:this={answerInputEl}
         bind:value={inputValue}
         oninput={handleAnswerInput}
+        oninvalid={handleAnswerInvalid}
       />
       <button type="submit" class="submit" data-eval-id="submit" disabled={celebration.active}>Submit</button>
     </form>
@@ -418,10 +441,32 @@
     padding: 0 1rem;
   }
 
+  .progress-track {
+    display: flex;
+    gap: 0.35rem;
+    max-width: 28rem;
+    margin: 2rem auto 0;
+    padding: 0.4rem 0.6rem;
+    border-radius: 999px;
+    background: light-dark(rgba(107, 114, 128, 0.15), rgba(255, 255, 255, 0.08));
+  }
+
+  .progress-segment {
+    flex: 1;
+    height: 0.6rem;
+    border-radius: 999px;
+    background: light-dark(rgba(107, 114, 128, 0.3), rgba(255, 255, 255, 0.18));
+    transition: background-color 0.3s ease;
+  }
+
+  .progress-segment.filled {
+    background: #3f9d46;
+  }
+
   .problem-counter {
     text-align: center;
     color: light-dark(#6b7280, #9ca3af);
-    margin: 2rem 0 1rem;
+    margin: 0.5rem 0 1rem;
   }
 
   /* Same card treatment as the lesson's .lesson-card, minus the fixed
@@ -432,7 +477,7 @@
     max-width: 40rem;
     margin: 0 auto 2rem;
     padding: 2rem;
-    border-radius: 1rem;
+    border-radius: 2rem;
     background: linear-gradient(180deg, #ffffff 0%, #f3f4f6 100%);
     /* The gradient is a fixed light look in both themes, so the card's
        text color is pinned here too instead of following light-dark(). */

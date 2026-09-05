@@ -43,13 +43,17 @@
        so this card has to fit within that, not grow past it. Centered by
        the flex layout in App.svelte rather than margin. Content sizing
        (transcript font-size, balloon size) is itself vh-aware so it fits
-       here instead of needing to be clipped. */
+       here instead of needing to be clipped.
+       Height is 100dvh minus a fixed 7rem (not a vh percentage) so the
+       centered gap above the card is always >= 3.5rem on every viewport —
+       enough to clear the fixed top-left Options pill regardless of how
+       short the window is. */
     width: min(95vw, 85rem);
-    height: min(94vh, 62rem);
+    height: min(calc(100dvh - 7rem), 62rem);
     min-width: 20rem;
     overflow: hidden;
     padding: clamp(1rem, 3vh, 2rem) clamp(1.5rem, 3vw, 3rem);
-    border-radius: 1rem;
+    border-radius: 2rem;
     background: linear-gradient(180deg, #ffffff 0%, #f3f4f6 100%);
     /* The gradient is a fixed light look in both themes, so the card's
        text color is pinned here too instead of following light-dark(). */

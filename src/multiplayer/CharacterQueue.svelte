@@ -241,20 +241,21 @@
      it. Sized in em/rem rather than viewport units — the ambient
      percentage-based layout plus .speech-anchor's own scale(0.68) already
      make its rendered size responsive without any extra media queries.
-     Sizing (font-size/padding/max-width/border-radius) is ~15% larger
-     than a plain 0.85rem/0.45em·0.7em/9em/0.9em baseline. */
+     Sizing (font-size/padding/max-width/border-radius) is ~35% larger
+     again on top of an original ~15%-larger-than-baseline pass, so it's
+     now ~1.55x a plain 0.85rem/0.45em·0.7em/9em/0.9em baseline. */
   .speech-bubble {
     position: absolute;
     bottom: 100%;
     left: 29%;
     transform: translateX(-50%);
     margin: 0 0 0.5em;
-    max-width: 10.35em;
-    padding: 0.52em 0.8em;
-    border-radius: 1.03em;
+    max-width: 13.97em;
+    padding: 0.7em 1.08em;
+    border-radius: 1.39em;
     background: #fff8ec;
     color: #2b1d0e;
-    font-size: 0.98rem;
+    font-size: 1.32rem;
     font-weight: 600;
     line-height: 1.2;
     text-align: center;
