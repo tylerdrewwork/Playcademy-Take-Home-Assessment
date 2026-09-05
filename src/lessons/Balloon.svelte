@@ -9,15 +9,16 @@
   //
   // clickable: the student is expected to touch balloons right now (the
   // "we do" count); the balloon becomes a focusable button and reports
-  // taps via onclick. hint: this is the balloon the student should touch
-  // next — it pulses gently until they do. shakeKey: bump it to make the
+  // taps via onclick. hint: when non-empty, a callout with this text and a
+  // pointing hand appears under the balloon — used to point the student at
+  // the balloon they should touch next. shakeKey: bump it to make the
   // balloon wiggle "no" (a tap that was out of order).
   let {
     color = 'blue',
     number = undefined,
     instant = false,
     clickable = false,
-    hint = false,
+    hint = '',
     shakeKey = 0,
     onclick = undefined,
   } = $props()
@@ -39,23 +40,7 @@
 
   let svgEl
   let popTween
-  let hintTween
   let shakeTween
-
-  // Gentle breathing pulse on the balloon the student should touch next.
-  // Infinite repeat, so it must be killed both when the hint moves on and
-  // on unmount. Declared before the pop effect so that, when the hinted
-  // balloon is tapped (hint -> false, number set in the same flush), the
-  // pulse is torn down before the pop starts.
-  $effect(() => {
-    if (!hint || !svgEl) return
-    hintTween = gsap.to(svgEl, { scale: 1.12, duration: 0.55, ease: 'sine.inOut', yoyo: true, repeat: -1 })
-    return () => {
-      hintTween?.kill()
-      hintTween = undefined
-      gsap.set(svgEl, { scale: 1 })
-    }
-  })
 
   // Pop the balloon larger as it's counted, then settle back down, so the
   // student's eye is drawn to whichever balloon the count just landed on.
@@ -83,7 +68,6 @@
 
   onDestroy(() => {
     popTween?.kill()
-    hintTween?.kill()
     shakeTween?.kill()
   })
 
@@ -101,26 +85,36 @@
   }
 </script>
 
-<svg
-  bind:this={svgEl}
-  class="balloon"
-  class:clickable
-  viewBox="0 0 40 56"
-  {...a11yAttrs}
-  onclick={handleClick}
-  onkeydown={handleKeydown}
->
-  <ellipse cx="20" cy="22" rx="18" ry="20" fill={fill.body} />
-  <ellipse cx="14" cy="14" rx="6" ry="8" fill={fill.highlight} opacity="0.7" />
-  <path d="M17 41 L20 47 L23 41 Z" fill={fill.body} />
-  <line x1="20" y1="47" x2="20" y2="56" stroke="#999" stroke-width="1" />
-  {#if number !== undefined}
-    <text x="20" y="27" text-anchor="middle" class="number" out:fade={{ duration: instant ? 0 : 400 }}>{number}</text>
+<!-- The wrapper (not the svg) is the sized flex item so the hint callout
+     can hang below the balloon without changing the row's layout. -->
+<div class="balloon-slot">
+  <svg
+    bind:this={svgEl}
+    class="balloon"
+    class:clickable
+    viewBox="0 0 40 56"
+    {...a11yAttrs}
+    onclick={handleClick}
+    onkeydown={handleKeydown}
+  >
+    <ellipse cx="20" cy="22" rx="18" ry="20" fill={fill.body} />
+    <ellipse cx="14" cy="14" rx="6" ry="8" fill={fill.highlight} opacity="0.7" />
+    <path d="M17 41 L20 47 L23 41 Z" fill={fill.body} />
+    <line x1="20" y1="47" x2="20" y2="56" stroke="#999" stroke-width="1" />
+    {#if number !== undefined}
+      <text x="20" y="27" text-anchor="middle" class="number" out:fade={{ duration: instant ? 0 : 400 }}>{number}</text>
+    {/if}
+  </svg>
+  {#if hint}
+    <div class="hint" transition:fade={{ duration: 200 }} role="status">
+      <span class="hint-hand" aria-hidden="true">👆</span>
+      <span class="hint-text">{hint}</span>
+    </div>
   {/if}
-</svg>
+</div>
 
 <style>
-  .balloon {
+  .balloon-slot {
     /* Scales with the viewport and shrinks as the combined balloon count
        grows, targeting a touch-friendly size. Capped by vh as well as vw
        so a tall balloon (aspect-ratio below) doesn't push the card past
@@ -130,6 +124,11 @@
     width: clamp(2rem, min(calc(80vw / var(--balloon-count, 5)), 12vh), 10rem);
     min-width: 0;
     flex-shrink: 1;
+    position: relative;
+  }
+
+  .balloon {
+    width: 100%;
     height: auto;
     aspect-ratio: 40 / 56;
     display: block;
@@ -137,9 +136,9 @@
 
   .balloon.clickable {
     cursor: pointer;
-    /* Balloons overflow their box slightly while popping/pulsing, so a
-       focus ring drawn outside the shape reads cleaner than one clipped
-       to the viewBox. */
+    /* Balloons overflow their box slightly while popping, so a focus ring
+       drawn outside the shape reads cleaner than one clipped to the
+       viewBox. */
     outline-offset: 4px;
     border-radius: 50%;
   }
@@ -154,5 +153,56 @@
     fill: #ffffff;
     stroke: #00000055;
     stroke-width: 0.5px;
+  }
+
+  /* Hangs centered under the balloon, out of the row's layout flow, and
+     is allowed to spill past the group box so the text never wraps into
+     an unreadable column at small balloon sizes. */
+  .hint {
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.1rem;
+    padding-top: 0.15rem;
+    white-space: nowrap;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .hint-hand {
+    font-size: 1.75rem;
+    line-height: 1;
+    animation: hint-bob 0.8s ease-in-out infinite;
+  }
+
+  .hint-text {
+    font-size: 0.95rem;
+    font-weight: bold;
+    padding: 0.25rem 0.6rem;
+    border-radius: 999px;
+    background: light-dark(#fff8dc, #4a3f1a);
+    color: light-dark(#213547, #fff8dc);
+    border: 2px solid #f0b429;
+    box-shadow: 0 2px 6px #00000033;
+  }
+
+  @keyframes hint-bob {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-0.35rem);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hint-hand {
+      animation: none;
+    }
   }
 </style>

@@ -83,11 +83,14 @@
   let clickQueue: CountTarget[] = []
   let expected = $state<CountTarget | null>(null)
 
-  // Whether the next-balloon cue (a pulse) is showing. It's held back for
-  // a beat after each correct touch so the student gets a first try at
-  // picking the next balloon on their own; it appears only if they stall.
+  // Whether the next-balloon cue (a pointing hand + "Touch this balloon"
+  // under the expected balloon) is showing. It's held back for a beat
+  // after each correct touch so the student gets a first try at picking
+  // the next balloon on their own; it appears if they stall or touch the
+  // wrong balloon, and clears on the next correct touch.
   let hintVisible = $state(false)
   const HINT_IDLE_MS = 2500
+  const HINT_TEXT = 'Touch this balloon to count it!'
 
   // The balloon most recently touched out of order, with a key that bumps
   // on every wrong touch so repeated taps on the same balloon each wiggle.
@@ -184,9 +187,10 @@
 
   // Student touched a balloon during a "we do" count. The expected balloon
   // gets its number and clip, exactly as the automatic count would have
-  // given it; an already-numbered balloon just re-speaks its number (a
-  // harmless way to hear it again); any other balloon wiggles "no" and the
-  // count waits — the point of the exercise is touching them in order.
+  // given it. Any other balloon is a miss: an already-numbered one
+  // re-speaks its number (a harmless way to hear it again), an unnumbered
+  // one wiggles "no", and either way the cue points out the balloon they
+  // should touch — the point of the exercise is touching them in order.
   async function onBalloonClick(groupIndex: number, localIndex: number) {
     if (!isWeDoCount || !expected) return
 
@@ -205,6 +209,7 @@
       return
     }
 
+    hintVisible = true
     const already = shownNumber(groupIndex, localIndex)
     if (already !== undefined) {
       countAudio?.pause()
@@ -459,7 +464,7 @@
     {continuousNumbering}
     instant={hideNumbersInstantly}
     onBalloonClick={isWeDoCount ? onBalloonClick : undefined}
-    hintBalloon={hintVisible ? expected : null}
+    hintBalloon={hintVisible && expected ? { ...expected, text: HINT_TEXT } : null}
     {shakeBalloon}
   />
 
