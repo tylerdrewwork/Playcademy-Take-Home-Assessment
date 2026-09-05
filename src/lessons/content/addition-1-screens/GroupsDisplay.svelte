@@ -7,17 +7,19 @@
   //
   // onBalloonClick(groupIndex, localIndex): when given, every balloon
   // becomes tappable and reports taps here (the "we do" count, where the
-  // student touches each balloon in order). hintBalloon: {groupIndex,
-  // localIndex, text} of the balloon that should be touched next, which
-  // gets a pointing-hand callout reading `text` under it. shakeBalloon:
-  // {groupIndex, localIndex, key} of a balloon that was just tapped out of
-  // order — bump key to wiggle it again.
+  // student touches each balloon in order). bounceBalloon: {groupIndex,
+  // localIndex} of the balloon that should be touched next, which bounces.
+  // hintBalloon: {groupIndex, localIndex, text} of a balloon to put a
+  // pointing-hand callout reading `text` under. shakeBalloon: {groupIndex,
+  // localIndex, key} of a balloon that was just tapped out of order — bump
+  // key to wiggle it again.
   let {
     groups,
     revealedCounts = [],
     continuousNumbering = false,
     instant = false,
     onBalloonClick = undefined,
+    bounceBalloon = null,
     hintBalloon = null,
     shakeBalloon = null,
   } = $props()
@@ -52,6 +54,7 @@
             number={j < (revealedCounts[i] ?? 0) ? numberOffset(i) + j + 1 : undefined}
             {instant}
             clickable={onBalloonClick != null}
+            bounce={isAt(bounceBalloon, i, j)}
             hint={isAt(hintBalloon, i, j) ? hintBalloon.text : ''}
             shakeKey={isAt(shakeBalloon, i, j) ? shakeBalloon.key : 0}
             onclick={onBalloonClick ? () => onBalloonClick(i, j) : undefined}

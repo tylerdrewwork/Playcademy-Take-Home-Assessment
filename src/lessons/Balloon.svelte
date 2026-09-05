@@ -9,15 +9,18 @@
   //
   // clickable: the student is expected to touch balloons right now (the
   // "we do" count); the balloon becomes a focusable button and reports
-  // taps via onclick. hint: when non-empty, a callout with this text and a
-  // pointing hand appears under the balloon — used to point the student at
-  // the balloon they should touch next. shakeKey: bump it to make the
-  // balloon wiggle "no" (a tap that was out of order).
+  // taps via onclick. bounce: this is the balloon the student should touch
+  // next — it bounces up and down until they do. hint: when non-empty, a
+  // callout with this text and a pointing hand appears under the balloon
+  // (shown on top of the bounce once the student has stalled or missed).
+  // shakeKey: bump it to make the balloon wiggle "no" (a tap that was out
+  // of order).
   let {
     color = 'blue',
     number = undefined,
     instant = false,
     clickable = false,
+    bounce = false,
     hint = '',
     shakeKey = 0,
     onclick = undefined,
@@ -43,13 +46,13 @@
   let popTween
   let shakeTween
 
-  // While the hint callout is up, the balloon it points at bounces up and
-  // down so it stands out from its neighbours. Infinite repeat, so it must
-  // be killed both when the hint clears and on unmount. Declared before the
-  // pop effect so that, when the hinted balloon is tapped (hint cleared and
-  // number set in the same flush), the bounce is torn down first.
+  // The balloon to touch next bounces up and down so it stands out from
+  // its neighbours. Infinite repeat, so it must be killed both when the
+  // bounce moves on and on unmount. Declared before the pop effect so that,
+  // when the bouncing balloon is tapped (bounce cleared and number set in
+  // the same flush), the bounce is torn down first.
   $effect(() => {
-    if (!hint || !svgEl) return
+    if (!bounce || !svgEl) return
     bounceTween = gsap.to(svgEl, { y: -10, duration: 0.4, ease: 'sine.inOut', yoyo: true, repeat: -1 })
     return () => {
       bounceTween?.kill()

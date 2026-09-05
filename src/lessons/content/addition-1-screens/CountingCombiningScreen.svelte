@@ -83,11 +83,11 @@
   let clickQueue: CountTarget[] = []
   let expected = $state<CountTarget | null>(null)
 
-  // Whether the next-balloon cue (a pointing hand + "Touch this balloon"
-  // under the expected balloon) is showing. It's held back for a beat
-  // after each correct touch so the student gets a first try at picking
-  // the next balloon on their own; it appears if they stall or touch the
-  // wrong balloon, and clears on the next correct touch.
+  // The expected balloon bounces from the moment it becomes the next one
+  // to touch. This stronger cue (a pointing hand + "Touch this balloon"
+  // under it) is held back so the student gets a first try at picking the
+  // next balloon on their own; it appears if they stall or touch the wrong
+  // balloon, and clears on the next correct touch.
   let hintVisible = $state(false)
   const HINT_IDLE_MS = 5000
   const HINT_TEXT = 'Touch this balloon to count it!'
@@ -471,6 +471,7 @@
     {continuousNumbering}
     instant={hideNumbersInstantly}
     onBalloonClick={isWeDoCount ? onBalloonClick : undefined}
+    bounceBalloon={expected}
     hintBalloon={hintVisible && expected ? { ...expected, text: HINT_TEXT } : null}
     {shakeBalloon}
   />
