@@ -6,7 +6,21 @@
   // instant: skip the number's fade-out (used when a whole group is being
   // faded/removed as a unit — the number shouldn't linger and animate on
   // its own on top of that).
-  let { color = 'blue', number = undefined, instant = false } = $props()
+  //
+  // clickable: the student is expected to touch balloons right now (the
+  // "we do" count); the balloon becomes a focusable button and reports
+  // taps via onclick. hint: this is the balloon the student should touch
+  // next — it pulses gently until they do. shakeKey: bump it to make the
+  // balloon wiggle "no" (a tap that was out of order).
+  let {
+    color = 'blue',
+    number = undefined,
+    instant = false,
+    clickable = false,
+    hint = false,
+    shakeKey = 0,
+    onclick = undefined,
+  } = $props()
 
   const fills = {
     blue: { body: '#4a90d9', highlight: '#8fc1f0' },
@@ -15,8 +29,33 @@
 
   let fill = $derived(fills[color] ?? fills.blue)
 
+  // Decorative by default (hidden from assistive tech); a real, focusable
+  // button while the student is expected to touch it.
+  let a11yAttrs = $derived(
+    clickable
+      ? { role: 'button', tabindex: 0, 'aria-label': `${color} balloon` }
+      : { 'aria-hidden': 'true' }
+  )
+
   let svgEl
   let popTween
+  let hintTween
+  let shakeTween
+
+  // Gentle breathing pulse on the balloon the student should touch next.
+  // Infinite repeat, so it must be killed both when the hint moves on and
+  // on unmount. Declared before the pop effect so that, when the hinted
+  // balloon is tapped (hint -> false, number set in the same flush), the
+  // pulse is torn down before the pop starts.
+  $effect(() => {
+    if (!hint || !svgEl) return
+    hintTween = gsap.to(svgEl, { scale: 1.12, duration: 0.55, ease: 'sine.inOut', yoyo: true, repeat: -1 })
+    return () => {
+      hintTween?.kill()
+      hintTween = undefined
+      gsap.set(svgEl, { scale: 1 })
+    }
+  })
 
   // Pop the balloon larger as it's counted, then settle back down, so the
   // student's eye is drawn to whichever balloon the count just landed on.
@@ -29,12 +68,48 @@
       .to(svgEl, { scale: 1, duration: 0.3, ease: 'power1.inOut' })
   })
 
+  // A quick side-to-side "no" when the student taps this balloon out of
+  // order — feedback that the tap registered but this isn't the next one.
+  $effect(() => {
+    if (!shakeKey || !svgEl) return
+    shakeTween?.kill()
+    shakeTween = gsap
+      .timeline()
+      .to(svgEl, { x: -6, duration: 0.07 })
+      .to(svgEl, { x: 6, duration: 0.07 })
+      .to(svgEl, { x: -4, duration: 0.07 })
+      .to(svgEl, { x: 0, duration: 0.07 })
+  })
+
   onDestroy(() => {
     popTween?.kill()
+    hintTween?.kill()
+    shakeTween?.kill()
   })
+
+  function handleClick() {
+    if (!clickable) return
+    onclick?.()
+  }
+
+  function handleKeydown(event) {
+    if (!clickable) return
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault()
+      onclick?.()
+    }
+  }
 </script>
 
-<svg bind:this={svgEl} class="balloon" viewBox="0 0 40 56" aria-hidden="true">
+<svg
+  bind:this={svgEl}
+  class="balloon"
+  class:clickable
+  viewBox="0 0 40 56"
+  {...a11yAttrs}
+  onclick={handleClick}
+  onkeydown={handleKeydown}
+>
   <ellipse cx="20" cy="22" rx="18" ry="20" fill={fill.body} />
   <ellipse cx="14" cy="14" rx="6" ry="8" fill={fill.highlight} opacity="0.7" />
   <path d="M17 41 L20 47 L23 41 Z" fill={fill.body} />
@@ -58,6 +133,19 @@
     height: auto;
     aspect-ratio: 40 / 56;
     display: block;
+  }
+
+  .balloon.clickable {
+    cursor: pointer;
+    /* Balloons overflow their box slightly while popping/pulsing, so a
+       focus ring drawn outside the shape reads cleaner than one clipped
+       to the viewBox. */
+    outline-offset: 4px;
+    border-radius: 50%;
+  }
+
+  .balloon.clickable:focus-visible {
+    outline: 3px solid #ffffff;
   }
 
   .number {
