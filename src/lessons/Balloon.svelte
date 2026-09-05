@@ -62,9 +62,7 @@
 
   .number {
     font-size: 1.1rem;
-    font-weight: bold;
+    font-weight: 800;
     fill: #ffffff;
-    stroke: #00000055;
-    stroke-width: 0.5px;
   }
 </style>

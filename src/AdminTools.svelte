@@ -158,6 +158,22 @@
 {/if}
 
 <style>
+  .admin-tools-trigger {
+    display: block;
+    width: 100%;
+    background-color: transparent;
+    border-color: transparent;
+    border-radius: 0.5rem;
+    white-space: nowrap;
+    text-align: left;
+    padding: 0.3em 0.6em;
+    box-shadow: none;
+  }
+
+  .admin-tools-trigger:hover {
+    background-color: rgba(128, 128, 128, 0.15);
+  }
+
   dialog {
     border-radius: 8px;
     border: none;
@@ -214,10 +230,12 @@
     gap: 0.5rem;
   }
 
-  /* Rolling on-screen log, pinned directly under the Admin Tools trigger. */
+  /* Rolling on-screen log. Pinned low enough on the left to clear the
+     Options pill and its dropdown menu (Admin Tools trigger + volume
+     slider) sitting above it in the top-left corner. */
   .eval-panel {
     position: fixed;
-    top: 3.75rem;
+    top: 9rem;
     left: 1rem;
     z-index: 10;
     width: min(24rem, calc(100vw - 2rem));
@@ -277,7 +295,7 @@
 
   .toast {
     position: fixed;
-    top: 4rem;
+    top: 9.5rem;
     left: 1rem;
     background-color: #1a1a1a;
     padding: 0.5rem 1rem;

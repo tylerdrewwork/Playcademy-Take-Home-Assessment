@@ -1,5 +1,5 @@
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: 'Nunito', system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
 
@@ -42,14 +42,38 @@ button {
   background-color: #1a1a1a;
   color: inherit;
   cursor: pointer;
-  transition: border-color 0.25s;
+  transition:
+    background-color 0.15s ease,
+    box-shadow 0.15s ease,
+    transform 0.1s ease;
+  /* Neumorphic "raised" look: a faint highlight from the light source plus
+     a soft shadow opposite it, both relative to the page background rather
+     than the button's own color, so it reads as extruded from the page. */
+  box-shadow:
+    -3px -3px 6px rgba(255, 255, 255, 0.04),
+    3px 3px 6px rgba(0, 0, 0, 0.4);
 }
 
 button:hover {
-  border-color: #ff3e00;
+  background-color: #242424;
 }
 
-button:focus,
+button:active {
+  /* Presses "into" the page: shadow flips to inset and the button nudges
+     down, instead of the raised look above. */
+  transform: translateY(1px);
+  box-shadow:
+    inset 2px 2px 4px rgba(0, 0, 0, 0.45),
+    inset -2px -2px 4px rgba(255, 255, 255, 0.03);
+}
+
+/* No ring after a mouse click — :focus alone fires for both mouse and
+   keyboard, so it's left bare here. :focus-visible below fires only for
+   keyboard/non-pointer focus, keeping the ring for keyboard accessibility. */
+button:focus {
+  outline: none;
+}
+
 button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
@@ -62,6 +86,19 @@ button:focus-visible {
 
   button {
     background-color: #f9f9f9;
+    box-shadow:
+      -3px -3px 6px rgba(255, 255, 255, 0.8),
+      3px 3px 6px rgba(0, 0, 0, 0.12);
+  }
+
+  button:hover {
+    background-color: #f0f0f0;
+  }
+
+  button:active {
+    box-shadow:
+      inset 2px 2px 4px rgba(0, 0, 0, 0.15),
+      inset -2px -2px 4px rgba(255, 255, 255, 0.7);
   }
 }
 
