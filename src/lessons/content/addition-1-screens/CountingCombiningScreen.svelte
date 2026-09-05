@@ -89,7 +89,7 @@
   // the next balloon on their own; it appears if they stall or touch the
   // wrong balloon, and clears on the next correct touch.
   let hintVisible = $state(false)
-  const HINT_IDLE_MS = 2500
+  const HINT_IDLE_MS = 5000
   const HINT_TEXT = 'Touch this balloon to count it!'
 
   // The balloon most recently touched out of order, with a key that bumps
@@ -342,6 +342,13 @@
           },
           '<'
         )
+        // The box needed overflow: hidden while collapsed so its balloons
+        // didn't spill out of a zero-width box; once it's open that would
+        // clip the "touch this balloon" callout hanging below the balloons,
+        // so lift it just before the reveal lands. Being inside the
+        // timeline, it's undone again when the "we do" handoff seeks back
+        // to 'group-1' and re-collapses the box.
+        .set(boxes[1], { overflow: 'visible' }, '-=0.05')
         .addLabel('both-groups')
         // Merge the two groups into one combined box.
         .to(operator, { width: 0, opacity: 0, duration: 0.4, ease: 'power1.in' })

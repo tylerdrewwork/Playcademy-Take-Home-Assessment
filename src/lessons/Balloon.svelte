@@ -39,8 +39,24 @@
   )
 
   let svgEl
+  let bounceTween
   let popTween
   let shakeTween
+
+  // While the hint callout is up, the balloon it points at bounces up and
+  // down so it stands out from its neighbours. Infinite repeat, so it must
+  // be killed both when the hint clears and on unmount. Declared before the
+  // pop effect so that, when the hinted balloon is tapped (hint cleared and
+  // number set in the same flush), the bounce is torn down first.
+  $effect(() => {
+    if (!hint || !svgEl) return
+    bounceTween = gsap.to(svgEl, { y: -10, duration: 0.4, ease: 'sine.inOut', yoyo: true, repeat: -1 })
+    return () => {
+      bounceTween?.kill()
+      bounceTween = undefined
+      gsap.set(svgEl, { y: 0 })
+    }
+  })
 
   // Pop the balloon larger as it's counted, then settle back down, so the
   // student's eye is drawn to whichever balloon the count just landed on.
@@ -67,6 +83,7 @@
   })
 
   onDestroy(() => {
+    bounceTween?.kill()
     popTween?.kill()
     shakeTween?.kill()
   })
@@ -136,15 +153,10 @@
 
   .balloon.clickable {
     cursor: pointer;
-    /* Balloons overflow their box slightly while popping, so a focus ring
-       drawn outside the shape reads cleaner than one clipped to the
-       viewBox. */
-    outline-offset: 4px;
-    border-radius: 50%;
-  }
-
-  .balloon.clickable:focus-visible {
-    outline: 3px solid #ffffff;
+    /* No focus ring: a ring around a tapped balloon reads as part of the
+       lesson's feedback (is it counted? selected?) when it isn't. The
+       number pop and hint callout carry the state instead. */
+    outline: none;
   }
 
   .number {
